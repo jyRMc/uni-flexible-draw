@@ -587,6 +587,52 @@
   padding: 4px;
 }
 
+.ud-property-icon-group {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.ud-property-icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 30px;
+  padding: 0;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background: #fafafa;
+  color: #555;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.ud-property-icon-btn:hover {
+  border-color: #7166F0;
+  color: #7166F0;
+  background: #f7f5ff;
+}
+
+.ud-property-icon-btn.active {
+  border-color: #7166F0;
+  color: #7166F0;
+  background: #f1efff;
+}
+
+.ud-property-line-type-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 14px;
+}
+
+.ud-property-line-type-icon svg {
+  width: 22px;
+  height: 14px;
+  overflow: visible;
+}
+
 /* ─── AI Panel ────────────────────────────────────────────────────────────── */
 
 .ud-ai-panel {

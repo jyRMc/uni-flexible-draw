@@ -54,6 +54,15 @@ function getOrthogonalVertices(source: EdgeVertexPoint, target: EdgeVertexPoint)
   ]
 }
 
+function getMidpointVertex(source: EdgeVertexPoint, target: EdgeVertexPoint): EdgeVertexPoint[] {
+  return [
+    {
+      x: (source.x + target.x) / 2,
+      y: (source.y + target.y) / 2,
+    },
+  ]
+}
+
 export function getEdgeShapeLineType(shape: string): EdgeLineType | null {
   if (shape === EDGE_SHAPES.CURVE) return 'curve'
   if (shape === EDGE_SHAPES.ORTHOGONAL) return 'orthogonal'
@@ -154,6 +163,7 @@ export function getEdgeLineVertices(
     case 'straight':
     case 'manhattan':
     case 'jumpover':
+      return getMidpointVertex(source, target)
     default:
       return []
   }

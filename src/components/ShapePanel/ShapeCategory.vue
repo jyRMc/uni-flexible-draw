@@ -22,6 +22,7 @@
 </template>
 
 <script setup lang="ts">
+import '../../../lib/icon/iconfont.css'
 import { ref } from 'vue'
 import type { MaterialLibrary, MaterialItem } from '@uni-draw/shared'
 

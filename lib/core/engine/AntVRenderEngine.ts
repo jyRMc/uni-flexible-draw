@@ -71,7 +71,22 @@ export class AntVRenderEngine {
         : undefined,
       interacting: options.readonly
         ? { nodeMovable: false, edgeMovable: false, arrowheadMovable: false }
-        : { vertexAddable: true, vertexMovable: true, vertexDeletable: true, arrowheadMovable: true },
+        : ((cellView: any) => {
+            if (cellView.cell?.isEdge?.()) {
+              const isSelected = this.graph?.isSelected?.(cellView.cell) ?? false
+              return {
+                edgeMovable: isSelected,
+                vertexAddable: !isSelected,
+                vertexMovable: !isSelected,
+                vertexDeletable: !isSelected,
+                arrowheadMovable: !isSelected,
+              }
+            }
+
+            return {
+              nodeMovable: true,
+            }
+          }),
       connecting: {
         allowBlank: true,
         allowMulti: true,
@@ -152,18 +167,6 @@ export class AntVRenderEngine {
         const ports = view.container.querySelectorAll('.x6-port-body') as NodeListOf<SVGElement>
         ports.forEach((el) => { el.style.visibility = 'hidden' })
         node.removeTools()
-      })
-
-      // 悬停边时显示顶点手柄 + 端点手柄 + 删除按钮
-      this.graph.on('edge:mouseenter', ({ edge }: any) => {
-        edge.setTools([
-          { name: 'vertices', args: { snapRadius: 10 } },
-          { name: 'source-arrowhead' },
-          { name: 'target-arrowhead' },
-        ])
-      })
-      this.graph.on('edge:mouseleave', ({ edge }: any) => {
-        edge.removeTools()
       })
 
       // 双击节点：浮层 textarea 内联编辑标签（图片/SVG 节点由 useCanvas 处理）

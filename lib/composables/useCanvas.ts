@@ -228,6 +228,57 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
     }
   }
 
+  function renderEdgeEditTools(edge: any): void {
+    const graph = getGraph()
+    if (!graph) return
+    edge.setTools({
+      items: [
+        {
+          name: 'vertices',
+          args: {
+            addable: false,
+            attrs: {
+              fill: '#fff',
+              stroke: PRIMARY_COLOR,
+              'stroke-width': 2,
+              r: 5,
+              cursor: 'move',
+            },
+          },
+        },
+        { name: 'source-arrowhead', args: { attrs: { fill: PRIMARY_COLOR, r: 5 } } },
+        { name: 'target-arrowhead', args: { attrs: { fill: PRIMARY_COLOR, r: 5 } } },
+      ],
+    }, { async: false })
+    const view = graph.findViewByCell(edge)
+    if (view) {
+      ;(view as any).renderTools?.()
+    }
+  }
+
+  function removeEdgeEditTools(edge: any): void {
+    const graph = getGraph()
+    if (!graph) return
+    const view = graph.findViewByCell(edge)
+    if (view) {
+      try { view.removeTools() } catch {}
+    }
+  }
+
+  function showEdgeEditToolsOnHover(edge: any): void {
+    const graph = getGraph()
+    if (!graph || graph.isSelected?.(edge)) return
+    ensureAutoVertex(edge)
+    renderEdgeEditTools(edge)
+  }
+
+  function hideEdgeEditToolsOnHover(edge: any): void {
+    const graph = getGraph()
+    if (!graph || graph.isSelected?.(edge)) return
+    removeEdgeEditTools(edge)
+    releaseAutoVertex(edge)
+  }
+
   const sketch = useSketch(() => engine?.getGraph() ?? null)
   const {
     sketchMode,
@@ -315,6 +366,13 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
       zoom.value = sx
     })
 
+    graph.on('edge:mouseenter', ({ edge }: any) => {
+      showEdgeEditToolsOnHover(edge)
+    })
+    graph.on('edge:mouseleave', ({ edge }: any) => {
+      hideEdgeEditToolsOnHover(edge)
+    })
+
     // 监听节点/边选中
     graph.on('cell:selected', ({ cell }: any) => {
       if (cell.isNode?.()) {
@@ -323,31 +381,8 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
       } else if (cell.isEdge?.()) {
         selectedEdgeData.value = extractEdgeData(cell)
         selectedNodeData.value = null
-        ensureAutoVertex(cell)
-        // vertices + source/target arrowhead 工具
-        cell.setTools({
-          items: [
-            {
-              name: 'vertices',
-              args: {
-                addable: false,
-                attrs: {
-                  fill: '#fff',
-                  stroke: PRIMARY_COLOR,
-                  'stroke-width': 2,
-                  r: 5,
-                  cursor: 'move',
-                },
-              },
-            },
-            { name: 'source-arrowhead', args: { attrs: { fill: PRIMARY_COLOR, r: 5 } } },
-            { name: 'target-arrowhead', args: { attrs: { fill: PRIMARY_COLOR, r: 5 } } },
-          ],
-        }, { async: false })
-        const view = graph.findViewByCell(cell)
-        if (view) {
-          ;(view as any).renderTools?.()
-        }
+        removeEdgeEditTools(cell)
+        releaseAutoVertex(cell)
       } else {
         selectedNodeData.value = null
         selectedEdgeData.value = null
@@ -366,11 +401,7 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
       ).filter((c: any) => c.isNode?.()).length
       if (cell.isEdge?.()) {
         releaseAutoVertex(cell)
-        // 卸载边工具
-        const view = graph.findViewByCell(cell)
-        if (view) {
-          try { view.removeTools() } catch {}
-        }
+        removeEdgeEditTools(cell)
       }
       selectedNodeData.value = null
       selectedEdgeData.value = null

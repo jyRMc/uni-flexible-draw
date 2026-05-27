@@ -114,13 +114,17 @@
           <div class="qab-section-title">{{ t.quickAction.lineType }}</div>
           <div class="qab-row">
             <label>{{ t.quickAction.type }}</label>
-            <div class="qab-icon-row">
-              <button class="qab-icon-btn qab-chip" :class="{active: edgeLineType === 'straight'}" :title="t.quickAction.straight" @click="setEdgeLineType('straight')">{{ t.quickAction.straight }}</button>
-              <button class="qab-icon-btn qab-chip" :class="{active: edgeLineType === 'curve'}" :title="t.quickAction.curve" @click="setEdgeLineType('curve')">{{ t.quickAction.curve }}</button>
-              <button class="qab-icon-btn qab-chip" :class="{active: edgeLineType === 'rounded'}" :title="t.quickAction.rounded" @click="setEdgeLineType('rounded')">{{ t.quickAction.rounded }}</button>
-              <button class="qab-icon-btn qab-chip" :class="{active: edgeLineType === 'orthogonal'}" :title="t.quickAction.orthogonal" @click="setEdgeLineType('orthogonal')">{{ t.quickAction.orthogonal }}</button>
-              <button class="qab-icon-btn qab-chip" :class="{active: edgeLineType === 'manhattan'}" :title="t.quickAction.manhattan" @click="setEdgeLineType('manhattan')">{{ t.quickAction.manhattan }}</button>
-              <button class="qab-icon-btn qab-chip" :class="{active: edgeLineType === 'jumpover'}" :title="t.quickAction.jumpover" @click="setEdgeLineType('jumpover')">{{ t.quickAction.jumpover }}</button>
+            <div class="qab-icon-row qab-line-type-row">
+              <button
+                v-for="option in edgeLineTypeOptions"
+                :key="option.value"
+                class="qab-icon-btn qab-line-type-btn"
+                :class="{active: edgeLineType === option.value}"
+                :title="option.title"
+                @click="setEdgeLineType(option.value)"
+              >
+                <span class="qab-line-type-icon" v-html="option.svg"></span>
+              </button>
             </div>
           </div>
         </div>
@@ -215,6 +219,7 @@ import { ref, watch, computed } from 'vue'
 import ColorPicker from '../ColorPicker/ColorPicker.vue'
 import { PRIMARY_COLOR } from '../../styles/vars'
 import { useLocale } from '../../locale'
+import { getEdgeLineTypeOptions } from '../../shared'
 import {
   X as XIcon,
   AlignCenter as AlignCenterIcon,
@@ -280,6 +285,14 @@ const rxSupported = computed(() => {
 
 // 节点状态
 const t = useLocale()
+const edgeLineTypeOptions = computed(() => getEdgeLineTypeOptions({
+  straight: t.quickAction.straight,
+  curve: t.quickAction.curve,
+  rounded: t.quickAction.rounded,
+  orthogonal: t.quickAction.orthogonal,
+  manhattan: t.quickAction.manhattan,
+  jumpover: t.quickAction.jumpover,
+}))
 
 const currentSize = ref({ width: 100, height: 60 })
 const currentStroke = ref(PRIMARY_COLOR)
@@ -524,6 +537,7 @@ function onEdgeWidth(ev: Event) {
 .qab-icon-row {
   display: flex;
   flex: 1;
+  min-width: 0;
   gap: 3px;
 }
 
@@ -534,7 +548,7 @@ function onEdgeWidth(ev: Event) {
   justify-content: center;
   height: 24px;
   min-width: 0;
-  padding: 0 2px;
+  padding: 0 1px;
   border: 1px solid #e0e0e0;
   border-radius: 4px;
   background: #fafafa;
@@ -554,6 +568,30 @@ function onEdgeWidth(ev: Event) {
   border-color: var(--uni-draw-primary);
   background: var(--uni-draw-primary-bg);
   color: var(--uni-draw-primary);
+}
+
+.qab-line-type-btn {
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 0;
+}
+
+.qab-line-type-row {
+  gap: 2px;
+}
+
+.qab-line-type-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 12px;
+}
+
+.qab-line-type-icon :deep(svg) {
+  width: 18px;
+  height: 12px;
+  overflow: visible;
 }
 
 .qab-row input[type="color"] {

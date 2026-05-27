@@ -10,7 +10,7 @@ import { getAllLibraries } from './materials'
 import type { GraphData, NodeData, EdgeData, MaterialItem } from './shared/types'
 import type { AssetItem, TemplateItem } from './shared/types'
 import { PRIMARY_COLOR } from './shared/constants/theme'
-import { getEdgeLineConfig, getEdgeLineType, getEdgeLineVertices } from './shared'
+import { getEdgeLineConfig, getEdgeLineType, getEdgeLineTypeOptions, getEdgeLineVertices } from './shared'
 import { createNativeColorPicker, type NativeColorPickerInstance } from './components/ColorPicker/native'
 
 // ─── Public types ──────────────────────────────────────────────────────────
@@ -922,6 +922,24 @@ export class UniDraw {
       this.propertiesBody.appendChild(createRow(labelText, select))
     }
 
+    const appendIconButtonGroup = (
+      labelText: string,
+      value: string,
+      options: Array<{ value: string; title: string; svg: string }>,
+      onChange: (next: string) => void,
+    ): void => {
+      const group = el('div', 'ud-property-icon-group') as HTMLDivElement
+      for (const option of options) {
+        const button = el('button', `ud-property-icon-btn${option.value === value ? ' active' : ''}`) as HTMLButtonElement
+        button.type = 'button'
+        button.title = option.title
+        button.innerHTML = `<span class="ud-property-line-type-icon">${option.svg}</span>`
+        button.addEventListener('click', () => onChange(option.value))
+        group.appendChild(button)
+      }
+      this.propertiesBody.appendChild(createRow(labelText, group))
+    }
+
     if (this.selectedNodeId) {
       const node = graph.getCellById(this.selectedNodeId)
       if (!node || !node.isNode?.()) {
@@ -992,14 +1010,7 @@ export class UniDraw {
       edge.setAttrs?.({ line: { stroke: next } })
       this.opts.onDataChange?.(this.getData())
     })
-    appendSelectInput('线型', lineType, [
-      { label: '直线', value: 'straight' },
-      { label: '圆角折线', value: 'rounded' },
-      { label: '曲线', value: 'curve' },
-      { label: '正交折线', value: 'orthogonal' },
-      { label: '曼哈顿', value: 'manhattan' },
-      { label: '跨线', value: 'jumpover' },
-    ], (next) => {
+    appendIconButtonGroup('线型', lineType, getEdgeLineTypeOptions(), (next) => {
       const { router: nextRouter, connector: nextConnector } = getEdgeLineConfig(next)
       const vertices = getEdgeLineVertices(next, edge.getSourcePoint?.(), edge.getTargetPoint?.())
       edge.setData?.({ ...(edge.getData?.() ?? {}), lineType: next })
