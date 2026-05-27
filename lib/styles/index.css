@@ -1,4 +1,5 @@
 @import './vars.css';
+@import '../icon/iconfont.css';
 
 /* ── UniDraw root layout (must be global to guarantee flex layout) ── */
 .uni-draw {

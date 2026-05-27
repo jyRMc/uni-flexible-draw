@@ -1,7 +1,7 @@
 <template>
   <div class="shape-category">
     <div class="shape-category-header" @click="toggle">
-      <ChevronRight class="shape-category-arrow" :class="{ expanded: isExpanded }" :size="14" />
+      <span class="shape-category-arrow" :class="{ expanded: isExpanded }">›</span>
       <span class="shape-category-name">{{ library.name }}</span>
       <span class="shape-category-count">{{ library.items.length }}</span>
     </div>
@@ -15,47 +15,15 @@
         @dragstart="(e: DragEvent) => onDragStart(item, e)"
         @click="onSelect(item)"
       >
-        <component :is="getShapeIcon(item.shape)" class="shape-icon" />
+        <span :class="['shape-icon-font', 'iconfont', getShapeIconClass(item.shape)]" aria-hidden="true"></span>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, type Component } from 'vue'
+import { ref } from 'vue'
 import type { MaterialLibrary, MaterialItem } from '@uni-draw/shared'
-import { ChevronRight } from 'lucide-vue-next'
-import {
-  // Basic
-  SquareOutline, ReaderOutline, EllipseOutline, DiamondOutline, TriangleOutline,
-  PlayForwardOutline, FunnelOutline, AppsOutline, ShieldOutline, StopOutline,
-  StarOutline, AddOutline, ServerOutline, CloudOutline, DocumentOutline,
-  TextOutline, ImageOutline,
-  // Flowchart
-  PlayCircleOutline, HelpCircleOutline, SwapHorizontalOutline, DocumentTextOutline,
-  FileTrayStackedOutline, CodeSlashOutline, RadioButtonOffOutline, GitMergeOutline,
-  SaveOutline,
-  // Edge
-  RemoveOutline, EllipsisHorizontalOutline, ArrowForwardOutline,
-  AnalyticsOutline, ReturnDownForwardOutline,
-  // UML
-  ReorderFourOutline, CodeOutline, ApertureOutline, ListOutline, CubeOutline,
-  GiftOutline, ChatboxOutline, PersonOutline, HardwareChipOutline,
-  DesktopOutline, PeopleOutline, LayersOutline, GitNetworkOutline, AttachOutline,
-  // ER
-  DocumentLockOutline, LinkOutline, FingerPrintOutline, PricetagOutline,
-  KeyOutline, FlashOutline, ShareSocialOutline, ArrowDownCircleOutline,
-  // State
-  ScanOutline, RadioButtonOnOutline, CheckmarkCircleOutline, TimeOutline,
-  ReloadOutline, AddCircleOutline, GitBranchOutline, LogInOutline, LogOutOutline,
-  CloseCircleOutline, SendOutline, NotificationsOutline,
-  // DFD
-  SettingsOutline, ArchiveOutline, ExpandOutline, BuildOutline,
-  // Swimlane
-  FilmOutline, GridOutline, CutOutline,
-  // Sequence
-  PulseOutline, BarChartOutline, RepeatOutline, OptionsOutline, AlertOutline,
-} from '@vicons/ionicons5'
 
 export interface ShapeCategoryProps {
   library: MaterialLibrary
@@ -88,109 +56,113 @@ function onSelect(item: MaterialItem) {
   emit('select', item)
 }
 
-const SHAPE_ICONS: Record<string, Component> = {
-  // ── Basic ─────────────────────────────────────────────────────────────
-  'basic-rect':           SquareOutline,
-  'basic-rounded-rect':   ReaderOutline,        // rounded reader/card shape
-  'basic-circle':         EllipseOutline,
-  'basic-diamond':        DiamondOutline,
-  'basic-triangle':       TriangleOutline,
-  'basic-parallelogram':  PlayForwardOutline,   // slanted/diagonal
-  'basic-trapezoid':      FunnelOutline,        // funnel = trapezoid
-  'basic-hexagon':        AppsOutline,          // hex grid arrangement
-  'basic-pentagon':       ShieldOutline,        // shield = pentagon
-  'basic-octagon':        StopOutline,          // stop sign = octagon
-  'basic-star':           StarOutline,
-  'basic-cross':          AddOutline,           // plus = cross
-  'basic-cylinder':       ServerOutline,        // stacked discs = cylinder
-  'basic-cloud':          CloudOutline,
-  'basic-document':       DocumentOutline,
-  'basic-text':           TextOutline,
-  'basic-image':          ImageOutline,
-  // ── Flowchart ─────────────────────────────────────────────────────────
-  'flowchart-start-end':         PlayCircleOutline,
-  'flowchart-process':           SquareOutline,
-  'flowchart-decision':          HelpCircleOutline,
-  'flowchart-input-output':      SwapHorizontalOutline,
-  'flowchart-document':          DocumentTextOutline,
-  'flowchart-database':          FileTrayStackedOutline, // stacked trays = DB
-  'flowchart-predefined':        CodeSlashOutline,
-  'flowchart-connector':         RadioButtonOffOutline,  // small circle
-  'flowchart-merge':             GitMergeOutline,
-  'flowchart-internal-storage':  SaveOutline,
-  // ── Edge / Connector ──────────────────────────────────────────────────
-  'edge-line':          RemoveOutline,             // horizontal line
-  'edge-dashed':        EllipsisHorizontalOutline, // dots = dashed
-  'edge-arrow':         ArrowForwardOutline,
-  'edge-double-arrow':  SwapHorizontalOutline,
-  'edge-curve':         AnalyticsOutline,          // curved trend line
-  'edge-orthogonal':    ReturnDownForwardOutline,  // right-angle turn
-  // ── UML ───────────────────────────────────────────────────────────────
-  'uml-class':         ReorderFourOutline,   // header + sections
-  'uml-interface':     CodeOutline,          // code contract
-  'uml-abstract':      ApertureOutline,      // aperture = conceptual
-  'uml-enum':          ListOutline,          // enumerated list
-  'uml-object':        CubeOutline,          // object instance
-  'uml-package':       GiftOutline,          // boxed package
-  'uml-note':          ChatboxOutline,
-  'uml-actor':         PersonOutline,
-  'uml-use-case':      EllipseOutline,       // ellipse = use-case oval
-  'uml-component':     HardwareChipOutline,  // chip = component
-  'uml-deployment':    DesktopOutline,
-  'uml-collaboration': PeopleOutline,
-  'uml-composite':     LayersOutline,        // stacked layers = composite
-  'uml-node':          GitNetworkOutline,
-  'uml-artifact':      AttachOutline,        // attachment = artifact
-  // ── ER ────────────────────────────────────────────────────────────────
-  'er-entity':                   ListOutline,          // rows = entity
-  'er-weak-entity':              DocumentLockOutline,  // locked/weak
-  'er-relationship':             LinkOutline,
-  'er-identifying-relationship': FingerPrintOutline,   // unique identity
-  'er-attribute':                PricetagOutline,      // tag = attribute
-  'er-key-attribute':            KeyOutline,
-  'er-multivalued':              LayersOutline,        // stacked = multiple values
-  'er-derived':                  FlashOutline,         // computed/derived
-  'er-associative':              ShareSocialOutline,   // shared connections
-  'er-total-participation':      ArrowDownCircleOutline,
-  // ── State ─────────────────────────────────────────────────────────────
-  'state-simple':           ScanOutline,            // framed box = state
-  'state-initial':          RadioButtonOnOutline,   // filled dot = initial
-  'state-final':            CheckmarkCircleOutline, // done = final
-  'state-shallow-history':  TimeOutline,            // clock = history
-  'state-deep-history':     ReloadOutline,          // full reload = deep
-  'state-junction':         AddCircleOutline,       // + junction point
-  'state-choice':           GitBranchOutline,       // branching choice
-  'state-fork':             ShareSocialOutline,     // arrows out = fork
-  'state-join':             GitMergeOutline,        // merge = join
-  'state-entry-point':      LogInOutline,
-  'state-exit-point':       LogOutOutline,
-  'state-terminate':        CloseCircleOutline,
-  'state-signal-send':      SendOutline,
-  'state-signal-receive':   NotificationsOutline,
-  // ── DFD ───────────────────────────────────────────────────────────────
-  'dfd-process':           SettingsOutline,  // gear = process
-  'dfd-data-store':        ArchiveOutline,
-  'dfd-external-entity':   ExpandOutline,    // framed/expanded = external
-  'dfd-multiple-process':  BuildOutline,     // build tool = multi-process
-  // ── Swimlane ──────────────────────────────────────────────────────────
-  'swimlane-horizontal': ReorderFourOutline, // horizontal rows
-  'swimlane-vertical':   FilmOutline,        // vertical strips = lanes
-  'swimlane-pool':       GridOutline,
-  'swimlane-phase':      CutOutline,         // cut/divide = phase separator
-  // ── Sequence ──────────────────────────────────────────────────────────
-  'sequence-actor':              PersonOutline,
-  'sequence-lifeline':           PulseOutline,      // lifeline = pulse
-  'sequence-activation':         BarChartOutline,   // vertical bar = activation
-  'sequence-fragment-alt':       GitBranchOutline,  // alt branches
-  'sequence-fragment-opt':       HelpCircleOutline, // optional = question
-  'sequence-fragment-loop':      RepeatOutline,
-  'sequence-fragment-par':       OptionsOutline,    // parallel tracks
-  'sequence-fragment-critical':  AlertOutline,
-  'sequence-gateway':            GitNetworkOutline,
+const SHAPE_ICON_CLASSES: Record<string, string> = {
+  'basic-rect': 'icon-basic-rectangle',
+  'basic-rounded-rect': 'icon-basic-rounded-rectangle',
+  'basic-circle': 'icon-basic-circle',
+  'basic-diamond': 'icon-basic-diamond',
+  'basic-triangle': 'icon-basic-triangle',
+  'basic-parallelogram': 'icon-basic-parallelogram',
+  'basic-trapezoid': 'icon-basic-trapezoid',
+  'basic-hexagon': 'icon-basic-hexagon',
+  'basic-pentagon': 'icon-a-basic-pentagon',
+  'basic-octagon': 'icon-a-basic-octagon',
+  'basic-star': 'icon-a-basic-star',
+  'basic-cross': 'icon-a-basic-cross',
+  'basic-cylinder': 'icon-basic-cylinder',
+  'basic-cloud': 'icon-basic-cloud',
+  'basic-document': 'icon-basic-document',
+  'basic-text': 'icon-basic-text',
+  'basic-image': 'icon-basic-image',
+  'basic-svg': 'icon-basic-svg',
+  'flowchart-start-end': 'icon-flowchart-start-end',
+  'flowchart-process': 'icon-flowchart-process',
+  'flowchart-decision': 'icon-flowchart-decision',
+  'flowchart-input-output': 'icon-flowchart-input-output',
+  'flowchart-document': 'icon-flowchart-document',
+  'flowchart-database': 'icon-flowchart-database',
+  'flowchart-predefined': 'icon-flowchart-predefined',
+  'flowchart-connector': 'icon-flowchart-connector',
+  'flowchart-merge': 'icon-basic-triangle',
+  'flowchart-internal-storage': 'icon-flowchart-internal-storage',
+  'edge-line': 'icon-edge-line',
+  'edge-dashed': 'icon-edge-dashed',
+  'edge-arrow': 'icon-edge-arrow',
+  'edge-double-arrow': 'icon-edge-double-arrow',
+  'edge-curve': 'icon-edge-curve',
+  'edge-orthogonal': 'icon-edge-orthogonal',
+  'uml-class': 'icon-uml-class',
+  'uml-interface': 'icon-uml-interface',
+  'uml-abstract': 'icon-uml-class',
+  'uml-enum': 'icon-uml-enum',
+  'uml-object': 'icon-uml-class',
+  'uml-package': 'icon-uml-package',
+  'uml-note': 'icon-uml-note',
+  'uml-actor': 'icon-uml-actor',
+  'uml-use-case': 'icon-uml-use-case',
+  'uml-component': 'icon-uml-component',
+  'uml-deployment': 'icon-uml-node',
+  'uml-collaboration': 'icon-uml-collaboration',
+  'uml-composite': 'icon-uml-component',
+  'uml-node': 'icon-uml-node',
+  'uml-artifact': 'icon-uml-note',
+  'er-entity': 'icon-basic-rectangle',
+  'er-weak-entity': 'icon-basic-rectangle',
+  'er-relationship': 'icon-basic-diamond',
+  'er-identifying-relationship': 'icon-basic-diamond',
+  'er-attribute': 'icon-basic-circle',
+  'er-key-attribute': 'icon-basic-circle',
+  'er-multivalued': 'icon-basic-circle',
+  'er-derived': 'icon-basic-circle',
+  'er-associative': 'icon-basic-rectangle',
+  'er-total-participation': 'icon-edge-arrow',
+  'state-simple': 'icon-state-simple',
+  'state-initial': 'icon-state-initial',
+  'state-final': 'icon-state-final',
+  'state-shallow-history': 'icon-state-shallow-history',
+  'state-deep-history': 'icon-state-deep-history',
+  'state-junction': 'icon-state-junction',
+  'state-choice': 'icon-state-choice',
+  'state-fork': 'icon-state-fork',
+  'state-join': 'icon-state-join',
+  'state-entry-point': 'icon-state-initial',
+  'state-exit-point': 'icon-state-terminate',
+  'state-terminate': 'icon-state-terminate',
+  'state-signal-send': 'icon-state-signal-send',
+  'state-signal-receive': 'icon-state-signal-receive',
+  'dfd-process': 'icon-dfd-process',
+  'dfd-data-store': 'icon-dfd-data-store',
+  'dfd-external-entity': 'icon-dfd-external-entity',
+  'dfd-multiple-process': 'icon-dfd-multiple-process',
+  'swimlane-horizontal': 'icon-swimlane-horizontal',
+  'swimlane-vertical': 'icon-swimlane-vertical',
+  'swimlane-pool': 'icon-swimlane-horizontal',
+  'swimlane-phase': 'icon-swimlane-horizontal',
+  'sequence-actor': 'icon-sequence-actor',
+  'sequence-lifeline': 'icon-sequence-lifeline',
+  'sequence-activation': 'icon-sequence-activation',
+  'sequence-fragment-alt': 'icon-sequence-fragment-alt',
+  'sequence-fragment-opt': 'icon-sequence-fragment-opt',
+  'sequence-fragment-loop': 'icon-sequence-fragment-loop',
+  'sequence-fragment-par': 'icon-sequence-fragment-par',
+  'sequence-fragment-critical': 'icon-sequence-fragment-critical',
+  'sequence-gateway': 'icon-basic-diamond',
 }
 
-function getShapeIcon(shape: string): Component {
-  return SHAPE_ICONS[shape] ?? SquareOutline
+const CATEGORY_ICON_CLASSES: Record<string, string> = {
+  basic: 'icon-basic-rectangle',
+  flowchart: 'icon-flowchart-process',
+  edge: 'icon-edge-line',
+  uml: 'icon-uml-class',
+  er: 'icon-basic-rectangle',
+  state: 'icon-state-simple',
+  dfd: 'icon-dfd-process',
+  swimlane: 'icon-swimlane-horizontal',
+  sequence: 'icon-sequence-actor',
+}
+
+function getShapeIconClass(shape: string): string {
+  return SHAPE_ICON_CLASSES[shape] ?? CATEGORY_ICON_CLASSES[shape.split('-')[0]] ?? 'icon-basic-rectangle'
 }
 
 /*
@@ -366,9 +338,11 @@ function _getShapeSVG(shape: string): string {
   justify-content: center;
   width: 14px;
   height: 14px;
+  line-height: 1;
   transition: transform 0.2s;
   color: #999;
   flex-shrink: 0;
+  transform: rotate(0deg);
 }
 
 .shape-category-arrow.expanded {
@@ -414,15 +388,19 @@ function _getShapeSVG(shape: string): string {
   background: #dce5f5;
 }
 
-.shape-icon {
-  flex-shrink: 0;
+.shape-icon-font {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 18px;
   height: 18px;
-  color: #666;
+  font-size: 18px;
+  line-height: 1;
+  color: inherit;
   transition: color 0.15s;
 }
 
-.shape-category-item:hover .shape-icon {
-  color: var(--uni-draw-primary);
+.shape-category-item:hover .shape-icon-font {
+  color: inherit;
 }
 </style>
