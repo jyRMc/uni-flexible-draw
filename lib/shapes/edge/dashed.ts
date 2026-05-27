@@ -8,6 +8,8 @@ export const edgeDashed: Edge.Config = {
       stroke: PRIMARY_COLOR,
       strokeWidth: 2,
       strokeDasharray: '5 5',
+      sourceMarker: null,
+      targetMarker: null,
     },
   },
 }

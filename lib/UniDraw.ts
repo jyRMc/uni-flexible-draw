@@ -10,6 +10,7 @@ import { getAllLibraries } from './materials'
 import type { GraphData, NodeData, EdgeData, MaterialItem } from './shared/types'
 import type { AssetItem, TemplateItem } from './shared/types'
 import { PRIMARY_COLOR } from './shared/constants/theme'
+import { getEdgeLineConfig, getEdgeLineType, getEdgeLineVertices } from './shared'
 import { createNativeColorPicker, type NativeColorPickerInstance } from './components/ColorPicker/native'
 
 // ─── Public types ──────────────────────────────────────────────────────────
@@ -177,9 +178,9 @@ function materialPreviewSvg(shape: string): string {
     case 'edge-double-arrow':
       return wrap('0 0 44 16', `<line x1="12" y1="8" x2="32" y2="8" ${ln}/><polygon points="12,4 4,8 12,12" fill="${palette.stroke}"/><polygon points="32,4 40,8 32,12" fill="${palette.stroke}"/>`)
     case 'edge-curve':
-      return wrap('0 0 44 20', `<path d="M4,16 C14,4 30,4 40,16" ${ln}/>`)
+      return wrap('0 0 44 22', `<path d="M4,7 C11,7 11,17 22,17 C33,17 33,7 40,7" ${ln}/>`)
     case 'edge-orthogonal':
-      return wrap('0 0 44 28', `<polyline points="4,22 22,22 22,6 40,6" ${ln}/>`)
+      return wrap('0 0 44 28', `<path d="M4,22 L18,22 Q21,22 21,19 L21,9 Q21,6 24,6 L40,6" ${ln}/>`)
     case 'uml-actor':
     case 'sequence-actor':
       return wrap('0 0 24 36', `<circle cx="12" cy="7" r="5" ${ba}/><line x1="12" y1="12" x2="12" y2="24" ${ln}/><line x1="4" y1="17" x2="20" y2="17" ${ln}/><line x1="12" y1="24" x2="4" y2="32" ${ln}/><line x1="12" y1="24" x2="20" y2="32" ${ln}/>`)
@@ -973,14 +974,9 @@ export class UniDraw {
     const label = labels[0]?.attrs?.label?.text ?? ''
     const router = edge.getRouter?.()
     const connector = edge.getConnector?.()
-    let lineType = 'straight'
-    if (connector?.name === 'smooth') lineType = 'curve'
-    else if (connector?.name === 'rounded') lineType = 'rounded'
-    else if (connector?.name === 'jumpover') lineType = 'jumpover'
-    else if (router?.name === 'orth') lineType = 'orthogonal'
-    else if (router?.name === 'manhattan') lineType = 'manhattan'
+    const lineType = getEdgeLineType(router, connector, edge.getData?.())
     const sourceMarker = line.sourceMarker?.name ?? 'none'
-    const targetMarker = line.targetMarker?.name ?? 'block'
+    const targetMarker = line.targetMarker?.name ?? 'none'
 
     this.propertiesBody.appendChild(el('div', 'ud-properties-section-title', '连线属性'))
     appendTextInput('标题', label, (next) => {
@@ -1004,33 +1000,12 @@ export class UniDraw {
       { label: '曼哈顿', value: 'manhattan' },
       { label: '跨线', value: 'jumpover' },
     ], (next) => {
-      switch (next) {
-        case 'rounded':
-          edge.setRouter?.({ name: 'orth' })
-          edge.setConnector?.({ name: 'rounded', args: { radius: 8 } })
-          break
-        case 'curve':
-          edge.setRouter?.(null)
-          edge.setConnector?.({ name: 'smooth' })
-          break
-        case 'orthogonal':
-          edge.setRouter?.({ name: 'orth' })
-          edge.setConnector?.(null)
-          break
-        case 'manhattan':
-          edge.setRouter?.({ name: 'manhattan' })
-          edge.setConnector?.(null)
-          break
-        case 'jumpover':
-          edge.setRouter?.({ name: 'manhattan' })
-          edge.setConnector?.({ name: 'jumpover', args: { type: 'arc', size: 10 } })
-          break
-        case 'straight':
-        default:
-          edge.setRouter?.(null)
-          edge.setConnector?.(null)
-          break
-      }
+      const { router: nextRouter, connector: nextConnector } = getEdgeLineConfig(next)
+      const vertices = getEdgeLineVertices(next, edge.getSourcePoint?.(), edge.getTargetPoint?.())
+      edge.setData?.({ ...(edge.getData?.() ?? {}), lineType: next })
+      edge.setRouter?.(nextRouter)
+      edge.setConnector?.(nextConnector)
+      edge.setVertices?.(vertices)
       this.opts.onDataChange?.(this.getData())
     })
     appendSelectInput('线样式', line.strokeDasharray ?? '', [

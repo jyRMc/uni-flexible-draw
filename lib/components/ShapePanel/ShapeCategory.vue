@@ -15,7 +15,8 @@
         @dragstart="(e: DragEvent) => onDragStart(item, e)"
         @click="onSelect(item)"
       >
-        <span :class="['shape-icon-font', 'iconfont', getShapeIconClass(item.shape)]" aria-hidden="true"></span>
+        <div v-if="isEdgePreviewShape(item.shape)" class="shape-svg-preview" v-html="getEdgePreviewSvg(item.shape)"></div>
+        <span v-else :class="['shape-icon-font', 'iconfont', getShapeIconClass(item.shape)]" aria-hidden="true"></span>
       </div>
     </div>
   </div>
@@ -163,6 +164,37 @@ const CATEGORY_ICON_CLASSES: Record<string, string> = {
 
 function getShapeIconClass(shape: string): string {
   return SHAPE_ICON_CLASSES[shape] ?? CATEGORY_ICON_CLASSES[shape.split('-')[0]] ?? 'icon-basic-rectangle'
+}
+
+function isEdgePreviewShape(shape: string): boolean {
+  return shape === 'edge-line'
+    || shape === 'edge-dashed'
+    || shape === 'edge-arrow'
+    || shape === 'edge-double-arrow'
+    || shape === 'edge-curve'
+    || shape === 'edge-orthogonal'
+}
+
+function getEdgePreviewSvg(shape: string): string {
+  const stroke = 'currentColor'
+  const line = `fill="none" stroke="${stroke}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"`
+
+  switch (shape) {
+    case 'edge-line':
+      return `<svg viewBox="0 0 44 18" xmlns="http://www.w3.org/2000/svg"><line x1="4" y1="9" x2="40" y2="9" ${line}/></svg>`
+    case 'edge-dashed':
+      return `<svg viewBox="0 0 44 18" xmlns="http://www.w3.org/2000/svg"><line x1="4" y1="9" x2="40" y2="9" ${line} stroke-dasharray="5 3"/></svg>`
+    case 'edge-arrow':
+      return `<svg viewBox="0 0 44 18" xmlns="http://www.w3.org/2000/svg"><line x1="4" y1="9" x2="31" y2="9" ${line}/><polygon points="31,5 40,9 31,13" fill="${stroke}"/></svg>`
+    case 'edge-double-arrow':
+      return `<svg viewBox="0 0 44 18" xmlns="http://www.w3.org/2000/svg"><line x1="12" y1="9" x2="32" y2="9" ${line}/><polygon points="12,5 4,9 12,13" fill="${stroke}"/><polygon points="32,5 40,9 32,13" fill="${stroke}"/></svg>`
+    case 'edge-curve':
+      return `<svg viewBox="0 0 44 22" xmlns="http://www.w3.org/2000/svg"><path d="M4,7 C11,7 11,17 22,17 C33,17 33,7 40,7" ${line}/></svg>`
+    case 'edge-orthogonal':
+      return `<svg viewBox="0 0 44 28" xmlns="http://www.w3.org/2000/svg"><path d="M4,22 L18,22 Q21,22 21,19 L21,9 Q21,6 24,6 L40,6" ${line}/></svg>`
+    default:
+      return `<svg viewBox="0 0 44 18" xmlns="http://www.w3.org/2000/svg"><line x1="4" y1="9" x2="40" y2="9" ${line}/></svg>`
+  }
 }
 
 /*
@@ -398,6 +430,21 @@ function _getShapeSVG(shape: string): string {
   line-height: 1;
   color: inherit;
   transition: color 0.15s;
+}
+
+.shape-svg-preview {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  color: inherit;
+}
+
+.shape-svg-preview :deep(svg) {
+  width: 20px;
+  height: 20px;
+  overflow: visible;
 }
 
 .shape-category-item:hover .shape-icon-font {

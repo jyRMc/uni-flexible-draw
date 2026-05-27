@@ -3,7 +3,7 @@ import { useAlignment } from './useAlignment'
 import { useStyleEditor, type EdgeViewData } from './useStyleEditor'
 import { useSketch } from './useSketch'
 import type { GraphData, NodeData, EdgeData, MaterialItem, NodeStyle } from '@uni-draw/shared'
-import { PRIMARY_COLOR, DEFAULT_PORTS, EDGE_SHAPES, shortId } from '@uni-draw/shared'
+import { PRIMARY_COLOR, DEFAULT_PORTS, EDGE_SHAPES, getEdgeLineType, getEdgeLineVertices, isSameEdgeVertices, shortId } from '@uni-draw/shared'
 import {
   AntVRenderEngine,
   GraphManager,
@@ -163,57 +163,68 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
   let clipboardManager: ClipboardManager | null = null
   let unwatchModelValue: (() => void) | null = null
   let isEmittingUpdate = false
-  const autoVertexEdgeIds = new Set<string>()
+  const autoVertexEdgeMap = new Map<string, Array<{ x: number; y: number }>>()
   const autoVertexTolerance = 4
 
   function getGraph() {
     return engine?.getGraph() ?? null
   }
 
-  function getAutoVertex(edge: any): { x: number; y: number } | null {
+  function getAutoVertices(edge: any): Array<{ x: number; y: number }> {
     const src = edge.getSourcePoint?.()
     const tgt = edge.getTargetPoint?.()
-    if (!src || !tgt) return null
-    return { x: (src.x + tgt.x) / 2, y: (src.y + tgt.y) / 2 }
+    const lineType = getEdgeLineType(edge.getRouter?.(), edge.getConnector?.(), edge.getData?.())
+    return getEdgeLineVertices(lineType, src, tgt)
   }
 
-  function isNearPoint(a: { x: number; y: number }, b: { x: number; y: number }): boolean {
-    return Math.abs(a.x - b.x) <= autoVertexTolerance && Math.abs(a.y - b.y) <= autoVertexTolerance
+  function isAutoVertices(current: Array<{ x: number; y: number }>, expected: Array<{ x: number; y: number }>): boolean {
+    return isSameEdgeVertices(current, expected, autoVertexTolerance)
   }
 
   function ensureAutoVertex(edge: any): void {
+    const expected = getAutoVertices(edge)
+    if (expected.length === 0) return
     const vertices = edge.getVertices?.() ?? []
     if (vertices.length > 0) return
-    const vertex = getAutoVertex(edge)
-    if (!vertex) return
-    autoVertexEdgeIds.add(edge.id)
-    edge.setVertices([vertex], { silent: true })
+    autoVertexEdgeMap.set(edge.id, expected)
+    edge.setVertices(expected, { silent: true })
   }
 
   function syncAutoVertex(edge: any): void {
-    if (!autoVertexEdgeIds.has(edge.id)) return
-    const vertex = getAutoVertex(edge)
-    if (!vertex) return
+    const previous = autoVertexEdgeMap.get(edge.id)
+    if (!previous) return
+    const expected = getAutoVertices(edge)
     const vertices = edge.getVertices?.() ?? []
-    if (vertices.length === 1 && isNearPoint(vertices[0], vertex)) return
-    edge.setVertices([vertex], { silent: true })
+    if (expected.length === 0) {
+      if (isAutoVertices(vertices, previous)) {
+        edge.setVertices([], { silent: true })
+      }
+      autoVertexEdgeMap.delete(edge.id)
+      return
+    }
+    if (isAutoVertices(vertices, expected)) {
+      autoVertexEdgeMap.set(edge.id, expected)
+      return
+    }
+    edge.setVertices(expected, { silent: true })
+    autoVertexEdgeMap.set(edge.id, expected)
   }
 
   function releaseAutoVertex(edge: any): void {
     const vertices = edge.getVertices?.() ?? []
-    const vertex = getAutoVertex(edge)
-    if (autoVertexEdgeIds.has(edge.id) && vertices.length === 1 && vertex && isNearPoint(vertices[0], vertex)) {
+    const expected = autoVertexEdgeMap.get(edge.id)
+    if (expected && isAutoVertices(vertices, expected)) {
       edge.setVertices([], { silent: true })
     }
-    autoVertexEdgeIds.delete(edge.id)
+    autoVertexEdgeMap.delete(edge.id)
   }
 
   function refreshAutoVertexState(edge: any): void {
-    if (!autoVertexEdgeIds.has(edge.id)) return
+    const expected = autoVertexEdgeMap.get(edge.id)
+    if (!expected) return
     const vertices = edge.getVertices?.() ?? []
-    const vertex = getAutoVertex(edge)
-    if (!(vertices.length === 1 && vertex && isNearPoint(vertices[0], vertex))) {
-      autoVertexEdgeIds.delete(edge.id)
+    if (!isAutoVertices(vertices, expected)) {
+      autoVertexEdgeMap.delete(edge.id)
     }
   }
 
@@ -408,17 +419,19 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
       }
     })
     graph.on('edge:change:connector', ({ edge }: any) => {
+      syncAutoVertex(edge)
       if (selectedEdgeData.value && selectedEdgeData.value.id === edge.id) {
         selectedEdgeData.value = extractEdgeData(edge)
       }
     })
     graph.on('edge:change:router', ({ edge }: any) => {
+      syncAutoVertex(edge)
       if (selectedEdgeData.value && selectedEdgeData.value.id === edge.id) {
         selectedEdgeData.value = extractEdgeData(edge)
       }
     })
     graph.on('edge:removed', ({ edge }: any) => {
-      autoVertexEdgeIds.delete(edge.id)
+      autoVertexEdgeMap.delete(edge.id)
     })
     graph.on('node:change:position', ({ node }: any) => {
       graph.getConnectedEdges(node).forEach((edge: any) => syncAutoVertex(edge))

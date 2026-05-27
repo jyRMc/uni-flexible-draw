@@ -1,15 +1,31 @@
 import type { Graph, Edge } from '@antv/x6'
 import type { EdgeData } from '@uni-draw/shared'
+import { getEdgeLineConfig, getEdgeLineVertices, getEdgeShapeLineType } from '@uni-draw/shared'
 
 /**
  * 边工厂
  * 根据 EdgeData 创建 X6 边实例
  */
 export class EdgeFactory {
+  private static isPointEndpoint(endpoint: EdgeData['source'] | EdgeData['target']): endpoint is { x: number; y: number } {
+    return typeof endpoint === 'object' && endpoint !== null && 'x' in endpoint && 'y' in endpoint
+  }
+
   /**
    * 创建 X6 边
    */
   static createEdge(graph: Graph, data: EdgeData): Edge {
+    const rawData = data.data && typeof data.data === 'object' ? { ...data.data } : undefined
+    const inferredLineType = typeof rawData?.lineType === 'string'
+      ? rawData.lineType
+      : getEdgeShapeLineType(data.shape)
+    const lineConfig = inferredLineType ? getEdgeLineConfig(inferredLineType) : { router: null, connector: null }
+    const vertices = data.vertices !== undefined
+      ? data.vertices
+      : inferredLineType && this.isPointEndpoint(data.source) && this.isPointEndpoint(data.target)
+        ? getEdgeLineVertices(inferredLineType, data.source, data.target)
+        : undefined
+
     return graph.createEdge({
       id: data.id,
       shape: data.shape,
@@ -17,10 +33,10 @@ export class EdgeFactory {
       target: data.target,
       attrs: data.style ? { line: { ...data.style } } : undefined,
       label: typeof data.label === 'string' ? data.label : data.label?.text,
-      data: data.data,
-      vertices: data.vertices,
-      router: data.router,
-      connector: data.connector,
+      data: inferredLineType ? { ...(rawData ?? {}), lineType: inferredLineType } : data.data,
+      vertices,
+      router: data.router === undefined ? lineConfig.router : data.router,
+      connector: data.connector === undefined ? lineConfig.connector : data.connector,
     })
   }
 

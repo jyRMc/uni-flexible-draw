@@ -83,13 +83,10 @@ export class AntVRenderEngine {
         },
         createEdge() {
           return this.createEdge({
-            shape: 'edge',
-            router: { name: 'orth' },
-            connector: { name: 'rounded', args: { radius: 10 } },
+            shape: 'edge-line',
             attrs: {
               line: {
-                stroke: PRIMARY_COLOR,
-                strokeWidth: 2,
+                sourceMarker: null,
                 targetMarker: null,
               },
             },

@@ -8,6 +8,8 @@ export const edgeCurve: Edge.Config = {
     line: {
       stroke: PRIMARY_COLOR,
       strokeWidth: 2,
+      sourceMarker: null,
+      targetMarker: null,
     },
   },
 }

@@ -1,5 +1,5 @@
 import type { Ref } from 'vue'
-import { PRIMARY_COLOR } from '@uni-draw/shared'
+import { PRIMARY_COLOR, getEdgeLineConfig, getEdgeLineType, getEdgeLineVertices } from '@uni-draw/shared'
 
 export interface EdgeViewData {
   id: string
@@ -20,16 +20,11 @@ export function useStyleEditor(
     const line = edge.getAttrs?.()?.line ?? {}
     const router = edge.getRouter?.()
     const connector = edge.getConnector?.()
-    let lineType = 'straight'
-    if (connector?.name === 'smooth') lineType = 'curve'
-    else if (connector?.name === 'rounded') lineType = 'rounded'
-    else if (connector?.name === 'jumpover') lineType = 'jumpover'
-    else if (router?.name === 'orth') lineType = 'orthogonal'
-    else if (router?.name === 'manhattan') lineType = 'manhattan'
+    const lineType = getEdgeLineType(router, connector, edge.getData?.())
     const labels = edge.getLabels?.() ?? []
     const label = labels[0]?.attrs?.label?.text ?? ''
     const sourceMarker = line.sourceMarker?.name ?? 'none'
-    const targetMarker = line.targetMarker?.name ?? 'block'
+    const targetMarker = line.targetMarker?.name ?? 'none'
     return {
       id: edge.id,
       stroke: line.stroke ?? PRIMARY_COLOR,
@@ -138,33 +133,12 @@ export function useStyleEditor(
     const cell = graph.getCellById(id)
     if (!cell || !cell.isEdge?.()) return
     const edge = cell as any
-    switch (lineType) {
-      case 'rounded':
-        edge.setRouter({ name: 'orth' })
-        edge.setConnector({ name: 'rounded', args: { radius: 8 } })
-        break
-      case 'curve':
-        edge.setRouter(null)
-        edge.setConnector({ name: 'smooth' })
-        break
-      case 'orthogonal':
-        edge.setRouter({ name: 'orth' })
-        edge.setConnector(null)
-        break
-      case 'manhattan':
-        edge.setRouter({ name: 'manhattan' })
-        edge.setConnector(null)
-        break
-      case 'jumpover':
-        edge.setRouter({ name: 'manhattan' })
-        edge.setConnector({ name: 'jumpover', args: { type: 'arc', size: 10 } })
-        break
-      case 'straight':
-      default:
-        edge.setRouter(null)
-        edge.setConnector(null)
-        break
-    }
+    const { router, connector } = getEdgeLineConfig(lineType)
+    const vertices = getEdgeLineVertices(lineType, edge.getSourcePoint?.(), edge.getTargetPoint?.())
+    edge.setData?.({ ...(edge.getData?.() ?? {}), lineType })
+    edge.setRouter(router)
+    edge.setConnector(connector)
+    edge.setVertices(vertices)
     if (selectedEdgeData.value && selectedEdgeData.value.id === id) {
       selectedEdgeData.value = extractEdgeData(edge)
     }

@@ -29,7 +29,7 @@ export function useStyleEditor(
     const labels = edge.getLabels?.() ?? []
     const label = labels[0]?.attrs?.label?.text ?? ''
     const sourceMarker = line.sourceMarker?.name ?? 'none'
-    const targetMarker = line.targetMarker?.name ?? 'block'
+    const targetMarker = line.targetMarker?.name ?? 'none'
     return {
       id: edge.id,
       stroke: line.stroke ?? PRIMARY_COLOR,
