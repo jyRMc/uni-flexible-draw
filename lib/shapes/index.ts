@@ -1,0 +1,1 @@
+export { registerAllShapes } from './register'

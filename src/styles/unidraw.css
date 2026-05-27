@@ -1,0 +1,323 @@
+/* ─── UniDraw vanilla DOM styles ─────────────────────────────────────────── */
+
+.ud-root {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, sans-serif;
+  font-size: 13px;
+  color: #222;
+  background: #f5f6fa;
+  overflow: hidden;
+  position: relative;
+  box-sizing: border-box;
+}
+.ud-root *, .ud-root *::before, .ud-root *::after { box-sizing: inherit; }
+
+/* ─── Toolbar ─────────────────────────────────────────────────────────────── */
+
+.ud-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 0 10px;
+  height: 42px;
+  background: #fff;
+  border-bottom: 1px solid #e8e8ec;
+  flex-shrink: 0;
+  z-index: 10;
+}
+
+.ud-toolbar-sep {
+  width: 1px;
+  height: 18px;
+  background: #e8e8ec;
+  margin: 0 4px;
+}
+
+.ud-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: none;
+  border-radius: 5px;
+  background: transparent;
+  color: #555;
+  cursor: pointer;
+  transition: background .12s, color .12s;
+  flex-shrink: 0;
+}
+.ud-btn:hover { background: #f0f0f6; color: #333; }
+.ud-btn:active { background: #e6e4fa; color: var(--uni-draw-primary, #7166F0); }
+.ud-btn.active { background: #ede9fe; color: var(--uni-draw-primary, #7166F0); }
+.ud-btn:disabled { opacity: .35; cursor: not-allowed; }
+.ud-btn svg { pointer-events: none; }
+
+.ud-zoom-label {
+  min-width: 40px;
+  text-align: center;
+  font-size: 12px;
+  color: #888;
+  user-select: none;
+}
+
+/* ─── Body ────────────────────────────────────────────────────────────────── */
+
+.ud-body {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  min-height: 0;
+}
+
+/* ─── Sidebar ─────────────────────────────────────────────────────────────── */
+
+.ud-sidebar {
+  width: 200px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border-right: 1px solid #e8e8ec;
+  overflow: hidden;
+}
+
+.ud-sidebar-tabs {
+  display: flex;
+  border-bottom: 1px solid #e8e8ec;
+  flex-shrink: 0;
+}
+
+.ud-tab {
+  flex: 1;
+  padding: 8px 4px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #999;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  transition: all .12s;
+  text-align: center;
+}
+.ud-tab:hover { color: var(--uni-draw-primary, #7166F0); }
+.ud-tab.active {
+  color: var(--uni-draw-primary, #7166F0);
+  border-bottom-color: var(--uni-draw-primary, #7166F0);
+  background: #f5f3ff;
+}
+
+.ud-sidebar-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 0;
+}
+
+.ud-lib-group { margin-bottom: 4px; }
+
+.ud-lib-header {
+  padding: 6px 12px 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #aaa;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  cursor: pointer;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.ud-lib-header:hover { color: #666; }
+.ud-lib-header .ud-caret { transition: transform .15s; font-size: 9px; }
+.ud-lib-header.collapsed .ud-caret { transform: rotate(-90deg); }
+
+.ud-lib-items { padding: 0 8px; }
+.ud-lib-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 8px;
+  border-radius: 5px;
+  cursor: pointer;
+  color: #444;
+  transition: background .1s, color .1s;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 12.5px;
+  user-select: none;
+}
+.ud-lib-item:hover {
+  background: #f0effe;
+  color: var(--uni-draw-primary, #7166F0);
+}
+.ud-lib-item-icon {
+  width: 28px;
+  height: 22px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.ud-lib-items.collapsed { display: none; }
+
+/* ─── Canvas ──────────────────────────────────────────────────────────────── */
+
+.ud-canvas-wrap {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  min-width: 0;
+}
+
+.ud-canvas {
+  width: 100%;
+  height: 100%;
+  background: #fff;
+}
+
+/* ─── AI Panel ────────────────────────────────────────────────────────────── */
+
+.ud-ai {
+  width: 280px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border-left: 1px solid #e8e8ec;
+}
+
+.ud-ai-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-bottom: 1px solid #f0f0f5;
+  font-weight: 600;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+.ud-ai-icon {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #7166F0, #a855f7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.ud-ai-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ud-ai-msg {
+  max-width: 94%;
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 12.5px;
+  line-height: 1.55;
+  word-break: break-word;
+  white-space: pre-wrap;
+}
+.ud-ai-msg.user {
+  align-self: flex-end;
+  background: var(--uni-draw-primary, #7166F0);
+  color: #fff;
+  border-bottom-right-radius: 2px;
+}
+.ud-ai-msg.assistant {
+  align-self: flex-start;
+  background: #f3f3f8;
+  color: #333;
+  border-bottom-left-radius: 2px;
+}
+.ud-ai-msg.loading::after {
+  content: '●●●';
+  animation: ud-pulse 1s infinite;
+  letter-spacing: 2px;
+  font-size: 10px;
+  color: #aaa;
+}
+@keyframes ud-pulse {
+  0%, 100% { opacity: .3; }
+  50% { opacity: 1; }
+}
+
+.ud-ai-follow-ups {
+  padding: 0 12px 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.ud-ai-follow-up-btn {
+  padding: 5px 10px;
+  background: #f3f3f8;
+  border: 1px solid #e8e8ec;
+  border-radius: 5px;
+  font-size: 12px;
+  color: #555;
+  cursor: pointer;
+  text-align: left;
+  transition: all .12s;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ud-ai-follow-up-btn:hover {
+  background: #ede9fe;
+  border-color: var(--uni-draw-primary, #7166F0);
+  color: var(--uni-draw-primary, #7166F0);
+}
+
+.ud-ai-footer {
+  padding: 8px 12px;
+  border-top: 1px solid #f0f0f5;
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.ud-ai-input {
+  flex: 1;
+  padding: 7px 10px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 12.5px;
+  font-family: inherit;
+  resize: none;
+  outline: none;
+  transition: border-color .15s;
+  height: 34px;
+  line-height: 1.4;
+  overflow: hidden;
+}
+.ud-ai-input:focus { border-color: var(--uni-draw-primary, #7166F0); }
+.ud-ai-send {
+  width: 34px;
+  height: 34px;
+  border: none;
+  border-radius: 6px;
+  background: var(--uni-draw-primary, #7166F0);
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: opacity .12s;
+}
+.ud-ai-send:hover { opacity: .85; }
+.ud-ai-send:disabled { opacity: .4; cursor: not-allowed; }

@@ -1,0 +1,43 @@
+{
+  "name": "uni-flexible-draw",
+  "version": "0.0.1",
+  "description": "基于 Vue3 + AntV X6 的通用绘图组件库",
+  "type": "module",
+  "packageManager": "pnpm@9.0.0",
+  "scripts": {
+    "dev": "vite",
+    "dev:vue": "vite --config examples/vue/vite.config.ts examples/vue",
+    "dev:react": "pnpm --dir examples/react dev",
+    "dev:assets-api": "node scripts/serve-svg-assets.mjs",
+    "crawl:assets": "python scripts/crawl_scidraw_assets.py",
+    "build": "vite build",
+    "preview": "vite preview",
+    "lint": "eslint . --ext .ts,.tsx,.vue",
+    "lint:fix": "eslint . --ext .ts,.tsx,.vue --fix",
+    "format": "prettier --write \"**/*.{ts,tsx,vue,json,md}\""
+  },
+  "dependencies": {
+    "@antv/x6": "^2.18.1",
+    "@antv/x6-plugin-history": "^2.1.5",
+    "@antv/x6-plugin-selection": "^2.2.2",
+    "@antv/x6-plugin-transform": "^2.1.8",
+    "@vicons/ionicons5": "^0.12.0",
+    "lucide-vue-next": "^1.0.0",
+    "roughjs": "^4.6.6",
+    "vue-json-pretty": "^2.6.0"
+  },
+  "peerDependencies": {
+    "vue": "^3.4.0"
+  },
+  "devDependencies": {
+    "@antfu/eslint-config": "^2.21.0",
+    "@types/node": "^20.14.0",
+    "@vitejs/plugin-vue": "^5.0.0",
+    "eslint": "^9.4.0",
+    "prettier": "^3.3.0",
+    "typescript": "^5.4.5",
+    "vite": "^5.2.12",
+    "vue": "^3.4.27",
+    "vue-tsc": "^2.0.0"
+  }
+}

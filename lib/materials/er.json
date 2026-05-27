@@ -1,0 +1,18 @@
+{
+  "id": "er",
+  "name": "实体关系图",
+  "category": "er",
+  "icon": "",
+  "items": [
+    { "id": "er-entity", "name": "实体", "shape": "er-entity", "defaultSize": { "width": 120, "height": 50 }, "defaultLabel": "Entity" },
+    { "id": "er-weak-entity", "name": "弱实体", "shape": "er-weak-entity", "defaultSize": { "width": 120, "height": 50 }, "defaultLabel": "WeakEntity" },
+    { "id": "er-relationship", "name": "关系", "shape": "er-relationship", "defaultSize": { "width": 80, "height": 60 }, "defaultLabel": "Rel" },
+    { "id": "er-identifying-relationship", "name": "识别关系", "shape": "er-identifying-relationship", "defaultSize": { "width": 80, "height": 60 }, "defaultLabel": "IdRel" },
+    { "id": "er-attribute", "name": "属性", "shape": "er-attribute", "defaultSize": { "width": 80, "height": 40 }, "defaultLabel": "attr" },
+    { "id": "er-key-attribute", "name": "键属性", "shape": "er-key-attribute", "defaultSize": { "width": 80, "height": 40 }, "defaultLabel": "key" },
+    { "id": "er-multivalued", "name": "多值属性", "shape": "er-multivalued", "defaultSize": { "width": 80, "height": 40 }, "defaultLabel": "mval" },
+    { "id": "er-derived", "name": "派生属性", "shape": "er-derived", "defaultSize": { "width": 80, "height": 40 }, "defaultLabel": "derived" },
+    { "id": "er-associative", "name": "关联实体", "shape": "er-associative", "defaultSize": { "width": 100, "height": 50 }, "defaultLabel": "Assoc" },
+    { "id": "er-total-participation", "name": "完全参与", "shape": "er-total-participation", "defaultSize": { "width": 80, "height": 60 }, "defaultLabel": "Total" }
+  ]
+}

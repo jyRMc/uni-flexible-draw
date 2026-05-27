@@ -1,0 +1,5 @@
+export { edgeLine } from './line'
+export { edgeDashed } from './dashed'
+export { edgeArrow, edgeDoubleArrow } from './arrow'
+export { edgeCurve } from './curve'
+export { edgeOrthogonal } from './orthogonal'

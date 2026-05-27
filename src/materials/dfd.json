@@ -1,0 +1,12 @@
+{
+  "id": "dfd",
+  "name": "数据流图",
+  "category": "dfd",
+  "icon": "",
+  "items": [
+    { "id": "dfd-process", "name": "处理", "shape": "dfd-process", "defaultSize": { "width": 80, "height": 80 }, "defaultLabel": "P1" },
+    { "id": "dfd-data-store", "name": "数据存储", "shape": "dfd-data-store", "defaultSize": { "width": 120, "height": 40 }, "defaultLabel": "D1" },
+    { "id": "dfd-external-entity", "name": "外部实体", "shape": "dfd-external-entity", "defaultSize": { "width": 120, "height": 50 }, "defaultLabel": "Entity" },
+    { "id": "dfd-multiple-process", "name": "多重处理", "shape": "dfd-multiple-process", "defaultSize": { "width": 80, "height": 80 }, "defaultLabel": "P2" }
+  ]
+}

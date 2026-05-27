@@ -1,0 +1,23 @@
+{
+  "id": "uml",
+  "name": "类图",
+  "category": "uml",
+  "icon": "",
+  "items": [
+    { "id": "uml-class", "name": "类", "shape": "uml-class", "defaultSize": { "width": 160, "height": 120 }, "defaultLabel": "ClassName" },
+    { "id": "uml-interface", "name": "接口", "shape": "uml-interface", "defaultSize": { "width": 160, "height": 100 }, "defaultLabel": "InterfaceName" },
+    { "id": "uml-abstract", "name": "抽象类", "shape": "uml-abstract", "defaultSize": { "width": 160, "height": 120 }, "defaultLabel": "AbstractClass" },
+    { "id": "uml-enum", "name": "枚举", "shape": "uml-enum", "defaultSize": { "width": 160, "height": 100 }, "defaultLabel": "EnumName" },
+    { "id": "uml-object", "name": "对象", "shape": "uml-object", "defaultSize": { "width": 140, "height": 60 }, "defaultLabel": "ObjectName" },
+    { "id": "uml-package", "name": "包", "shape": "uml-package", "defaultSize": { "width": 180, "height": 100 }, "defaultLabel": "PackageName" },
+    { "id": "uml-note", "name": "注释", "shape": "uml-note", "defaultSize": { "width": 140, "height": 80 }, "defaultLabel": "Note" },
+    { "id": "uml-actor", "name": "参与者", "shape": "uml-actor", "defaultSize": { "width": 40, "height": 80 }, "defaultLabel": "Actor" },
+    { "id": "uml-use-case", "name": "用例", "shape": "uml-use-case", "defaultSize": { "width": 140, "height": 60 }, "defaultLabel": "UseCase" },
+    { "id": "uml-component", "name": "组件", "shape": "uml-component", "defaultSize": { "width": 140, "height": 60 }, "defaultLabel": "Component" },
+    { "id": "uml-deployment", "name": "部署节点", "shape": "uml-deployment", "defaultSize": { "width": 140, "height": 80 }, "defaultLabel": "Node" },
+    { "id": "uml-collaboration", "name": "协作", "shape": "uml-collaboration", "defaultSize": { "width": 140, "height": 70 }, "defaultLabel": "Collaboration" },
+    { "id": "uml-composite", "name": "组合结构", "shape": "uml-composite", "defaultSize": { "width": 140, "height": 80 }, "defaultLabel": "Composite" },
+    { "id": "uml-node", "name": "节点", "shape": "uml-node", "defaultSize": { "width": 140, "height": 80 }, "defaultLabel": "Node" },
+    { "id": "uml-artifact", "name": "制品", "shape": "uml-artifact", "defaultSize": { "width": 120, "height": 60 }, "defaultLabel": "Artifact" }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "id": "sequence",
+  "name": "时序图",
+  "category": "sequence",
+  "icon": "",
+  "items": [
+    { "id": "sequence-actor", "name": "参与者", "shape": "sequence-actor", "defaultSize": { "width": 60, "height": 90 }, "defaultLabel": "Actor" },
+    { "id": "sequence-lifeline", "name": "生命线", "shape": "sequence-lifeline", "defaultSize": { "width": 120, "height": 200 }, "defaultLabel": "Object" },
+    { "id": "sequence-activation", "name": "激活条", "shape": "sequence-activation", "defaultSize": { "width": 16, "height": 60 }, "defaultLabel": "" },
+    { "id": "sequence-fragment-alt", "name": "Alt 片段", "shape": "sequence-fragment-alt", "defaultSize": { "width": 300, "height": 200 }, "defaultLabel": "" },
+    { "id": "sequence-fragment-opt", "name": "Opt 片段", "shape": "sequence-fragment-opt", "defaultSize": { "width": 300, "height": 150 }, "defaultLabel": "" },
+    { "id": "sequence-fragment-loop", "name": "Loop 片段", "shape": "sequence-fragment-loop", "defaultSize": { "width": 300, "height": 150 }, "defaultLabel": "" },
+    { "id": "sequence-fragment-par", "name": "Par 片段", "shape": "sequence-fragment-par", "defaultSize": { "width": 300, "height": 200 }, "defaultLabel": "" },
+    { "id": "sequence-fragment-critical", "name": "Critical 片段", "shape": "sequence-fragment-critical", "defaultSize": { "width": 300, "height": 150 }, "defaultLabel": "" },
+    { "id": "sequence-gateway", "name": "网关", "shape": "sequence-gateway", "defaultSize": { "width": 40, "height": 40 }, "defaultLabel": "" }
+  ]
+}

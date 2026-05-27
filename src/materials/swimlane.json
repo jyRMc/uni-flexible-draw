@@ -1,0 +1,12 @@
+{
+  "id": "swimlane",
+  "name": "泳道图",
+  "category": "swimlane",
+  "icon": "",
+  "items": [
+    { "id": "swimlane-horizontal", "name": "水平泳道", "shape": "swimlane-horizontal", "defaultSize": { "width": 300, "height": 80 }, "defaultLabel": "Lane" },
+    { "id": "swimlane-vertical", "name": "垂直泳道", "shape": "swimlane-vertical", "defaultSize": { "width": 120, "height": 300 }, "defaultLabel": "Lane" },
+    { "id": "swimlane-pool", "name": "泳池", "shape": "swimlane-pool", "defaultSize": { "width": 400, "height": 300 }, "defaultLabel": "Pool" },
+    { "id": "swimlane-phase", "name": "阶段", "shape": "swimlane-phase", "defaultSize": { "width": 400, "height": 40 }, "defaultLabel": "Phase" }
+  ]
+}

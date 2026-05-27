@@ -1,0 +1,38 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "useDefineForClassFields": true,
+    "module": "ESNext",
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "skipLibCheck": true,
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "preserve",
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
+    "baseUrl": ".",
+    "paths": {
+      "@uni-draw/shared": ["./lib/shared/index.ts"],
+      "@uni-draw/core": ["./lib/core/index.ts"],
+      "@uni-draw/shapes": ["./lib/shapes/index.ts"],
+      "@uni-draw/materials": ["./lib/materials/index.ts"],
+      "@uni-draw/draw": ["./lib/index.ts"],
+      "@uni-draw/draw/vue": ["./lib/vue/index.ts"],
+      "@uni-draw/draw/react": ["./lib/react/index.ts"],
+      "@/*": ["./lib/*"]
+    }
+  },
+  "include": ["lib/**/*", "examples/**/*", "vite.config.ts"],
+  "exclude": ["lib/react/**", "examples/react/**"]
+}

@@ -1,0 +1,17 @@
+{
+  "id": "flowchart",
+  "name": "流程图",
+  "category": "flowchart",
+  "icon": "",
+  "items": [
+    { "id": "flowchart-start-end", "name": "开始/结束", "shape": "flowchart-start-end", "defaultSize": { "width": 100, "height": 50 }, "defaultLabel": "开始" },
+    { "id": "flowchart-process", "name": "处理", "shape": "flowchart-process", "defaultSize": { "width": 100, "height": 60 }, "defaultLabel": "处理" },
+    { "id": "flowchart-decision", "name": "判断", "shape": "flowchart-decision", "defaultSize": { "width": 80, "height": 60 }, "defaultLabel": "判断" },
+    { "id": "flowchart-input-output", "name": "输入/输出", "shape": "flowchart-input-output", "defaultSize": { "width": 100, "height": 60 }, "defaultLabel": "输入输出" },
+    { "id": "flowchart-document", "name": "文档", "shape": "flowchart-document", "defaultSize": { "width": 100, "height": 70 }, "defaultLabel": "文档" },
+    { "id": "flowchart-database", "name": "数据库", "shape": "flowchart-database", "defaultSize": { "width": 100, "height": 70 }, "defaultLabel": "数据库" },
+    { "id": "flowchart-predefined", "name": "预定义处理", "shape": "flowchart-predefined", "defaultSize": { "width": 100, "height": 60 }, "defaultLabel": "预定义" },
+    { "id": "flowchart-connector", "name": "连接点", "shape": "flowchart-connector", "defaultSize": { "width": 20, "height": 20 }, "defaultLabel": "" },
+    { "id": "flowchart-merge", "name": "合并", "shape": "flowchart-merge", "defaultSize": { "width": 60, "height": 60 }, "defaultLabel": "" }
+  ]
+}

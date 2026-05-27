@@ -1,0 +1,25 @@
+{
+  "id": "basic",
+  "name": "基础图形",
+  "category": "basic",
+  "icon": "",
+  "items": [
+    { "id": "basic-rect", "name": "矩形", "shape": "basic-rect", "defaultSize": { "width": 100, "height": 60 }, "defaultLabel": "矩形" },
+    { "id": "basic-rounded-rect", "name": "圆角矩形", "shape": "basic-rounded-rect", "defaultSize": { "width": 100, "height": 60 }, "defaultLabel": "圆角矩形" },
+    { "id": "basic-circle", "name": "圆形", "shape": "basic-circle", "defaultSize": { "width": 60, "height": 60 }, "defaultLabel": "圆形" },
+    { "id": "basic-diamond", "name": "菱形", "shape": "basic-diamond", "defaultSize": { "width": 80, "height": 60 }, "defaultLabel": "菱形" },
+    { "id": "basic-triangle", "name": "三角形", "shape": "basic-triangle", "defaultSize": { "width": 80, "height": 70 }, "defaultLabel": "三角形" },
+    { "id": "basic-parallelogram", "name": "平行四边形", "shape": "basic-parallelogram", "defaultSize": { "width": 100, "height": 60 }, "defaultLabel": "平行四边形" },
+    { "id": "basic-trapezoid", "name": "梯形", "shape": "basic-trapezoid", "defaultSize": { "width": 100, "height": 60 }, "defaultLabel": "梯形" },
+    { "id": "basic-hexagon", "name": "六边形", "shape": "basic-hexagon", "defaultSize": { "width": 80, "height": 70 }, "defaultLabel": "六边形" },
+    { "id": "basic-pentagon", "name": "五边形", "shape": "basic-pentagon", "defaultSize": { "width": 80, "height": 70 }, "defaultLabel": "五边形" },
+    { "id": "basic-octagon", "name": "八边形", "shape": "basic-octagon", "defaultSize": { "width": 80, "height": 70 }, "defaultLabel": "八边形" },
+    { "id": "basic-star", "name": "星形", "shape": "basic-star", "defaultSize": { "width": 80, "height": 70 }, "defaultLabel": "星形" },
+    { "id": "basic-cross", "name": "十字形", "shape": "basic-cross", "defaultSize": { "width": 70, "height": 70 }, "defaultLabel": "十字" },
+    { "id": "basic-cylinder", "name": "圆柱", "shape": "basic-cylinder", "defaultSize": { "width": 100, "height": 70 }, "defaultLabel": "圆柱" },
+    { "id": "basic-cloud", "name": "云朵", "shape": "basic-cloud", "defaultSize": { "width": 120, "height": 70 }, "defaultLabel": "云朵" },
+    { "id": "basic-document", "name": "文档", "shape": "basic-document", "defaultSize": { "width": 100, "height": 70 }, "defaultLabel": "文档" },
+    { "id": "basic-text", "name": "文本", "shape": "basic-text", "defaultSize": { "width": 120, "height": 36 }, "defaultLabel": "文本标签" },
+    { "id": "basic-image", "name": "图片", "shape": "basic-image", "defaultSize": { "width": 80, "height": 80 }, "defaultLabel": "图片" }
+  ]
+}
