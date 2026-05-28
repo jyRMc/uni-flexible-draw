@@ -19,6 +19,7 @@
     { "id": "basic-cylinder", "name": "圆柱", "shape": "basic-cylinder", "defaultSize": { "width": 100, "height": 70 }, "defaultLabel": "圆柱" },
     { "id": "basic-cloud", "name": "云朵", "shape": "basic-cloud", "defaultSize": { "width": 120, "height": 70 }, "defaultLabel": "云朵" },
     { "id": "basic-document", "name": "文档", "shape": "basic-document", "defaultSize": { "width": 100, "height": 70 }, "defaultLabel": "文档" },
+    { "id": "basic-table", "name": "表格", "shape": "basic-table", "defaultSize": { "width": 240, "height": 120 }, "defaultLabel": "表格" },
     { "id": "basic-text", "name": "文本", "shape": "basic-text", "defaultSize": { "width": 120, "height": 36 }, "defaultLabel": "文本标签" },
     { "id": "basic-image", "name": "图片", "shape": "basic-image", "defaultSize": { "width": 80, "height": 80 }, "defaultLabel": "图片" }
   ]

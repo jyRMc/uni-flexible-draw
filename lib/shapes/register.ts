@@ -40,6 +40,7 @@ export function registerAllShapes(): void {
   NodeRegistry.register(BASIC_SHAPES.CROSS, basic.basicCross)
   NodeRegistry.register(BASIC_SHAPES.CLOUD, basic.basicCloud)
   NodeRegistry.register(BASIC_SHAPES.DOCUMENT, basic.basicDocument)
+  NodeRegistry.register(BASIC_SHAPES.TABLE, basic.basicTable)
   NodeRegistry.register(BASIC_SHAPES.TEXT, basic.basicText)
   NodeRegistry.register(BASIC_SHAPES.IMAGE, basic.basicImage)
   NodeRegistry.register(BASIC_SHAPES.SVG, basic.basicSvg)
@@ -126,6 +127,7 @@ export function registerAllShapes(): void {
 
   // 边
   EdgeRegistry.register(EDGE_SHAPES.LINE, edge.edgeLine)
+  EdgeRegistry.register(EDGE_SHAPES.SKETCH, edge.edgeSketch)
   EdgeRegistry.register(EDGE_SHAPES.DASHED, edge.edgeDashed)
   EdgeRegistry.register(EDGE_SHAPES.ARROW, edge.edgeArrow)
   EdgeRegistry.register(EDGE_SHAPES.DOUBLE_ARROW, edge.edgeDoubleArrow)

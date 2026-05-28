@@ -78,7 +78,39 @@
 
         <div class="qab-divider" />
 
-        <div class="qab-section">
+        <div v-if="isTableNode" class="qab-section">
+          <div class="qab-section-title">{{ t.quickAction.table }}</div>
+          <div class="qab-row">
+            <label>{{ t.quickAction.rows }}</label>
+            <span class="qab-val qab-val-left">{{ tableRows }}</span>
+          </div>
+          <div class="qab-row">
+            <label>{{ t.quickAction.columns }}</label>
+            <span class="qab-val qab-val-left">{{ tableCols }}</span>
+          </div>
+          <div class="qab-icon-row qab-table-actions">
+            <button class="qab-icon-btn" @click="addRow">{{ t.quickAction.addRow }}</button>
+            <button class="qab-icon-btn" @click="addColumn">{{ t.quickAction.addColumn }}</button>
+            <button class="qab-icon-btn" :disabled="tableRows <= 1" @click="deleteRow">{{ t.quickAction.deleteRow }}</button>
+            <button class="qab-icon-btn" :disabled="tableCols <= 1" @click="deleteColumn">{{ t.quickAction.deleteColumn }}</button>
+          </div>
+          <div class="qab-table-grid">
+            <div v-for="(row, rowIndex) in tableCells" :key="`row-${rowIndex}`" class="qab-table-grid-row">
+              <input
+                v-for="(cell, colIndex) in row"
+                :key="`cell-${rowIndex}-${colIndex}`"
+                class="qab-table-cell-input"
+                type="text"
+                :value="cell"
+                @input="updateCell(rowIndex, colIndex, $event)"
+              >
+            </div>
+          </div>
+        </div>
+
+        <div v-if="isTableNode" class="qab-divider" />
+
+        <div v-if="!isTableNode" class="qab-section">
           <div class="qab-section-title">{{ t.quickAction.label }}</div>
           <div class="qab-row">
             <label>{{ t.quickAction.text }}</label>
@@ -86,9 +118,9 @@
           </div>
         </div>
 
-        <div class="qab-divider" />
+        <div v-if="!isTableNode" class="qab-divider" />
 
-        <div class="qab-section">
+        <div v-if="!isTableNode" class="qab-section">
           <div class="qab-section-title">{{ t.quickAction.text }}</div>
           <div class="qab-row">
             <label>{{ t.quickAction.position }}</label>
@@ -110,7 +142,7 @@
 
       <!-- ===== 边属性 ===== -->
       <template v-else>
-        <div class="qab-section">
+        <div v-if="!isSketchEdgeShape" class="qab-section">
           <div class="qab-section-title">{{ t.quickAction.lineType }}</div>
           <div class="qab-row">
             <label>{{ t.quickAction.type }}</label>
@@ -129,7 +161,7 @@
           </div>
         </div>
 
-        <div class="qab-divider" />
+        <div v-if="!isSketchEdgeShape" class="qab-divider" />
 
         <div class="qab-section">
           <div class="qab-section-title">{{ t.quickAction.label }}</div>
@@ -232,7 +264,7 @@ import type { NodeData } from '@uni-draw/shared'
 
 export interface QuickActionBarProps {
   selectedNode: NodeData | null
-  selectedEdge: { id: string; stroke: string; strokeWidth: number; strokeDasharray: string; lineType: string; label?: string; sourceMarker?: string; targetMarker?: string } | null
+  selectedEdge: { id: string; shape: string; stroke: string; strokeWidth: number; strokeDasharray: string; lineType: string; label?: string; sourceMarker?: string; targetMarker?: string } | null
   sketchMode: boolean
   elementSketchIds: Set<string>
 }
@@ -244,12 +276,18 @@ const emit = defineEmits<{
   (e: 'update-edge-style', id: string, style: Record<string, unknown>): void
   (e: 'change-edge-type', id: string, lineType: string): void
   (e: 'resize', id: string, width: number, height: number): void
+  (e: 'add-row', id: string): void
+  (e: 'add-column', id: string): void
+  (e: 'delete-row', id: string): void
+  (e: 'delete-column', id: string): void
+  (e: 'update-cell', id: string, row: number, col: number, value: string): void
   (e: 'close'): void
   (e: 'toggle-sketch'): void
   (e: 'toggle-element-sketch', id: string): void
 }>()
 
 const isEdge = computed(() => !!props.selectedEdge)
+const isSketchEdgeShape = computed(() => props.selectedEdge?.shape === 'edge-sketch')
 const selectedCellId = computed(() => {
   if (props.selectedEdge) return props.selectedEdge.id
   if (props.selectedNode) return props.selectedNode.id
@@ -262,7 +300,20 @@ const elementSketch = computed(() => {
 const sketchElementSupported = computed(() => {
   if (props.selectedEdge) return true
   const shape = props.selectedNode?.shape ?? ''
-  return shape !== 'basic-image' && shape !== 'basic-svg'
+  return shape !== 'basic-image' && shape !== 'basic-svg' && shape !== 'basic-table'
+})
+const isTableNode = computed(() => props.selectedNode?.shape === 'basic-table')
+const tableRows = computed(() => {
+  const table = props.selectedNode?.data?.table as { rows?: number } | undefined
+  return table?.rows ?? 0
+})
+const tableCols = computed(() => {
+  const table = props.selectedNode?.data?.table as { cols?: number } | undefined
+  return table?.cols ?? 0
+})
+const tableCells = computed(() => {
+  const table = props.selectedNode?.data?.table as { cells?: string[][] } | undefined
+  return table?.cells ?? []
 })
 /** 判断图形是否支持圆角 — 仅 body 为 <rect> 的图形支持 rx */
 const rxSupported = computed(() => {
@@ -392,9 +443,35 @@ function setLabelPos(val: string) {
   emit('update-style', props.selectedNode.id, { labelPosition: val })
 }
 
+function addRow() {
+  if (!props.selectedNode) return
+  emit('add-row', props.selectedNode.id)
+}
+
+function addColumn() {
+  if (!props.selectedNode) return
+  emit('add-column', props.selectedNode.id)
+}
+
+function deleteRow() {
+  if (!props.selectedNode || tableRows.value <= 1) return
+  emit('delete-row', props.selectedNode.id)
+}
+
+function deleteColumn() {
+  if (!props.selectedNode || tableCols.value <= 1) return
+  emit('delete-column', props.selectedNode.id)
+}
+
+function updateCell(row: number, col: number, ev: Event) {
+  if (!props.selectedNode) return
+  emit('update-cell', props.selectedNode.id, row, col, (ev.target as HTMLInputElement).value)
+}
+
 // ===== 边操作 =====
 function setEdgeLineType(val: string) {
   if (!props.selectedEdge) return
+  if (props.selectedEdge.shape === 'edge-sketch') return
   edgeLineType.value = val
   emit('change-edge-type', props.selectedEdge.id, val)
 }
@@ -616,6 +693,41 @@ function onEdgeWidth(ev: Event) {
   font-size: 11px;
   color: #888;
   font-family: monospace;
+}
+
+.qab-val-left {
+  flex: 1;
+  text-align: left;
+}
+
+.qab-table-actions {
+  gap: 6px;
+}
+
+.qab-table-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.qab-table-grid-row {
+  display: flex;
+  gap: 6px;
+}
+
+.qab-table-cell-input {
+  flex: 1;
+  min-width: 0;
+  padding: 3px 5px;
+  border: 1px solid #d9d9d9;
+  border-radius: 4px;
+  font-size: 12px;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.qab-table-cell-input:focus {
+  border-color: var(--uni-draw-primary);
 }
 
 .qab-divider {

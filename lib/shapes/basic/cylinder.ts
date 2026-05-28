@@ -21,8 +21,8 @@ export const basicCylinder: Node.Config = {
     { tagName: 'rect',    selector: 'body'      },
     { tagName: 'ellipse', selector: 'bottomCap' },  // 1st: full bottom ellipse
     { tagName: 'rect',    selector: 'bodyFill'  },  // 2nd: covers upper half of bottomCap
-    { tagName: 'rect',    selector: 'leftLine'  },  // 3rd: left wall
-    { tagName: 'rect',    selector: 'rightLine' },  // 4th: right wall
+    { tagName: 'line',    selector: 'leftLine'  },  // 3rd: left wall
+    { tagName: 'line',    selector: 'rightLine' },  // 4th: right wall
     { tagName: 'ellipse', selector: 'topCap'    },  // 5th: top ellipse on top of all
     { tagName: 'text',    selector: 'label'     },
   ],
@@ -51,20 +51,22 @@ export const basicCylinder: Node.Config = {
       stroke: 'none',
     },
     leftLine: {
-      refX: 0,
-      refY: 0.12,
-      width: 2,
-      refHeight: 0.76,
-      fill: PRIMARY_COLOR,
-      stroke: 'none',
+      x1: '0%',
+      y1: '12%',
+      x2: '0%',
+      y2: '88%',
+      stroke: PRIMARY_COLOR,
+      strokeWidth: 2,
+      visibility: 'hidden',
     },
     rightLine: {
-      refDx: -2,
-      refY: 0.12,
-      width: 2,
-      refHeight: 0.76,
-      fill: PRIMARY_COLOR,
-      stroke: 'none',
+      x1: '100%',
+      y1: '12%',
+      x2: '100%',
+      y2: '88%',
+      stroke: PRIMARY_COLOR,
+      strokeWidth: 2,
+      visibility: 'hidden',
     },
     topCap: {
       refCx: 0.5,

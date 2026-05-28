@@ -8,8 +8,8 @@ export const flowchartDatabase: Node.Config = {
     { tagName: 'rect',    selector: 'body'      },
     { tagName: 'ellipse', selector: 'bottomCap' },  // 1st: full bottom ellipse
     { tagName: 'rect',    selector: 'bodyFill'  },  // 2nd: covers upper half of bottomCap
-    { tagName: 'rect',    selector: 'leftLine'  },  // 3rd: left wall
-    { tagName: 'rect',    selector: 'rightLine' },  // 4th: right wall
+    { tagName: 'line',    selector: 'leftLine'  },  // 3rd: left wall
+    { tagName: 'line',    selector: 'rightLine' },  // 4th: right wall
     { tagName: 'ellipse', selector: 'topCap'    },  // 5th: top ellipse on top of all
     { tagName: 'text',    selector: 'label'     },
   ],
@@ -38,20 +38,22 @@ export const flowchartDatabase: Node.Config = {
       stroke: 'none',
     },
     leftLine: {
-      refX: 0,
-      refY: 0.14,
-      width: 2,
-      refHeight: 0.72,
-      fill: '#52c41a',
-      stroke: 'none',
+      x1: '0%',
+      y1: '14%',
+      x2: '0%',
+      y2: '86%',
+      stroke: '#52c41a',
+      strokeWidth: 2,
+      visibility: 'hidden',
     },
     rightLine: {
-      refDx: -2,
-      refY: 0.14,
-      width: 2,
-      refHeight: 0.72,
-      fill: '#52c41a',
-      stroke: 'none',
+      x1: '100%',
+      y1: '14%',
+      x2: '100%',
+      y2: '86%',
+      stroke: '#52c41a',
+      strokeWidth: 2,
+      visibility: 'hidden',
     },
     topCap: {
       refCx: 0.5,

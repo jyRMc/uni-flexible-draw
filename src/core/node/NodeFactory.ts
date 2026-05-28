@@ -1,6 +1,7 @@
 import type { Graph, Node } from '@antv/x6'
 import type { NodeData, PortsConfig } from '@uni-draw/shared'
 import { PRIMARY_COLOR } from '@uni-draw/shared'
+import { buildTableAttrs, buildTableMarkup, normalizeTableData } from '../../shapes/basic/table'
 
 /**
  * 默认连接桩配置：上下左右四个方向，悬停时显示
@@ -49,6 +50,9 @@ export class NodeFactory {
    * 创建 X6 节点
    */
   static createNode(graph: Graph, data: NodeData): Node {
+    const tableData = data.shape === 'basic-table'
+      ? normalizeTableData((data.data as Record<string, unknown> | undefined)?.table)
+      : null
     return graph.createNode({
       id: data.id,
       shape: data.shape,
@@ -58,6 +62,7 @@ export class NodeFactory {
       height: data.size.height,
       angle: data.angle,
       zIndex: data.zIndex,
+      markup: tableData ? buildTableMarkup(tableData) : undefined,
       attrs: (() => {
         const isImageShape = data.shape === 'basic-image' || data.shape === 'basic-svg'
         const imageHref = data.data?.imageHref as string | undefined
@@ -72,6 +77,9 @@ export class NodeFactory {
             },
           }
         }
+        if (data.shape === 'basic-table' && tableData) {
+          return buildTableAttrs(tableData, (data.style ?? {}) as any) as any
+        }
         if (!data.style) return undefined
         if (data.shape === 'basic-cylinder') {
           const { fill = '#ffffff', stroke = PRIMARY_COLOR, strokeWidth = 2 } = data.style as any
@@ -79,8 +87,8 @@ export class NodeFactory {
             bodyFill:  { fill },
             topCap:    { fill, stroke, strokeWidth },
             bottomCap: { fill, stroke, strokeWidth },
-            leftLine:  { fill: stroke },
-            rightLine: { fill: stroke },
+            leftLine:  { stroke, strokeWidth },
+            rightLine: { stroke, strokeWidth },
           } as any
         }
         return { body: { ...data.style } } as any
@@ -106,6 +114,13 @@ export class NodeFactory {
       if (cap.fill != null) style.fill = cap.fill
       if (cap.stroke != null) style.stroke = cap.stroke
       if (cap.strokeWidth != null) style.strokeWidth = cap.strokeWidth
+    } else if (node.shape === 'basic-table') {
+      const body = attrs.body ?? {}
+      if (body.fill != null) style.fill = body.fill
+      if (body.stroke != null) style.stroke = body.stroke
+      if (body.strokeWidth != null) style.strokeWidth = body.strokeWidth
+      if (body.strokeDasharray != null) style.strokeDasharray = body.strokeDasharray
+      if (body.opacity != null) style.opacity = body.opacity
     } else {
       const body = attrs.body ?? {}
       if (body.fill != null) style.fill = body.fill

@@ -54,8 +54,11 @@ export interface UniDrawLocale {
     arrow: string
     line: string
     sketchMode: string
+    table: string
     width: string
     height: string
+    rows: string
+    columns: string
     style: string
     color: string
     lineWidth: string
@@ -88,6 +91,10 @@ export interface UniDrawLocale {
     labelBottom: string
     labelLeft: string
     labelRight: string
+    addRow: string
+    addColumn: string
+    deleteRow: string
+    deleteColumn: string
   }
   svgEditor: {
     title: string

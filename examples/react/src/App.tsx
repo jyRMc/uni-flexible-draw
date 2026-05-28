@@ -1,6 +1,7 @@
 import { useRef, useState, useCallback, useEffect } from 'react'
 import type { CSSProperties } from 'react'
 import { UniDraw, type UniDrawRef } from '@uni-draw/draw/react'
+import AIPanel, { type Message } from './components/AIPanel'
 import TopBar from './components/TopBar'
 import type { AssetItem, GraphData, TemplateItem } from '@uni-draw/draw'
 import { generateGraph, diagnoseSiliconFlow } from '../../vue/src/mocks/aiService'
@@ -19,6 +20,8 @@ interface SvgAssetsApiEnvelope {
 const ASSETS_API_URL = (import.meta as { env?: Record<string, string | undefined> }).env?.VITE_SVG_ASSETS_API ?? 'http://127.0.0.1:3077/api/assets'
 const templates = SCENARIO_TEMPLATES as unknown as TemplateItem[]
 const shellStyle: CSSProperties = { width: '100vw', height: '100vh', display: 'flex', flexDirection: 'column' }
+const workspaceStyle: CSSProperties = { flex: 1, minHeight: 0, display: 'flex' }
+const drawShellStyle: CSSProperties = { flex: 1, minWidth: 0 }
 
 export default function App() {
   const drawRef = useRef<UniDrawRef>(null)
@@ -29,6 +32,10 @@ export default function App() {
   const [assetsPaginated, setAssetsPaginated] = useState(false)
   const [readonly, setReadonly] = useState(false)
   const [zoomPercent, setZoomPercent] = useState(100)
+  const [aiPanelOpen, setAiPanelOpen] = useState(false)
+  const [aiLoading, setAiLoading] = useState(false)
+  const [aiMessages, setAiMessages] = useState<Message[]>([])
+  const [followUpQuestions, setFollowUpQuestions] = useState<string[]>([])
   const [graphData, setGraphData] = useState<GraphData>({
     canvas: { backgroundColor: '#ffffff', grid: { size: 10, visible: true, type: 'dot' }, zoom: 1 },
     nodes: [],
@@ -119,7 +126,7 @@ export default function App() {
   }, [])
 
   const handleToggleAiPanel = useCallback(() => {
-    drawRef.current?.toggleAiPanel()
+    setAiPanelOpen((prev) => !prev)
   }, [])
 
   const handleOpenTemplates = useCallback(() => {
@@ -127,7 +134,20 @@ export default function App() {
   }, [])
 
   const handleClearAiChat = useCallback(() => {
-    drawRef.current?.clearAiChat()
+    setAiPanelOpen(true)
+    setAiMessages([])
+    setFollowUpQuestions([])
+    setAiLoading(false)
+  }, [])
+
+  const appendAssistantMessage = useCallback((content: string) => {
+    setAiMessages((prev) => {
+      const lastMessage = prev[prev.length - 1]
+      if (lastMessage?.role === 'assistant') {
+        return [...prev.slice(0, -1), { ...lastMessage, content }]
+      }
+      return [...prev, { role: 'assistant', content }]
+    })
   }, [])
 
   const handleExit = useCallback(() => {
@@ -138,26 +158,37 @@ export default function App() {
 
   const handleReady = useCallback(async () => {
     const diag = await diagnoseSiliconFlow()
-    drawRef.current?.applyAiResult(undefined, `🔌 API 连通诊断: ${diag}`, [
+    setAiMessages([{ role: 'assistant', content: `🔌 API 连通诊断: ${diag}` }])
+    setFollowUpQuestions([
       '如何绘制流程图？', '如何绘制 UML 类图？', '如何绘制实体关系图？',
     ])
   }, [])
 
-  const handleAiGenerate = useCallback(async (prompt: string, _context: GraphData) => {
+  const handleAiGenerate = useCallback(async (prompt: string) => {
+    const normalizedPrompt = prompt.trim()
+    if (!normalizedPrompt || aiLoading) return
+    setAiPanelOpen(true)
+    setAiMessages((prev) => [...prev, { role: 'user', content: normalizedPrompt }])
+    setAiLoading(true)
+    setFollowUpQuestions([])
     try {
-      const data = await generateGraph(prompt, (_token, full) => {
-        drawRef.current?.applyAiResult(undefined, full)
+      const data = await generateGraph(normalizedPrompt, (_token, full) => {
+        appendAssistantMessage(full)
       })
       const nodeLabels = data.nodes.map(node => node.label || node.shape).filter(Boolean)
       const summary = `已为你生成${data.meta?.title ?? '图表'}，包含 ${data.nodes.length} 个节点和 ${data.edges.length} 条边。\n\n图中包含：\n${nodeLabels.map(label => `• ${label}`).join('\n')}`
       const followUp = data.meta?.type === 'flowchart'
         ? ['能否添加异常处理分支？', '如何将这个流程优化？']
         : ['如何扩展这个架构？', '有哪些可以优化的地方？']
-      drawRef.current?.applyAiResult(data, summary, followUp)
+      drawRef.current?.setData(data)
+      appendAssistantMessage(summary)
+      setFollowUpQuestions(followUp)
     } catch (error) {
-      drawRef.current?.applyAiResult(undefined, `生成失败：${error instanceof Error ? error.message : '未知错误'}`)
+      appendAssistantMessage(`生成失败：${error instanceof Error ? error.message : '未知错误'}`)
+    } finally {
+      setAiLoading(false)
     }
-  }, [])
+  }, [aiLoading, appendAssistantMessage])
 
   const handleDataChange = useCallback((data: GraphData) => {
     setGraphData(data)

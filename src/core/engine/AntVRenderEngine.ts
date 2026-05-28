@@ -143,6 +143,12 @@ export class AntVRenderEngine {
 
     // 悬停节点时显示/隐藏连接桩 + 删除按钮（只读模式不启用）
     if (!options.readonly) {
+      const isEdgeToolElement = (target: EventTarget | null) => {
+        return target instanceof Element && !!target.closest(
+          '.x6-edge-tool-segments, .x6-edge-tool-segment, .x6-edge-tool-source-arrowhead, .x6-edge-tool-target-arrowhead, .x6-tool',
+        )
+      }
+
       this.graph.on('node:mouseenter', ({ node, view }: any) => {
         const ports = view.container.querySelectorAll('.x6-port-body') as NodeListOf<SVGElement>
         ports.forEach((el) => { el.style.visibility = 'visible' })
@@ -156,13 +162,39 @@ export class AntVRenderEngine {
 
       // 悬停边时显示顶点手柄 + 端点手柄 + 删除按钮
       this.graph.on('edge:mouseenter', ({ edge }: any) => {
-        edge.setTools([
-          { name: 'vertices', args: { snapRadius: 10 } },
-          { name: 'source-arrowhead' },
-          { name: 'target-arrowhead' },
-        ])
+        edge.setTools(edge.shape === 'edge-sketch'
+          ? [
+              { name: 'source-arrowhead', args: { attrs: { fill: PRIMARY_COLOR, r: 5 } } },
+              { name: 'target-arrowhead', args: { attrs: { fill: PRIMARY_COLOR, r: 5 } } },
+            ]
+          : [
+              {
+                name: 'segments',
+                args: {
+                  threshold: 12,
+                  snapRadius: 10,
+                  attrs: {
+                    fill: PRIMARY_COLOR,
+                    stroke: '#fff',
+                    'stroke-width': 2,
+                    width: 20,
+                    height: 8,
+                    x: -10,
+                    y: -4,
+                    rx: 4,
+                    ry: 4,
+                    cursor: 'move',
+                  },
+                },
+              },
+              { name: 'source-arrowhead', args: { attrs: { fill: PRIMARY_COLOR, r: 5 } } },
+              { name: 'target-arrowhead', args: { attrs: { fill: PRIMARY_COLOR, r: 5 } } },
+            ])
       })
-      this.graph.on('edge:mouseleave', ({ edge }: any) => {
+      this.graph.on('edge:mouseleave', ({ edge, e }: any) => {
+        const graph = this.graph
+        if (!graph) return
+        if (graph.isSelected?.(edge) || isEdgeToolElement(e?.relatedTarget ?? null)) return
         edge.removeTools()
       })
 

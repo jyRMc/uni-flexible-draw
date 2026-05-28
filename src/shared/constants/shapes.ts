@@ -34,6 +34,7 @@ export const BASIC_SHAPES = {
   CYLINDER: 'basic-cylinder',
   CLOUD: 'basic-cloud',
   DOCUMENT: 'basic-document',
+  TABLE: 'basic-table',
   TEXT: 'basic-text',
   IMAGE: 'basic-image',
   SVG: 'basic-svg',
@@ -44,6 +45,7 @@ export const BASIC_SHAPES = {
  */
 export const EDGE_SHAPES = {
   LINE: 'edge-line',
+  SKETCH: 'edge-sketch',
   DASHED: 'edge-dashed',
   ARROW: 'edge-arrow',
   DOUBLE_ARROW: 'edge-double-arrow',

@@ -74,6 +74,7 @@ const SHAPE_ICON_CLASSES: Record<string, string> = {
   'basic-cylinder': 'icon-basic-cylinder',
   'basic-cloud': 'icon-basic-cloud',
   'basic-document': 'icon-basic-document',
+  'basic-table': 'icon-basic-rectangle',
   'basic-text': 'icon-basic-text',
   'basic-image': 'icon-basic-image',
   'basic-svg': 'icon-basic-svg',
@@ -169,6 +170,7 @@ function getShapeIconClass(shape: string): string {
 
 function isEdgePreviewShape(shape: string): boolean {
   return shape === 'edge-line'
+    || shape === 'edge-sketch'
     || shape === 'edge-dashed'
     || shape === 'edge-arrow'
     || shape === 'edge-double-arrow'
@@ -183,6 +185,8 @@ function getEdgePreviewSvg(shape: string): string {
   switch (shape) {
     case 'edge-line':
       return `<svg viewBox="0 0 44 18" xmlns="http://www.w3.org/2000/svg"><line x1="4" y1="9" x2="40" y2="9" ${line}/></svg>`
+    case 'edge-sketch':
+      return `<svg viewBox="0 0 44 18" xmlns="http://www.w3.org/2000/svg"><path d="M4,9 C6.5,5.7 9.5,11.7 13,8.4 C17,4.8 21,12.2 25,8.2 C29,4.6 33,10.8 36.5,7.6 C38.2,6.1 39.2,9.8 40,9" ${line}/></svg>`
     case 'edge-dashed':
       return `<svg viewBox="0 0 44 18" xmlns="http://www.w3.org/2000/svg"><line x1="4" y1="9" x2="40" y2="9" ${line} stroke-dasharray="5 3"/></svg>`
     case 'edge-arrow':

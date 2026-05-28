@@ -14,7 +14,6 @@ const props = withDefaults(defineProps<{
   modelValue?: GraphData
   showShapePanel?: boolean
   showToolbar?: boolean
-  showAiPanel?: boolean
   grid?: boolean
   snapline?: boolean
   readonly?: boolean
@@ -28,7 +27,6 @@ const props = withDefaults(defineProps<{
 }>(), {
   showShapePanel: true,
   showToolbar: true,
-  showAiPanel: false,
   grid: true,
   snapline: true,
   readonly: false,
@@ -44,7 +42,6 @@ const props = withDefaults(defineProps<{
 const emit = defineEmits<{
   (e: 'update:modelValue', data: GraphData): void
   (e: 'ready'): void
-  (e: 'ai:generate', prompt: string, context: GraphData): void
   (e: 'selection:change', nodes: NodeData[], edges: EdgeData[]): void
   (e: 'assets:prev-page'): void
   (e: 'assets:next-page'): void
@@ -70,12 +67,10 @@ onMounted(() => {
     templates:    props.templates,
     showShapePanel: props.showShapePanel,
     showToolbar:    props.showToolbar,
-    showAiPanel:    props.showAiPanel,
     grid:           props.grid,
     snapline:       props.snapline,
     readonly:       props.readonly,
     onReady:            ()           => emit('ready'),
-    onAiGenerate:       (p, ctx)     => emit('ai:generate', p, ctx),
     onSelectionChange:  (nodes, edges) => emit('selection:change', nodes, edges),
     onDataChange:       (data)       => emit('update:modelValue', data),
   })
@@ -127,6 +122,5 @@ defineExpose({
   zoomFit:         ()            => instance?.zoomFit(),
   selectAll:       ()            => instance?.selectAll(),
   deleteSelection: ()            => instance?.deleteSelection(),
-  applyAiResult:   (d?: GraphData, msg?: string, q?: string[]) => instance?.applyAiResult(d, msg, q),
 })
 </script>

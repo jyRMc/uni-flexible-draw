@@ -2,8 +2,9 @@ import { ref, watch, nextTick, onMounted, onUnmounted, type Ref } from 'vue'
 import { useAlignment } from './useAlignment'
 import { useStyleEditor, type EdgeViewData } from './useStyleEditor'
 import { useSketch } from './useSketch'
-import type { GraphData, NodeData, EdgeData, MaterialItem, NodeStyle } from '@uni-draw/shared'
-import { PRIMARY_COLOR, DEFAULT_PORTS, EDGE_SHAPES, shortId } from '@uni-draw/shared'
+import type { GraphData, NodeData, EdgeData, MaterialItem, NodeStyle } from '../shared'
+import { PRIMARY_COLOR, DEFAULT_PORTS, EDGE_SHAPES, shortId } from '../shared'
+import { buildTableAttrs, buildTableMarkup, createDefaultTableData, normalizeTableData } from '../shapes/basic/table'
 import {
   AntVRenderEngine,
   GraphManager,
@@ -15,7 +16,7 @@ import {
   ShortcutManager,
   NodeFactory,
   ClipboardManager,
-} from '@uni-draw/core'
+} from '../core'
 
 export interface UseCanvasOptions {
   modelValue: Ref<GraphData>
@@ -91,6 +92,11 @@ export interface UseCanvasReturn {
   applySketchToAll: () => void
   resetSketchFromAll: () => void
   resizeNode: (id: string, width: number, height: number) => void
+  addTableRow: (id: string) => void
+  addTableColumn: (id: string) => void
+  deleteTableRow: (id: string) => void
+  deleteTableColumn: (id: string) => void
+  updateTableCell: (id: string, row: number, col: number, value: string) => void
   // 剪贴板操作
   copy: () => void
   cut: () => void
@@ -158,7 +164,6 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
   let eventBus: GraphEventBus | null = null
   let zoomTool: ZoomTool | null = null
   let panTool: PanTool | null = null
-  let miniMapTool: MiniMapTool | null = null
   let shortcutManager: ShortcutManager | null = null
   let clipboardManager: ClipboardManager | null = null
   let unwatchModelValue: (() => void) | null = null
@@ -170,7 +175,12 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
     return engine?.getGraph() ?? null
   }
 
+  function isSketchStraightEdge(edge: any): boolean {
+    return edge?.shape === EDGE_SHAPES.SKETCH
+  }
+
   function getAutoVertex(edge: any): { x: number; y: number } | null {
+    if (isSketchStraightEdge(edge)) return null
     const src = edge.getSourcePoint?.()
     const tgt = edge.getTargetPoint?.()
     if (!src || !tgt) return null
@@ -226,6 +236,8 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
     isElementSketch,
     applySketchToAll,
     resetSketchFromAll,
+    onSketchNodeAdded,
+    onSketchEdgeAdded,
     onSketchNodeChange,
     onSketchNodeAttrsChange,
     onSketchEdgeChange,
@@ -268,7 +280,7 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
     exportService = new ExportService(graph)
     zoomTool = new ZoomTool(graph)
     panTool = new PanTool(graph)
-    miniMapTool = new MiniMapTool(graph)
+    new MiniMapTool(graph)
     shortcutManager = new ShortcutManager(graph)
     shortcutManager.registerAction('cut', () => cut())
     shortcutManager.registerAction('copy', () => copy())
@@ -313,25 +325,36 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
         selectedEdgeData.value = extractEdgeData(cell)
         selectedNodeData.value = null
         ensureAutoVertex(cell)
-        // vertices + source/target arrowhead 工具
-        cell.setTools({
-          items: [
-            {
-              name: 'vertices',
-              args: {
-                addable: false,
-                attrs: {
-                  fill: '#fff',
-                  stroke: PRIMARY_COLOR,
-                  'stroke-width': 2,
-                  r: 5,
-                  cursor: 'move',
+        const toolItems = isSketchStraightEdge(cell)
+          ? [
+              { name: 'source-arrowhead', args: { attrs: { fill: PRIMARY_COLOR, r: 5 } } },
+              { name: 'target-arrowhead', args: { attrs: { fill: PRIMARY_COLOR, r: 5 } } },
+            ]
+          : [
+              {
+                name: 'segments',
+                args: {
+                  threshold: 12,
+                  snapRadius: 10,
+                  attrs: {
+                    fill: PRIMARY_COLOR,
+                    stroke: '#fff',
+                    'stroke-width': 2,
+                    width: 20,
+                    height: 8,
+                    x: -10,
+                    y: -4,
+                    rx: 4,
+                    ry: 4,
+                    cursor: 'move',
+                  },
                 },
               },
-            },
-            { name: 'source-arrowhead', args: { attrs: { fill: PRIMARY_COLOR, r: 5 } } },
-            { name: 'target-arrowhead', args: { attrs: { fill: PRIMARY_COLOR, r: 5 } } },
-          ],
+              { name: 'source-arrowhead', args: { attrs: { fill: PRIMARY_COLOR, r: 5 } } },
+              { name: 'target-arrowhead', args: { attrs: { fill: PRIMARY_COLOR, r: 5 } } },
+            ]
+        cell.setTools({
+          items: toolItems,
         }, { async: false })
         const view = graph.findViewByCell(cell)
         if (view) {
@@ -373,6 +396,11 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
       }
     })
     graph.on('node:change:attrs', ({ node }: any) => {
+      if (selectedNodeData.value && selectedNodeData.value.id === node.id) {
+        selectedNodeData.value = NodeFactory.toData(node)
+      }
+    })
+    graph.on('node:change:data', ({ node }: any) => {
       if (selectedNodeData.value && selectedNodeData.value.id === node.id) {
         selectedNodeData.value = NodeFactory.toData(node)
       }
@@ -432,6 +460,8 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
     })
 
     // 草图模式事件监听（始终注册，内部通过 sketchElementIds 过滤）
+    graph.on('node:added', onSketchNodeAdded)
+    graph.on('edge:added', onSketchEdgeAdded)
     graph.on('node:change:size', onSketchNodeChange)
     graph.on('node:change:attrs', onSketchNodeAttrsChange)
     graph.on('edge:change:vertices', onSketchEdgeChange)
@@ -556,10 +586,46 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
     return Object.values(EDGE_SHAPES).includes(material.shape as typeof EDGE_SHAPES[keyof typeof EDGE_SHAPES])
   }
 
+  function updateSelectedNodeSnapshot(node: any): void {
+    if (selectedNodeData.value && selectedNodeData.value.id === node.id) {
+      selectedNodeData.value = NodeFactory.toData(node)
+    }
+  }
+
+  function applyTableNodeData(node: any, table: unknown): void {
+    const normalized = normalizeTableData(table)
+    const style = ((NodeFactory.toData(node).style ?? {}) as Record<string, unknown>)
+    node.setMarkup(buildTableMarkup(normalized))
+    node.setAttrs(buildTableAttrs(normalized, style as any), { overwrite: true })
+    node.setData({ table: normalized }, { overwrite: false })
+    const width = node.getSize?.().width ?? 240
+    const height = node.getSize?.().height ?? 120
+    const nextWidth = Math.max(width, normalized.cols * 80)
+    const nextHeight = Math.max(height, normalized.rows * 36)
+    if (nextWidth !== width || nextHeight !== height) {
+      node.resize(nextWidth, nextHeight)
+    }
+    updateSelectedNodeSnapshot(node)
+  }
+
+  function withSelectedTableNode(id: string, fn: (node: any, table: ReturnType<typeof normalizeTableData>) => void): void {
+    const graph = getGraph()
+    if (!graph) return
+    const cell = graph.getCellById(id)
+    if (!cell || !cell.isNode?.() || cell.shape !== 'basic-table') return
+    const table = normalizeTableData((cell.getData?.() ?? {}).table)
+    fn(cell, table)
+  }
+
   function createNodeFromMaterial(
     material: MaterialItem,
     position?: { x: number; y: number },
   ): NodeData {
+    let materialData = material.data ? { ...material.data } : undefined
+    if (material.shape === 'basic-table') {
+      materialData ??= {}
+      materialData.table = normalizeTableData(materialData.table ?? createDefaultTableData())
+    }
     const nodeData: NodeData = {
       id: shortId('node'),
       shape: material.shape,
@@ -568,7 +634,7 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
       label: material.defaultLabel ?? material.name,
       ports: material.defaultPorts,
       ...(material.defaultStyle ? { style: material.defaultStyle as NodeStyle } : {}),
-      ...(material.data ? { data: { ...material.data } } : {}),
+      ...(materialData ? { data: materialData } : {}),
     }
     addNode(nodeData)
     return nodeData
@@ -751,6 +817,74 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
     if (cell && cell.isNode()) {
       cell.resize(width, height)
     }
+  }
+
+  function addTableRow(id: string): void {
+    withSelectedTableNode(id, (node, table) => {
+      const next = normalizeTableData({
+        rows: table.rows + 1,
+        cols: table.cols,
+        cells: [...table.cells, Array.from({ length: table.cols }, () => '')],
+      })
+      applyTableNodeData(node, next)
+    })
+  }
+
+  function addTableColumn(id: string): void {
+    withSelectedTableNode(id, (node, table) => {
+      const next = normalizeTableData({
+        rows: table.rows,
+        cols: table.cols + 1,
+        cells: table.cells.map((row, rowIndex) => [...row, rowIndex === 0 ? `列${table.cols + 1}` : '']),
+      })
+      applyTableNodeData(node, next)
+    })
+  }
+
+  function deleteTableRow(id: string): void {
+    withSelectedTableNode(id, (node, table) => {
+      if (table.rows <= 1) return
+      applyTableNodeData(node, {
+        rows: table.rows - 1,
+        cols: table.cols,
+        cells: table.cells.slice(0, -1),
+      })
+    })
+  }
+
+  function deleteTableColumn(id: string): void {
+    withSelectedTableNode(id, (node, table) => {
+      if (table.cols <= 1) return
+      const nextCols = table.cols - 1
+      const nextCells = table.cells.map((row, rowIndex) => {
+        const trimmed = row.slice(0, nextCols)
+        if (rowIndex === 0) {
+          return trimmed.map((value, colIndex) => value || `列${colIndex + 1}`)
+        }
+        return trimmed
+      })
+      applyTableNodeData(node, {
+        rows: table.rows,
+        cols: nextCols,
+        cells: nextCells,
+      })
+    })
+  }
+
+  function updateTableCell(id: string, row: number, col: number, value: string): void {
+    withSelectedTableNode(id, (node, table) => {
+      if (row < 0 || col < 0 || row >= table.rows || col >= table.cols) return
+      const nextCells = table.cells.map((cellRow, rowIndex) => (
+        rowIndex === row
+          ? cellRow.map((cellValue, colIndex) => (colIndex === col ? value : cellValue))
+          : [...cellRow]
+      ))
+      applyTableNodeData(node, {
+        rows: table.rows,
+        cols: table.cols,
+        cells: nextCells,
+      })
+    })
   }
 
   // ==================== 剪贴板操作 ====================
@@ -1101,6 +1235,11 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
     applySketchToAll,
     resetSketchFromAll,
     resizeNode,
+    addTableRow,
+    addTableColumn,
+    deleteTableRow,
+    deleteTableColumn,
+    updateTableCell,
     copy,
     cut,
     paste,

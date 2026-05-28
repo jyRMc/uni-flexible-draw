@@ -5,6 +5,7 @@
   "icon": "",
   "items": [
     { "id": "edge-line", "name": "直线", "shape": "edge-line", "defaultSize": { "width": 100, "height": 1 }, "defaultLabel": "" },
+    { "id": "edge-sketch", "name": "草图线", "shape": "edge-sketch", "defaultSize": { "width": 100, "height": 1 }, "defaultLabel": "" },
     { "id": "edge-dashed", "name": "虚线", "shape": "edge-dashed", "defaultSize": { "width": 100, "height": 1 }, "defaultLabel": "" },
     { "id": "edge-arrow", "name": "箭头线", "shape": "edge-arrow", "defaultSize": { "width": 100, "height": 1 }, "defaultLabel": "" },
     { "id": "edge-double-arrow", "name": "双箭头线", "shape": "edge-double-arrow", "defaultSize": { "width": 100, "height": 1 }, "defaultLabel": "" },

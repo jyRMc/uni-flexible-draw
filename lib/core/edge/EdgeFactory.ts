@@ -2,6 +2,9 @@ import type { Graph, Edge } from '@antv/x6'
 import type { EdgeData } from '@uni-draw/shared'
 import { getEdgeLineConfig, getEdgeLineVertices, getEdgeShapeLineType } from '@uni-draw/shared'
 
+const SKETCH_CONNECTOR_NAME = 'uni-draw-sketch-straight'
+const SKETCH_ROUGHNESS = 1
+
 /**
  * 边工厂
  * 根据 EdgeData 创建 X6 边实例
@@ -11,15 +14,41 @@ export class EdgeFactory {
     return typeof endpoint === 'object' && endpoint !== null && 'x' in endpoint && 'y' in endpoint
   }
 
+  private static hashSeed(value: string): number {
+    let hash = 0
+    for (let i = 0; i < value.length; i++) {
+      hash = ((hash << 5) - hash + value.charCodeAt(i)) | 0
+    }
+    return Math.abs(hash) || 1
+  }
+
   /**
    * 创建 X6 边
    */
   static createEdge(graph: Graph, data: EdgeData): Edge {
     const rawData = data.data && typeof data.data === 'object' ? { ...data.data } : undefined
+    const sketchSeed = data.shape === 'edge-sketch'
+      ? Number(rawData?.seed ?? this.hashSeed(data.id))
+      : undefined
     const inferredLineType = typeof rawData?.lineType === 'string'
       ? rawData.lineType
       : getEdgeShapeLineType(data.shape)
     const lineConfig = inferredLineType ? getEdgeLineConfig(inferredLineType) : { router: null, connector: null }
+    const router = data.router === undefined
+      ? (inferredLineType ? lineConfig.router : undefined)
+      : data.router
+    const connector = data.connector === undefined
+      ? data.shape === 'edge-sketch'
+        ? {
+            name: SKETCH_CONNECTOR_NAME,
+            args: {
+              seed: sketchSeed,
+              roughness: SKETCH_ROUGHNESS,
+              strokeWidth: data.style?.strokeWidth ?? 2,
+            },
+          }
+        : (inferredLineType ? lineConfig.connector : undefined)
+      : data.connector
     const vertices = data.vertices !== undefined
       ? data.vertices
       : inferredLineType && this.isPointEndpoint(data.source) && this.isPointEndpoint(data.target)
@@ -33,10 +62,14 @@ export class EdgeFactory {
       target: data.target,
       attrs: data.style ? { line: { ...data.style } } : undefined,
       label: typeof data.label === 'string' ? data.label : data.label?.text,
-      data: inferredLineType ? { ...(rawData ?? {}), lineType: inferredLineType } : data.data,
+      data: data.shape === 'edge-sketch'
+        ? { ...(rawData ?? {}), ...(inferredLineType ? { lineType: inferredLineType } : {}), seed: sketchSeed }
+        : inferredLineType
+          ? { ...(rawData ?? {}), lineType: inferredLineType }
+          : data.data,
       vertices,
-      router: data.router === undefined ? lineConfig.router : data.router,
-      connector: data.connector === undefined ? lineConfig.connector : data.connector,
+      router,
+      connector,
     })
   }
 

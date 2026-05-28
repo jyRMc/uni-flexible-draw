@@ -24,7 +24,7 @@
 <script setup lang="ts">
 import '../../../lib/icon/iconfont.css'
 import { ref } from 'vue'
-import type { MaterialLibrary, MaterialItem } from '@uni-draw/shared'
+import type { MaterialLibrary, MaterialItem } from '../../shared'
 
 export interface ShapeCategoryProps {
   library: MaterialLibrary
@@ -73,6 +73,7 @@ const SHAPE_ICON_CLASSES: Record<string, string> = {
   'basic-cylinder': 'icon-basic-cylinder',
   'basic-cloud': 'icon-basic-cloud',
   'basic-document': 'icon-basic-document',
+  'basic-table': 'icon-basic-rectangle',
   'basic-text': 'icon-basic-text',
   'basic-image': 'icon-basic-image',
   'basic-svg': 'icon-basic-svg',
@@ -87,6 +88,7 @@ const SHAPE_ICON_CLASSES: Record<string, string> = {
   'flowchart-merge': 'icon-basic-triangle',
   'flowchart-internal-storage': 'icon-flowchart-internal-storage',
   'edge-line': 'icon-edge-line',
+  'edge-sketch': 'icon-edge-line',
   'edge-dashed': 'icon-edge-dashed',
   'edge-arrow': 'icon-edge-arrow',
   'edge-double-arrow': 'icon-edge-double-arrow',

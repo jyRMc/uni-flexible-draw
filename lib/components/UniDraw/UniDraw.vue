@@ -80,6 +80,11 @@
           @update-edge-style="onUpdateEdgeStyle"
           @change-edge-type="onChangeEdgeType"
           @resize="onResizeNode"
+          @add-row="onAddTableRow"
+          @add-column="onAddTableColumn"
+          @delete-row="onDeleteTableRow"
+          @delete-column="onDeleteTableColumn"
+          @update-cell="onUpdateTableCell"
           @close="qabClosed = true"
           @toggle-sketch="onToggleSketch"
           @toggle-element-sketch="onToggleElementSketch"
@@ -98,65 +103,6 @@
           @action="onToolbarAction"
         />
       </main>
-
-      <!-- AI Panel -->
-      <aside v-if="showAiPanel !== false && aiPanelVisible" class="ud-ai-panel">
-        <div class="ud-ai-header">
-          <span class="ud-ai-title">AI 绘图</span>
-          <div class="ud-ai-header-actions">
-            <button class="ud-ai-icon-btn" title="新建对话" @click="clearAiChat">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
-              </svg>
-            </button>
-            <button class="ud-ai-icon-btn" title="关闭" @click="aiPanelVisible = false">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
-              </svg>
-            </button>
-          </div>
-        </div>
-        <!-- Messages -->
-        <div ref="aiMessagesRef" class="ud-ai-messages">
-          <div v-for="(msg, i) in aiMessages" :key="i" :class="['ud-ai-msg', msg.role]">
-            <div class="ud-ai-msg-content">{{ msg.content }}</div>
-          </div>
-          <div v-if="aiLoading" class="ud-ai-msg assistant">
-            <div class="ud-ai-msg-content ud-ai-typing">
-              <span class="dot" /><span class="dot" /><span class="dot" />
-            </div>
-          </div>
-        </div>
-        <!-- Follow-up chips -->
-        <div v-if="followUpQuestions.length > 0 && !aiLoading" class="ud-ai-followup">
-          <button
-            v-for="q in followUpQuestions"
-            :key="q"
-            class="ud-ai-chip"
-            @click="onAiSend(q)"
-          >{{ q }}</button>
-        </div>
-        <!-- Input -->
-        <div class="ud-ai-input-area">
-          <div class="ud-ai-input-row">
-            <input
-              v-model="aiInput"
-              class="ud-ai-input"
-              placeholder="描述你想绘制的图表..."
-              @keyup.enter="onAiSend(aiInput)"
-            />
-            <button
-              class="ud-ai-send"
-              :disabled="aiLoading || !aiInput.trim()"
-              @click="onAiSend(aiInput)"
-            >
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" />
-              </svg>
-            </button>
-          </div>
-        </div>
-      </aside>
     </div>
 
     <!-- JSON preview modal -->
@@ -189,8 +135,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, provide, onMounted, nextTick } from 'vue'
-import type { GraphData, NodeData, AssetItem, TemplateItem, UniDrawTheme, AiMessage } from '@uni-draw/shared'
+import { ref, computed, watch, provide, onMounted } from 'vue'
+import type { GraphData, NodeData, AssetItem, TemplateItem, UniDrawTheme } from '@uni-draw/shared'
 import { LOCALE_KEY } from '../../locale'
 import zhCN from '../../locale/zh-CN'
 import type { UniDrawLocale } from '../../locale'
@@ -224,7 +170,6 @@ export interface UniDrawProps {
   showTemplates?: boolean
   showToolbar?: boolean
   showMinimap?: boolean
-  showAiPanel?: boolean
   locale?: UniDrawLocale
   theme?: UniDrawTheme
 }
@@ -243,7 +188,6 @@ const props = withDefaults(defineProps<UniDrawProps>(), {
   showTemplates: true,
   showToolbar: true,
   showMinimap: false,
-  showAiPanel: false,
 })
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -254,7 +198,6 @@ const emit = defineEmits<{
   (e: 'update:modelValue', data: GraphData): void
   (e: 'ready'): void
   (e: 'selection:change', nodes: NodeData[], edges: unknown[]): void
-  (e: 'ai:generate', prompt: string, context: GraphData): void
   (e: 'assets:prev-page'): void
   (e: 'assets:next-page'): void
 }>()
@@ -330,19 +273,8 @@ const sketchMode = ref(false)
 const drawMode = ref(false)
 const elementSketchIds = ref(new Set<string>())
 const selectedNode = ref<NodeData | null>(null)
-const selectedEdge = ref<{ id: string; stroke: string; strokeWidth: number; strokeDasharray: string; lineType: string; label?: string; sourceMarker?: string; targetMarker?: string } | null>(null)
+const selectedEdge = ref<{ id: string; shape: string; stroke: string; strokeWidth: number; strokeDasharray: string; lineType: string; label?: string; sourceMarker?: string; targetMarker?: string } | null>(null)
 const qabClosed = ref(false)
-
-// ──────────────────────────────────────────────────────────────────────────────
-// AI state
-// ──────────────────────────────────────────────────────────────────────────────
-
-const aiPanelVisible = ref(false)
-const aiMessages = ref<AiMessage[]>([])
-const aiLoading = ref(false)
-const aiInput = ref('')
-const followUpQuestions = ref<string[]>([])
-const aiMessagesRef = ref<HTMLElement | null>(null)
 
 // ──────────────────────────────────────────────────────────────────────────────
 // JSON modal
@@ -476,6 +408,21 @@ function onChangeEdgeType(id: string, lineType: string) {
 function onResizeNode(id: string, w: number, h: number) {
   canvasRef.value?.resizeNode(id, w, h)
 }
+function onAddTableRow(id: string) {
+  canvasRef.value?.addTableRow(id)
+}
+function onAddTableColumn(id: string) {
+  canvasRef.value?.addTableColumn(id)
+}
+function onDeleteTableRow(id: string) {
+  canvasRef.value?.deleteTableRow(id)
+}
+function onDeleteTableColumn(id: string) {
+  canvasRef.value?.deleteTableColumn(id)
+}
+function onUpdateTableCell(id: string, row: number, col: number, value: string) {
+  canvasRef.value?.updateTableCell(id, row, col, value)
+}
 function onToggleSketch() {
   canvasRef.value?.toggleSketchMode()
 }
@@ -545,48 +492,6 @@ function downloadJson() {
   URL.revokeObjectURL(url)
 }
 
-// ──────────────────────────────────────────────────────────────────────────────
-// AI — event-driven, no internal AI logic
-// ──────────────────────────────────────────────────────────────────────────────
-
-function onAiSend(prompt: string) {
-  const p = prompt.trim()
-  if (!p || aiLoading.value) return
-  aiInput.value = ''
-  aiMessages.value.push({ role: 'user', content: p })
-  aiLoading.value = true
-  followUpQuestions.value = []
-  nextTick(() => scrollAiToBottom())
-  emit('ai:generate', p, graphData.value)
-}
-
-function clearAiChat() {
-  aiMessages.value = []
-  followUpQuestions.value = []
-  aiLoading.value = false
-}
-
-function scrollAiToBottom() {
-  if (aiMessagesRef.value) {
-    aiMessagesRef.value.scrollTop = aiMessagesRef.value.scrollHeight
-  }
-}
-
-function openAiPanel() {
-  if (props.showAiPanel !== false) {
-    aiPanelVisible.value = true
-  }
-}
-
-function closeAiPanel() {
-  aiPanelVisible.value = false
-}
-
-function toggleAiPanel() {
-  if (props.showAiPanel !== false) {
-    aiPanelVisible.value = !aiPanelVisible.value
-  }
-}
 
 function openTemplatePanel() {
   if (props.showTemplates !== false) {
@@ -599,9 +504,6 @@ function openTemplatePanel() {
 // ──────────────────────────────────────────────────────────────────────────────
 
 defineExpose({
-  openAiPanel,
-  closeAiPanel,
-  toggleAiPanel,
   openTemplatePanel,
   getData: () => canvasRef.value?.getData?.() ?? graphData.value,
   setData: (data: GraphData) => canvasRef.value?.setData(data),
@@ -616,15 +518,6 @@ defineExpose({
   zoomFit: () => canvasRef.value?.zoomToFit(),
   selectAll: () => canvasRef.value?.selectAll(),
   deleteSelection: () => canvasRef.value?.deleteSelected?.(),
-  applyAiResult(data?: GraphData, message?: string, followUp?: string[]) {
-    if (data) canvasRef.value?.setData(data)
-    if (message) {
-      aiMessages.value.push({ role: 'assistant', content: message })
-      nextTick(() => scrollAiToBottom())
-    }
-    if (followUp?.length) followUpQuestions.value = followUp
-    aiLoading.value = false
-  },
 })
 </script>
 
@@ -814,120 +707,6 @@ defineExpose({
 }
 
 .ud-canvas { width: 100%; height: 100%; }
-
-/* ── AI panel ─────────────────────────────────────────────── */
-.ud-ai-panel {
-  display: flex;
-  flex-direction: column;
-  width: 320px;
-  flex-shrink: 0;
-  background: var(--uni-draw-panel-bg, #fff);
-  border-left: 1px solid var(--uni-draw-panel-border, #e0e0e0);
-}
-
-.ud-ai-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  height: 44px;
-  padding: 0 14px;
-  border-bottom: 1px solid var(--uni-draw-panel-border, #e0e0e0);
-  flex-shrink: 0;
-}
-.ud-ai-title { font-size: 13px; font-weight: 600; color: var(--uni-draw-text, #1a1a1a); }
-.ud-ai-header-actions { display: flex; gap: 4px; }
-.ud-ai-icon-btn {
-  display: flex; align-items: center; justify-content: center;
-  width: 28px; height: 28px; border: none; border-radius: var(--uni-draw-radius-sm, 4px);
-  background: none; cursor: pointer; color: var(--uni-draw-text-muted, #999); transition: all .15s;
-}
-.ud-ai-icon-btn:hover { background: var(--uni-draw-hover-bg, #f0f0f0); color: var(--uni-draw-text, #1a1a1a); }
-
-.ud-ai-messages {
-  flex: 1;
-  overflow-y: auto;
-  padding: 12px 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.ud-ai-msg-content {
-  padding: 9px 12px;
-  border-radius: var(--uni-draw-radius-md, 8px);
-  font-size: 13px;
-  line-height: 1.6;
-  word-break: break-word;
-  white-space: pre-wrap;
-}
-.ud-ai-msg.user .ud-ai-msg-content {
-  background: var(--uni-draw-primary-bg, #eae8fd);
-  color: var(--uni-draw-primary, #7166F0);
-  margin-left: 24px;
-  border-top-right-radius: var(--uni-draw-radius-sm, 4px);
-}
-.ud-ai-msg.assistant .ud-ai-msg-content {
-  background: var(--uni-draw-panel-bg-alt, #f5f5f5);
-  color: var(--uni-draw-text, #1a1a1a);
-  margin-right: 24px;
-  border-top-left-radius: var(--uni-draw-radius-sm, 4px);
-}
-
-.ud-ai-typing { display: flex; align-items: center; gap: 4px; padding: 4px 0; }
-.ud-ai-typing .dot { width: 6px; height: 6px; border-radius: 50%; background: #ccc; animation: ud-typing 1.4s infinite; }
-.ud-ai-typing .dot:nth-child(2) { animation-delay: .2s; }
-.ud-ai-typing .dot:nth-child(3) { animation-delay: .4s; }
-@keyframes ud-typing {
-  0%, 60%, 100% { opacity: .3; transform: scale(.8); }
-  30% { opacity: 1; transform: scale(1); }
-}
-
-.ud-ai-followup {
-  padding: 8px 14px;
-  border-top: 1px solid var(--uni-draw-panel-border, #e0e0e0);
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  flex-shrink: 0;
-}
-.ud-ai-chip {
-  padding: 6px 10px;
-  border: 1px solid var(--uni-draw-panel-border, #e0e0e0);
-  border-radius: var(--uni-draw-radius-sm, 4px);
-  background: var(--uni-draw-panel-bg, #fff);
-  cursor: pointer;
-  font-size: 12px;
-  color: var(--uni-draw-text-secondary, #666);
-  text-align: left;
-  transition: all .15s;
-}
-.ud-ai-chip:hover { border-color: var(--uni-draw-primary, #7166F0); color: var(--uni-draw-primary, #7166F0); }
-
-.ud-ai-input-area {
-  padding: 10px 14px;
-  border-top: 1px solid var(--uni-draw-panel-border, #e0e0e0);
-  flex-shrink: 0;
-}
-.ud-ai-input-row { display: flex; gap: 6px; align-items: center; }
-.ud-ai-input {
-  flex: 1;
-  padding: 8px 10px;
-  border: 1px solid var(--uni-draw-panel-border, #e0e0e0);
-  border-radius: var(--uni-draw-radius-sm, 4px);
-  font-size: 13px;
-  outline: none;
-  background: var(--uni-draw-panel-bg-alt, #f5f5f5);
-  color: var(--uni-draw-text, #1a1a1a);
-  transition: border-color .15s;
-}
-.ud-ai-input:focus { border-color: var(--uni-draw-primary, #7166F0); background: var(--uni-draw-panel-bg, #fff); }
-.ud-ai-send {
-  display: flex; align-items: center; justify-content: center;
-  width: 34px; height: 34px; border: none; border-radius: var(--uni-draw-radius-sm, 4px);
-  background: var(--uni-draw-primary, #7166F0); color: #fff; cursor: pointer; transition: background .15s; flex-shrink: 0;
-}
-.ud-ai-send:hover:not(:disabled) { background: color-mix(in srgb, var(--uni-draw-primary, #7166F0) 85%, #000); }
-.ud-ai-send:disabled { opacity: .45; cursor: not-allowed; }
 
 /* ── JSON modal ───────────────────────────────────────────── */
 .ud-modal-backdrop {

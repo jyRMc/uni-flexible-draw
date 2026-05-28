@@ -48,7 +48,7 @@ const SYSTEM_PROMPT = `你是一个专业的图表生成助手，能够根据用
 \`\`\`
 
 可用的节点 shape 类型：
-- 基础图形：basic-rect（矩形）、basic-rounded-rect（圆角矩形）、basic-circle（圆形）、basic-diamond（菱形）、basic-triangle（三角形）、basic-parallelogram（平行四边形）、basic-trapezoid（梯形）、basic-hexagon（六边形）、basic-cylinder（圆柱/数据库）、basic-cloud（云）、basic-document（文档）、basic-text（纯文本）
+- 基础图形：basic-rect（矩形）、basic-rounded-rect（圆角矩形）、basic-circle（圆形）、basic-diamond（菱形）、basic-triangle（三角形）、basic-parallelogram（平行四边形）、basic-trapezoid（梯形）、basic-hexagon（六边形）、basic-cylinder（圆柱/数据库）、basic-cloud（云）、basic-document（文档）、basic-table（表格）、basic-text（纯文本）
 - 流程图：flowchart-start-end（开始/结束）、flowchart-process（处理框）、flowchart-decision（判断菱形）、flowchart-input-output（输入/输出）、flowchart-document（文档）、flowchart-database（数据库）
 - UML类图：uml-class、uml-interface、uml-abstract、uml-enum、uml-package、uml-note、uml-actor、uml-use-case、uml-component、uml-deployment
 - ER图：er-entity、er-weak-entity、er-relationship、er-identifying-relationship、er-attribute、er-key-attribute

@@ -1,8 +1,10 @@
 import type { Ref } from 'vue'
-import { PRIMARY_COLOR } from '@uni-draw/shared'
+import { PRIMARY_COLOR } from '../shared'
+import { buildTableAttrs, normalizeTableData } from '../shapes/basic/table'
 
 export interface EdgeViewData {
   id: string
+  shape: string
   stroke: string
   strokeWidth: number
   strokeDasharray: string
@@ -32,6 +34,7 @@ export function useStyleEditor(
     const targetMarker = line.targetMarker?.name ?? 'none'
     return {
       id: edge.id,
+      shape: edge.shape,
       stroke: line.stroke ?? PRIMARY_COLOR,
       strokeWidth: line.strokeWidth ?? 2,
       strokeDasharray: line.strokeDasharray ?? '',
@@ -69,10 +72,20 @@ export function useStyleEditor(
           if (strokeWidth !== undefined) sv.strokeWidth = strokeWidth
           cylAttrs.topCap    = { ...(cylAttrs.topCap    ?? {}), ...sv }
           cylAttrs.bottomCap = { ...(cylAttrs.bottomCap ?? {}), ...sv }
-          cylAttrs.leftWall  = sv
-          cylAttrs.rightWall = sv
+          cylAttrs.leftLine  = sv
+          cylAttrs.rightLine = sv
         }
         if (Object.keys(cylAttrs).length > 0) node.setAttrs(cylAttrs)
+      } else if (node.shape === 'basic-table') {
+        const table = normalizeTableData((node.getData?.() ?? {}).table)
+        const currentBody = node.getAttrs?.()?.body ?? {}
+        node.setAttrs(buildTableAttrs(table, {
+          fill: bodyAttrs.fill ?? currentBody.fill,
+          stroke: bodyAttrs.stroke ?? currentBody.stroke,
+          strokeWidth: bodyAttrs.strokeWidth ?? currentBody.strokeWidth,
+          strokeDasharray: bodyAttrs.strokeDasharray ?? currentBody.strokeDasharray,
+          opacity: bodyAttrs.opacity ?? currentBody.opacity,
+        }) as any, { overwrite: true })
       } else {
         node.setAttrs({ body: bodyAttrs })
       }
@@ -138,6 +151,7 @@ export function useStyleEditor(
     const cell = graph.getCellById(id)
     if (!cell || !cell.isEdge?.()) return
     const edge = cell as any
+    if (edge.shape === 'edge-sketch') return
     switch (lineType) {
       case 'rounded':
         edge.setRouter({ name: 'orth' })

@@ -13,25 +13,34 @@
       @exit="onExit"
     />
 
-    <!-- 主体：UniDraw 组件（内含图形、素材、模板、工具栏、AI面板） -->
-    <UniDraw
-      ref="drawRef"
-      v-model="graphData"
-      :show-ai-panel="true"
-      :assets="assets"
-      :asset-page="assetPage"
-      :asset-total-pages="assetTotalPages"
-      :asset-page-loading="assetsLoading"
-      :can-prev-assets="assetPage > 1"
-      :can-next-assets="assetPage < assetTotalPages"
-      :templates="templates"
-      :readonly="readonly"
-      @assets:prev-page="goToPreviousAssetPage"
-      @assets:next-page="goToNextAssetPage"
-      @ai:generate="onAiGenerate"
-      @ready="onReady"
-      @update:model-value="onDataChange"
-    />
+    <div class="workspace-shell">
+      <UniDraw
+        ref="drawRef"
+        v-model="graphData"
+        class="draw-shell"
+        :assets="assets"
+        :asset-page="assetPage"
+        :asset-total-pages="assetTotalPages"
+        :asset-page-loading="assetsLoading"
+        :can-prev-assets="assetPage > 1"
+        :can-next-assets="assetPage < assetTotalPages"
+        :templates="templates"
+        :readonly="readonly"
+        @assets:prev-page="goToPreviousAssetPage"
+        @assets:next-page="goToNextAssetPage"
+        @ready="onReady"
+        @update:model-value="onDataChange"
+      />
+
+      <AIPanel
+        v-if="aiPanelOpen"
+        :messages="aiMessages"
+        :is-loading="aiLoading"
+        :follow-up-questions="followUpQuestions"
+        class="ai-shell"
+        @send="onAiGenerate"
+      />
+    </div>
   </div>
 </template>
 
@@ -41,7 +50,13 @@ import { UniDraw } from '@uni-draw/draw'
 import type { AssetItem, GraphData, TemplateItem } from '@uni-draw/draw'
 import { generateGraph, diagnoseSiliconFlow } from '../mocks/aiService'
 import { SCENARIO_TEMPLATES } from '../mocks/templates'
+import AIPanel from './AIPanel.vue'
 import TopBar from './TopBar.vue'
+
+interface Message {
+  role: 'user' | 'assistant'
+  content: string
+}
 
 interface SvgAssetsApiEnvelope {
   items: AssetItem[]
@@ -64,6 +79,10 @@ const assetsPaginated = ref(false)
 const drawRef = ref<InstanceType<typeof UniDraw> | null>(null)
 const readonly = ref(false)
 const zoomPercent = ref(100)
+const aiPanelOpen = ref(false)
+const aiLoading = ref(false)
+const aiMessages = ref<Message[]>([])
+const followUpQuestions = ref<string[]>([])
 
 const graphData = ref<GraphData>({
   canvas: { backgroundColor: '#ffffff', grid: { size: 10, visible: true, type: 'dot' }, zoom: 1 },
@@ -147,12 +166,12 @@ function goToNextAssetPage() {
   void loadAssets(assetPage.value + 1)
 }
 
-function onDataChange(_data: GraphData) {
-  zoomPercent.value = Math.round((drawRef.value as any)?.canvasRef?.zoom * 100) || 100
+function onDataChange(data: GraphData) {
+  zoomPercent.value = Math.round((data.canvas?.zoom ?? 1) * 100) || 100
 }
 
 function toggleAiPanel() {
-  (drawRef.value as any)?.toggleAiPanel?.()
+  aiPanelOpen.value = !aiPanelOpen.value
 }
 
 function openTemplates() {
@@ -160,7 +179,20 @@ function openTemplates() {
 }
 
 function clearAiChat() {
-  (drawRef.value as any)?.clearAiChat?.()
+  aiPanelOpen.value = true
+  aiMessages.value = []
+  followUpQuestions.value = []
+  aiLoading.value = false
+}
+
+function appendAssistantMessage(content: string) {
+  const lastMessage = aiMessages.value[aiMessages.value.length - 1]
+  if (lastMessage?.role === 'assistant') {
+    lastMessage.content = content
+    aiMessages.value = [...aiMessages.value]
+    return
+  }
+  aiMessages.value = [...aiMessages.value, { role: 'assistant', content }]
 }
 
 function onShare() {
@@ -178,24 +210,35 @@ function onExit() {
 
 async function onReady() {
   const diag = await diagnoseSiliconFlow()
-  drawRef.value?.applyAiResult(undefined, `🔌 API 连通诊断: ${diag}`, [
+  aiMessages.value = [{ role: 'assistant', content: `🔌 API 连通诊断: ${diag}` }]
+  followUpQuestions.value = [
     '如何绘制流程图？', '如何绘制 UML 类图？', '如何绘制实体关系图？',
-  ])
+  ]
 }
 
-async function onAiGenerate(prompt: string, _context: GraphData) {
+async function onAiGenerate(prompt: string) {
+  const normalizedPrompt = prompt.trim()
+  if (!normalizedPrompt || aiLoading.value) return
+  aiPanelOpen.value = true
+  aiMessages.value = [...aiMessages.value, { role: 'user', content: normalizedPrompt }]
+  aiLoading.value = true
+  followUpQuestions.value = []
   try {
-    const data = await generateGraph(prompt, (_token, full) => {
-      drawRef.value?.applyAiResult(undefined, full)
+    const data = await generateGraph(normalizedPrompt, (_token, full) => {
+      appendAssistantMessage(full)
     })
     const nodeLabels = data.nodes.map(n => n.label || n.shape).filter(Boolean)
     const summary = `已为你生成${data.meta?.title ?? '图表'}，包含 ${data.nodes.length} 个节点和 ${data.edges.length} 条边。\n\n图中包含：\n${nodeLabels.map(n => `• ${n}`).join('\n')}`
     const followUp = data.meta?.type === 'flowchart'
       ? ['能否添加异常处理分支？', '如何将这个流程优化？']
       : ['如何扩展这个架构？', '有哪些可以优化的地方？']
-    drawRef.value?.applyAiResult(data, summary, followUp)
+    drawRef.value?.setData?.(data)
+    appendAssistantMessage(summary)
+    followUpQuestions.value = followUp
   } catch (err) {
-    drawRef.value?.applyAiResult(undefined, `生成失败：${err instanceof Error ? err.message : '未知错误'}`)
+    appendAssistantMessage(`生成失败：${err instanceof Error ? err.message : '未知错误'}`)
+  } finally {
+    aiLoading.value = false
   }
 }
 </script>
@@ -209,8 +252,18 @@ async function onAiGenerate(prompt: string, _context: GraphData) {
   overflow: hidden;
 }
 
-.app-shell > :last-child {
+.workspace-shell {
+  display: flex;
   flex: 1;
   min-height: 0;
+}
+
+.draw-shell {
+  flex: 1;
+  min-width: 0;
+}
+
+.ai-shell {
+  flex-shrink: 0;
 }
 </style>

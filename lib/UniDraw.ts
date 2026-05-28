@@ -46,8 +46,6 @@ export interface UniDrawOptions {
   showToolbar?: boolean
   /** Show properties panel (default: true) */
   showPropertiesPanel?: boolean
-  /** Show AI chat panel (default: false) */
-  showAiPanel?: boolean
   /** Enable background grid (default: true) */
   grid?: boolean
   /** Enable snap-to-grid lines (default: true) */
@@ -56,8 +54,6 @@ export interface UniDrawOptions {
   readonly?: boolean
   /** Called once the canvas is ready */
   onReady?: () => void
-  /** Fired when the user submits an AI prompt; host is responsible for calling applyAiResult */
-  onAiGenerate?: (prompt: string, context: GraphData) => void
   /** Fired whenever the selection changes */
   onSelectionChange?: (nodes: NodeData[], edges: EdgeData[]) => void
   /** Fired whenever graph data changes */
@@ -79,8 +75,6 @@ const ICONS = {
   trash:    svg('<polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>'),
   download: svg('<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>'),
   json:     svg('<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>'),
-  send:     svg('<line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>'),
-  ai:       svg('<circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/>'),
 }
 
 // ─── DOM helpers ────────────────────────────────────────────────────────────
@@ -165,12 +159,16 @@ function materialPreviewSvg(shape: string): string {
     case 'flowchart-document':
     case 'uml-note':
       return wrap('0 0 34 36', `<path d="M4,4 L22,4 L30,12 L30,32 L4,32 Z" ${ba}/><polyline points="22,4 22,12 30,12" ${ln}/>`)
+    case 'basic-table':
+      return wrap('0 0 40 32', `<rect x="4" y="4" width="32" height="24" ${ba}/><line x1="14.7" y1="4" x2="14.7" y2="28" ${ln}/><line x1="25.3" y1="4" x2="25.3" y2="28" ${ln}/><line x1="4" y1="12" x2="36" y2="12" ${ln}/><line x1="4" y1="20" x2="36" y2="20" ${ln}/>`)
     case 'basic-text':
       return wrap('0 0 44 32', `<line x1="6" y1="10" x2="38" y2="10" ${ln}/><line x1="6" y1="17" x2="30" y2="17" ${ln}/><line x1="6" y1="24" x2="24" y2="24" ${ln}/>`)
     case 'basic-image':
       return wrap('0 0 38 32', `<rect x="3" y="4" width="32" height="24" rx="3" ${ba}/><circle cx="12" cy="12" r="3" fill="${palette.stroke}" opacity="0.45"/><polyline points="5,24 14,16 20,21 27,13 33,22" ${ln}/>`)
     case 'edge-line':
       return wrap('0 0 44 16', `<line x1="4" y1="8" x2="40" y2="8" ${ln}/>`)
+    case 'edge-sketch':
+      return wrap('0 0 44 16', `<path d="M4,8 C6.5,4.9 9.5,10.6 13,7.5 C17,4.1 21,11 25,7.3 C29,4.3 33,9.8 36.5,6.9 C38.2,5.5 39.2,8.8 40,8" ${ln}/>`)
     case 'edge-dashed':
       return wrap('0 0 44 16', `<line x1="4" y1="8" x2="40" y2="8" ${ln} stroke-dasharray="5 3"/>`)
     case 'edge-arrow':
@@ -241,15 +239,6 @@ export class UniDraw {
   private sidebarTabs = new Map<'shapes' | 'assets' | 'templates', HTMLButtonElement>()
   private sidebarPanels = new Map<'shapes' | 'assets' | 'templates', HTMLDivElement>()
   private activeSidebarTab: 'shapes' | 'assets' | 'templates' | null = null
-
-  // AI panel state
-  private aiPanelEl: HTMLDivElement | null = null
-  private aiPanelVisible = false
-  private aiMsgList!: HTMLDivElement
-  private aiFollowUpContainer!: HTMLDivElement
-  private aiInput!: HTMLTextAreaElement
-  private aiSendBtn!: HTMLButtonElement
-  private aiLoading = false
  
   // Properties panel state
   private propertiesBody!: HTMLDivElement
@@ -285,7 +274,6 @@ export class UniDraw {
     const showToolbar = this.opts.showToolbar !== false
     const showSidebar = this.opts.showShapePanel !== false
     const showProperties = this.opts.showPropertiesPanel !== false
-    const showAi     = this.opts.showAiPanel === true
 
     const body = el('div', 'ud-body')
     if (showSidebar) body.appendChild(this.buildSidebar())
@@ -304,8 +292,6 @@ export class UniDraw {
     if (showToolbar) canvasWrap.appendChild(this.buildToolbar())
 
     body.appendChild(canvasWrap)
-
-    if (showAi) body.appendChild(this.buildAiPanel())
 
     this.root.appendChild(body)
   }
@@ -592,58 +578,6 @@ export class UniDraw {
     for (const [key, panel] of this.sidebarPanels) {
       panel.style.display = key === tab ? 'block' : 'none'
     }
-  }
-
-  private buildAiPanel(): HTMLElement {
-    const panel = el('div', 'ud-ai-panel') as HTMLDivElement
-    this.aiPanelEl = panel
-
-    const header = el('div', 'ud-ai-header')
-    const title = el('span', 'ud-ai-title', 'AI 绘图')
-    const actions = el('div', 'ud-ai-header-actions')
-    const clearBtn = el('button', 'ud-ai-icon-btn', svg('<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>', 14)) as HTMLButtonElement
-    clearBtn.type = 'button'
-    clearBtn.title = '新建对话'
-    clearBtn.addEventListener('click', () => this.clearAiChat())
-    const closeBtn = el('button', 'ud-ai-icon-btn', svg('<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>', 14)) as HTMLButtonElement
-    closeBtn.type = 'button'
-    closeBtn.title = '关闭'
-    closeBtn.addEventListener('click', () => this.closeAiPanel())
-    actions.append(clearBtn, closeBtn)
-    header.append(title, actions)
-    panel.appendChild(header)
-
-    this.aiMsgList = el('div', 'ud-ai-messages')
-    panel.appendChild(this.aiMsgList)
-
-    this.aiFollowUpContainer = el('div', 'ud-ai-followup')
-    panel.appendChild(this.aiFollowUpContainer)
-
-    const footer = el('div', 'ud-ai-input-area')
-    const inputRow = el('div', 'ud-ai-input-row')
-    this.aiInput = el('textarea', 'ud-ai-input') as HTMLTextAreaElement
-    this.aiInput.placeholder = '描述你想绘制的图表...'
-    this.aiInput.rows = 1
-    this.aiInput.addEventListener('keydown', (e: KeyboardEvent) => {
-      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); this.sendAiMessage() }
-    })
-
-    this.aiSendBtn = el('button', 'ud-ai-send', ICONS.send) as HTMLButtonElement
-    this.aiSendBtn.title = '发送'
-    this.aiSendBtn.addEventListener('click', () => this.sendAiMessage())
-
-    inputRow.append(this.aiInput, this.aiSendBtn)
-    footer.appendChild(inputRow)
-    panel.appendChild(footer)
-
-    this.updateAiPanelVisibility()
-
-    return panel
-  }
-
-  private updateAiPanelVisibility(): void {
-    if (!this.aiPanelEl) return
-    this.aiPanelEl.style.display = this.opts.showAiPanel === true && this.aiPanelVisible ? 'flex' : 'none'
   }
 
   private updatePropertiesPanelVisibility(): void {
@@ -1010,15 +944,17 @@ export class UniDraw {
       edge.setAttrs?.({ line: { stroke: next } })
       this.opts.onDataChange?.(this.getData())
     })
-    appendIconButtonGroup('线型', lineType, getEdgeLineTypeOptions(), (next) => {
-      const { router: nextRouter, connector: nextConnector } = getEdgeLineConfig(next)
-      const vertices = getEdgeLineVertices(next, edge.getSourcePoint?.(), edge.getTargetPoint?.())
-      edge.setData?.({ ...(edge.getData?.() ?? {}), lineType: next })
-      edge.setRouter?.(nextRouter)
-      edge.setConnector?.(nextConnector)
-      edge.setVertices?.(vertices)
-      this.opts.onDataChange?.(this.getData())
-    })
+    if (edge.shape !== 'edge-sketch') {
+      appendIconButtonGroup('线型', lineType, getEdgeLineTypeOptions(), (next) => {
+        const { router: nextRouter, connector: nextConnector } = getEdgeLineConfig(next)
+        const vertices = getEdgeLineVertices(next, edge.getSourcePoint?.(), edge.getTargetPoint?.())
+        edge.setData?.({ ...(edge.getData?.() ?? {}), lineType: next })
+        edge.setRouter?.(nextRouter)
+        edge.setConnector?.(nextConnector)
+        edge.setVertices?.(vertices)
+        this.opts.onDataChange?.(this.getData())
+      })
+    }
     appendSelectInput('线样式', line.strokeDasharray ?? '', [
       { label: '实线', value: '' },
       { label: '虚线', value: '5 5' },
@@ -1049,47 +985,6 @@ export class UniDraw {
       edge.setAttrs?.({ line: { targetMarker: next === 'none' ? null : { name: next } } })
       this.opts.onDataChange?.(this.getData())
     })
-  }
-
-  // ── AI panel ───────────────────────────────────────────────────────────────
-
-  private sendAiMessage(): void {
-    const text = this.aiInput?.value.trim()
-    if (!text || this.aiLoading) return
-    this.aiInput.value = ''
-    this.appendAiMessage('user', text)
-    this.aiLoading = true
-    if (this.aiSendBtn) this.aiSendBtn.disabled = true
-    const loadingEl = this.appendAiMessage('assistant', '', true)
-    this.opts.onAiGenerate?.(text, this.getData())
-    ;(this as any)._aiLoadingEl = loadingEl
-  }
-
-  private appendAiMessage(role: 'user' | 'assistant', content: string, loading = false): HTMLDivElement {
-    const msg = el('div', `ud-ai-msg ${role}${loading ? ' loading' : ''}`)
-    const contentEl = el('div', `ud-ai-msg-content${loading ? ' ud-ai-typing' : ''}`) as HTMLDivElement
-    if (loading) {
-      contentEl.innerHTML = '<span class="dot"></span><span class="dot"></span><span class="dot"></span>'
-    } else {
-      contentEl.textContent = content
-    }
-    msg.appendChild(contentEl)
-    this.aiMsgList?.appendChild(msg)
-    requestAnimationFrame(() => { if (this.aiMsgList) this.aiMsgList.scrollTop = 9999 })
-    return msg
-  }
-
-  private renderFollowUps(questions: string[]): void {
-    if (!this.aiFollowUpContainer) return
-    this.aiFollowUpContainer.innerHTML = ''
-    for (const q of questions) {
-      const b = el('button', 'ud-ai-chip', q) as HTMLButtonElement
-      b.addEventListener('click', () => {
-        if (this.aiInput) this.aiInput.value = q
-        this.sendAiMessage()
-      })
-      this.aiFollowUpContainer.appendChild(b)
-    }
   }
 
   // ── Export helpers ─────────────────────────────────────────────────────────
@@ -1170,32 +1065,6 @@ export class UniDraw {
     if (this.sidebarPanels.has('templates')) this.setSidebarTab('templates')
   }
 
-  openAiPanel(): void {
-    if (this.opts.showAiPanel !== true) return
-    this.aiPanelVisible = true
-    this.updateAiPanelVisibility()
-  }
-
-  closeAiPanel(): void {
-    this.aiPanelVisible = false
-    this.updateAiPanelVisibility()
-  }
-
-  toggleAiPanel(): void {
-    if (this.opts.showAiPanel !== true) return
-    this.aiPanelVisible = !this.aiPanelVisible
-    this.updateAiPanelVisibility()
-  }
-
-  clearAiChat(): void {
-    this.aiLoading = false
-    if (this.aiInput) this.aiInput.value = ''
-    if (this.aiSendBtn) this.aiSendBtn.disabled = false
-    if (this.aiMsgList) this.aiMsgList.innerHTML = ''
-    if (this.aiFollowUpContainer) this.aiFollowUpContainer.innerHTML = ''
-    ;(this as any)._aiLoadingEl = undefined
-  }
-
   undo(): void {
     const g = (this as any)._graph
     if (g) (g as any).undo?.()
@@ -1216,36 +1085,6 @@ export class UniDraw {
   deleteSelection(): void {
     const g = (this as any)._graph
     if (g) g.removeCells?.(g.getSelectedCells?.() ?? [])
-  }
-
-  /**
-   * Called by the host (Vue/React example) after receiving AI results.
-   * @param data      optional graph data to load
-   * @param message   assistant message to display
-   * @param followUp  follow-up question suggestions
-   */
-  applyAiResult(data?: GraphData, message?: string, followUp: string[] = []): void {
-    const loadingEl: HTMLDivElement | undefined = (this as any)._aiLoadingEl
-    if (loadingEl) {
-      loadingEl.classList.remove('loading')
-      if (message) {
-        const contentEl = loadingEl.querySelector('.ud-ai-msg-content') as HTMLDivElement | null
-        if (contentEl) {
-          contentEl.classList.remove('ud-ai-typing')
-          contentEl.textContent = message
-        } else {
-          loadingEl.textContent = message
-        }
-      }
-      ;(this as any)._aiLoadingEl = undefined
-    } else if (message) {
-      this.appendAiMessage('assistant', message)
-    }
-
-    if (data) this.setData(data)
-    this.aiLoading = false
-    if (this.aiSendBtn) this.aiSendBtn.disabled = false
-    this.renderFollowUps(followUp)
   }
 
   /** Clean up the instance and remove the DOM. */
