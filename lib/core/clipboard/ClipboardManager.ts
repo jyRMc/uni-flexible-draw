@@ -51,7 +51,7 @@ export class ClipboardManager {
   /**
    * 粘贴剪贴板中的单元格
    */
-  paste(offsetX = 20, offsetY = 20): Cell[] {
+  paste(offsetX = 30, offsetY = 30): Cell[] {
     const added: Cell[] = []
     this.offsetCount++
     const totalOffset = this.offsetCount * Math.max(offsetX, offsetY)
@@ -66,8 +66,14 @@ export class ClipboardManager {
             x: (nodeData.position?.x ?? 0) + totalOffset,
             y: (nodeData.position?.y ?? 0) + totalOffset,
           },
+          data: nodeData.data && typeof nodeData.data === 'object'
+            ? { ...nodeData.data, locked: false }
+            : nodeData.data,
         }
         const node = NodeFactory.createNode(this.graph, newNodeData)
+        if (typeof (node as any).setProp === 'function') {
+          ;(node as any).setProp('movable', true)
+        }
         this.graph.addNode(node)
         added.push(node)
       }

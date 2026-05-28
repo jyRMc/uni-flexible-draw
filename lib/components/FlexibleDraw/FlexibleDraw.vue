@@ -3,18 +3,17 @@
     <div
       ref="containerRef"
       class="flexible-draw"
-      @contextmenu.prevent="onContextMenu"
       @dragover.prevent
       @drop.prevent="onExternalDrop"
     />
     <div v-if="drawMode" class="draw-brush-panel">
-      <div class="draw-brush-title">手绘</div>
+      <div class="draw-brush-title">{{ t.drawPanel.title }}</div>
       <div class="draw-brush-row">
-        <label>颜色</label>
+        <label>{{ t.drawPanel.color }}</label>
         <ColorPicker :model-value="drawBrushStyle.stroke" @update:model-value="onDrawBrushColor" />
       </div>
       <div class="draw-brush-row">
-        <label>样式</label>
+        <label>{{ t.drawPanel.style }}</label>
         <div class="draw-brush-dash-list">
           <button class="draw-brush-dash-btn" :class="{ active: drawBrushStyle.strokeDasharray === '' }" @click="setDrawStrokeDash('')">
             <svg width="24" height="10" viewBox="0 0 24 10"><line x1="2" y1="5" x2="22" y2="5" stroke="currentColor" stroke-width="2" stroke-linecap="round" /></svg>
@@ -28,12 +27,12 @@
         </div>
       </div>
       <div class="draw-brush-row">
-        <label>粗细</label>
+        <label>{{ t.drawPanel.width }}</label>
         <input type="range" :value="drawBrushStyle.strokeWidth" min="1" max="12" step="0.5" @input="onDrawBrushWidth" />
         <span>{{ drawBrushStyle.strokeWidth }}</span>
       </div>
       <div class="draw-brush-row">
-        <label>透明</label>
+        <label>{{ t.drawPanel.opacity }}</label>
         <input type="range" :value="drawBrushStyle.opacity" min="0.05" max="1" step="0.05" @input="onDrawBrushOpacity" />
         <span>{{ Math.round(drawBrushStyle.opacity * 100) }}%</span>
       </div>
@@ -55,7 +54,11 @@
     :y="contextMenuState.y"
     :has-selection="contextMenuState.hasSelection"
     :can-paste="contextMenuState.canPaste"
-    @action="canvas.handleContextAction"
+    :node-selection-count="contextMenuState.nodeSelectionCount"
+    :edge-selection-count="contextMenuState.edgeSelectionCount"
+    :has-single-node-selection="contextMenuState.hasSingleNodeSelection"
+    :all-selected-locked="contextMenuState.allSelectedLocked"
+    @action="onContextAction"
     @close="canvas.hideContextMenu"
   />
   <!-- SVG 代码编辑器对话框 -->
@@ -396,14 +399,15 @@ function onSvgApply() {
   canvas.commitSvgEdit(svgEditorContent.value)
 }
 
-// 右键菜单
-function onContextMenu(event: MouseEvent) {
-  const rect = containerRef.value?.getBoundingClientRect()
-  if (rect) {
-    const x = event.clientX
-    const y = event.clientY
-    canvas.showContextMenu(x, y)
+function onContextAction(action: string) {
+  if (action === 'addToMaterials') {
+    if (selectedNodeData.value) {
+      emit('add-to-materials', selectedNodeData.value)
+    }
+    canvas.hideContextMenu()
+    return
   }
+  canvas.handleContextAction(action)
 }
 
 // 监听历史变化向外 emit

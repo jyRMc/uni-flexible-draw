@@ -136,7 +136,9 @@ export class NodeFactory {
       shape: node.shape,
       position: { x: position.x, y: position.y },
       size: { width: size.width, height: size.height },
-      angle: (node as any).angle,
+      angle: typeof (node as any).getAngle === 'function'
+        ? (node as any).getAngle()
+        : ((node as any).angle ?? 0),
       zIndex: (node as any).getZIndex?.() ?? undefined,
       label: (node as any).label ?? (node as any).getLabels?.()?.[0]?.attrs?.label?.text,
       style: Object.keys(style).length > 0 ? style : undefined,

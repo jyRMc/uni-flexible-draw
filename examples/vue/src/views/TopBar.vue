@@ -8,10 +8,10 @@
         </svg>
         <span class="top-brand">UniDraw</span>
       </div>
-      <button class="top-btn text-only" @click="$emit('exit')">退出</button>
+      <button class="top-btn text-only" @click="$emit('exit')">{{ texts.exit }}</button>
       <span class="top-divider">|</span>
       <span class="top-title">{{ title }}</span>
-      <span class="top-autosave">已自动保存 {{ autosaveTime }}</span>
+      <span class="top-autosave">{{ texts.autosave }} {{ autosaveTime }}</span>
     </div>
 
     <div class="top-bar-center">
@@ -24,63 +24,73 @@
     </div>
 
     <div class="top-bar-right">
+      <button class="top-btn" :title="texts.languageSwitch" @click="$emit('toggleLanguage')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8h14"/><path d="M5 16h14"/><path d="M9 4c0 7.2 2.4 12.2 3 13.5C12.6 16.2 15 11.2 15 4"/><path d="M9 20h6"/></svg>
+        {{ lang === 'zh-CN' ? 'EN' : 'ZH' }}
+      </button>
       <button class="top-btn" @click="$emit('share')">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
-        分享
+        {{ texts.share }}
       </button>
       <button class="top-btn" @click="$emit('templates')">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>
-        模板
+        {{ texts.templates }}
       </button>
       <button class="top-btn" :class="{ active: editing }" @click="$emit('toggleEdit')">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-        编辑
+        {{ texts.edit }}
       </button>
-      <button class="top-btn icon-only" title="搜索">
+      <button class="top-btn icon-only" :title="texts.search">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
       </button>
-      <button class="top-btn icon-only" title="帮助">
+      <button class="top-btn icon-only" :title="texts.help">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
       </button>
       <span class="top-zoom-badge">{{ zoomPercent }}%</span>
       <button class="top-btn primary" @click="$emit('aiDraw')">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-        AI 绘图
+        {{ texts.aiDraw }}
       </button>
       <button class="top-btn primary-outline" @click="$emit('newChat')">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        新建对话
+        {{ texts.newChat }}
       </button>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import type { UniDrawLocale } from '@uni-draw/draw'
+
 export interface TopBarProps {
   title?: string
   autosaveTime?: string
   zoomPercent?: number
   editing?: boolean
+  lang?: 'zh-CN' | 'en-US'
+  texts: UniDrawLocale['example']['topBar']
 }
 
 withDefaults(defineProps<TopBarProps>(), {
-  title: '未命名图表',
+  title: 'Untitled Diagram',
   autosaveTime: '10:24',
   zoomPercent: 100,
   editing: false,
+  lang: 'zh-CN',
 })
 
 defineEmits<{
   (e: 'share'): void
   (e: 'templates'): void
   (e: 'toggleEdit'): void
+  (e: 'toggleLanguage'): void
   (e: 'aiDraw'): void
   (e: 'newChat'): void
   (e: 'exit'): void
 }>()
 
 const avatarColors = ['var(--primary)', '#52c41a', '#fa8c16']
-const avatarLetters = ['张', '李', '王']
+const avatarLetters = ['A', 'B', 'C']
 </script>
 
 <style scoped>

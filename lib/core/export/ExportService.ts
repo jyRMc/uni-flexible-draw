@@ -8,6 +8,12 @@ export interface ExportImageOptions {
   quality?: number
   width?: number
   height?: number
+  viewBox?: {
+    x: number
+    y: number
+    width: number
+    height: number
+  }
 }
 
 /**
@@ -36,12 +42,13 @@ export class ExportService {
    * 导出为 PNG 图片（base64）
    */
   async toPNG(options: ExportImageOptions = {}): Promise<string> {
-    return this.graph.toPNG({
+    return (this.graph as any).toPNG({
       backgroundColor: options.backgroundColor ?? '#ffffff',
       padding: options.padding ?? 10,
       quality: options.quality ?? 1,
       width: options.width,
       height: options.height,
+      viewBox: options.viewBox,
     })
   }
 
@@ -49,15 +56,15 @@ export class ExportService {
    * 导出为 SVG 字符串
    */
   async toSVG(options: ExportImageOptions = {}): Promise<string> {
-    return this.graph.toSVG({
-      viewBox: options.padding
+    return (this.graph as any).toSVG({
+      viewBox: options.viewBox ?? (options.padding
         ? {
             x: -options.padding,
             y: -options.padding,
             width: this.graph.options.width + options.padding * 2,
             height: this.graph.options.height + options.padding * 2,
           }
-        : undefined,
+        : undefined),
     })
   }
 }

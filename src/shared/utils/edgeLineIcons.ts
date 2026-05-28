@@ -30,32 +30,32 @@ export function getEdgeLineTypeOptions(labels?: Partial<Record<string, string>>)
   return [
     {
       value: 'straight',
-      title: labels?.straight ?? '直线',
+      title: labels?.straight ?? 'Straight',
       svg: getEdgeLineTypeIconSvg('straight'),
     },
     {
       value: 'curve',
-      title: labels?.curve ?? '曲线',
+      title: labels?.curve ?? 'Curve',
       svg: getEdgeLineTypeIconSvg('curve'),
     },
     {
       value: 'rounded',
-      title: labels?.rounded ?? '圆角折线',
+      title: labels?.rounded ?? 'Rounded',
       svg: getEdgeLineTypeIconSvg('rounded'),
     },
     {
       value: 'orthogonal',
-      title: labels?.orthogonal ?? '正交折线',
+      title: labels?.orthogonal ?? 'Orthogonal',
       svg: getEdgeLineTypeIconSvg('orthogonal'),
     },
     {
       value: 'manhattan',
-      title: labels?.manhattan ?? '曼哈顿',
+      title: labels?.manhattan ?? 'Manhattan',
       svg: getEdgeLineTypeIconSvg('manhattan'),
     },
     {
       value: 'jumpover',
-      title: labels?.jumpover ?? '跨线',
+      title: labels?.jumpover ?? 'Jumpover',
       svg: getEdgeLineTypeIconSvg('jumpover'),
     },
   ]

@@ -2,7 +2,7 @@
   <div class="shape-category">
     <div class="shape-category-header" @click="toggle">
       <span class="shape-category-arrow" :class="{ expanded: isExpanded }">›</span>
-      <span class="shape-category-name">{{ library.name }}</span>
+      <span class="shape-category-name">{{ displayLibraryName }}</span>
       <span class="shape-category-count">{{ library.items.length }}</span>
     </div>
     <div v-show="isExpanded" class="shape-category-items">
@@ -24,8 +24,9 @@
 
 <script setup lang="ts">
 import '../../icon/iconfont.css'
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import type { MaterialLibrary, MaterialItem } from '@uni-draw/shared'
+import { useLocale } from '../../locale'
 
 export interface ShapeCategoryProps {
   library: MaterialLibrary
@@ -41,7 +42,12 @@ const emit = defineEmits<{
   (e: 'select', item: MaterialItem): void
 }>()
 
+const t = useLocale()
 const isExpanded = ref(true)
+const displayLibraryName = computed(() => {
+  const categories = t.panel.shapeCategories
+  return categories[props.library.id as keyof typeof categories] ?? props.library.name
+})
 
 function toggle() {
   if (props.collapsible) {

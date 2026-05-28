@@ -13,11 +13,21 @@
         @click.stop
       >
         <div class="context-menu-group">
-          <button class="context-menu-item" @click="$emit('action', 'cut')">
+          <button
+            class="context-menu-item"
+            :class="{ disabled: !hasSelection }"
+            :disabled="!hasSelection"
+            @click="$emit('action', 'cut')"
+          >
             <span class="menu-label">{{ t.contextMenu.cut }}</span>
             <span class="menu-shortcut">Ctrl+X</span>
           </button>
-          <button class="context-menu-item" @click="$emit('action', 'copy')">
+          <button
+            class="context-menu-item"
+            :class="{ disabled: !hasSelection }"
+            :disabled="!hasSelection"
+            @click="$emit('action', 'copy')"
+          >
             <span class="menu-label">{{ t.contextMenu.copy }}</span>
             <span class="menu-shortcut">Ctrl+C</span>
           </button>
@@ -30,7 +40,12 @@
             <span class="menu-label">{{ t.contextMenu.paste }}</span>
             <span class="menu-shortcut">Ctrl+V</span>
           </button>
-          <button class="context-menu-item" @click="$emit('action', 'duplicate')">
+          <button
+            class="context-menu-item"
+            :class="{ disabled: !hasSelection }"
+            :disabled="!hasSelection"
+            @click="$emit('action', 'duplicate')"
+          >
             <span class="menu-label">{{ t.contextMenu.duplicate }}</span>
             <span class="menu-shortcut">Ctrl+D</span>
           </button>
@@ -41,8 +56,8 @@
         <div class="context-menu-group">
           <button
             class="context-menu-item"
-            :class="{ disabled: !hasSelection }"
-            :disabled="!hasSelection"
+            :class="{ disabled: !canCreateFrame }"
+            :disabled="!canCreateFrame"
             @click="$emit('action', 'createFrame')"
           >
             <span class="menu-label">{{ t.contextMenu.createFrame }}</span>
@@ -76,8 +91,8 @@
         <div class="context-menu-group">
           <button
             class="context-menu-item"
-            :class="{ disabled: !hasSelection }"
-            :disabled="!hasSelection"
+            :class="{ disabled: !canAddToMaterials }"
+            :disabled="!canAddToMaterials"
             @click="$emit('action', 'addToMaterials')"
           >
             <span class="menu-label">{{ t.contextMenu.addToMaterials }}</span>
@@ -130,8 +145,8 @@
         <div class="context-menu-group">
           <button
             class="context-menu-item"
-            :class="{ disabled: !hasSelection }"
-            :disabled="!hasSelection"
+            :class="{ disabled: !canFlip }"
+            :disabled="!canFlip"
             @click="$emit('action', 'flipH')"
           >
             <span class="menu-label">{{ t.contextMenu.flipH }}</span>
@@ -139,8 +154,8 @@
           </button>
           <button
             class="context-menu-item"
-            :class="{ disabled: !hasSelection }"
-            :disabled="!hasSelection"
+            :class="{ disabled: !canFlip }"
+            :disabled="!canFlip"
             @click="$emit('action', 'flipV')"
           >
             <span class="menu-label">{{ t.contextMenu.flipV }}</span>
@@ -153,8 +168,8 @@
         <div class="context-menu-group">
           <button
             class="context-menu-item"
-            :class="{ disabled: !hasSelection }"
-            :disabled="!hasSelection"
+            :class="{ disabled: !canAddLink }"
+            :disabled="!canAddLink"
             @click="$emit('action', 'addLink')"
           >
             <span class="menu-label">{{ t.contextMenu.addLink }}</span>
@@ -171,7 +186,7 @@
             :disabled="!hasSelection"
             @click="$emit('action', 'toggleLock')"
           >
-            <span class="menu-label">{{ t.contextMenu.lock }}</span>
+            <span class="menu-label">{{ allSelectedLocked ? t.contextMenu.unlock : t.contextMenu.lock }}</span>
             <span class="menu-shortcut">Ctrl+Shift+L</span>
           </button>
         </div>
@@ -195,7 +210,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, nextTick } from 'vue'
+import { computed, ref, watch, nextTick } from 'vue'
 import { useLocale } from '../../locale'
 
 const props = defineProps<{
@@ -204,6 +219,10 @@ const props = defineProps<{
   y: number
   hasSelection: boolean
   canPaste: boolean
+  nodeSelectionCount: number
+  edgeSelectionCount: number
+  hasSingleNodeSelection: boolean
+  allSelectedLocked: boolean
 }>()
 
 const emit = defineEmits<{
@@ -215,6 +234,11 @@ const t = useLocale()
 
 const menuRef = ref<HTMLElement | null>(null)
 const pos = ref({ left: 0, top: 0 })
+const canCreateFrame = computed(() => props.nodeSelectionCount > 0)
+const canAddToMaterials = computed(() => props.hasSingleNodeSelection)
+const canFlip = computed(() => props.nodeSelectionCount > 0)
+const canAddLink = computed(() => props.nodeSelectionCount >= 2)
+const allSelectedLocked = computed(() => props.allSelectedLocked)
 
 // 菜单显示后，测量真实尺寸并调整位置防止溢出
 watch(

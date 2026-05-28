@@ -5,8 +5,8 @@
         <div class="tpl-modal">
           <!-- Modal header -->
           <div class="tpl-header">
-            <span class="tpl-title">场景模板</span>
-            <span class="tpl-hint">选择一个模板快速开始</span>
+            <span class="tpl-title">{{ t.templatePanel.title }}</span>
+            <span class="tpl-hint">{{ t.templatePanel.hint }}</span>
             <button class="tpl-close" @click="$emit('close')">
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
             </button>
@@ -15,7 +15,7 @@
           <!-- Template grid -->
           <div v-if="templates.length === 0" class="tpl-empty">
             <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#ddd" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 9h6M9 12h6M9 15h4"/></svg>
-            <p>暂无模板，请通过 templates prop 注入</p>
+            <p>{{ t.templatePanel.empty }}</p>
           </div>
           <div v-else class="tpl-grid" ref="gridRef">
             <div
@@ -30,19 +30,19 @@
               </div>
               <!-- Hover bar slides up from card bottom -->
               <div class="tpl-hover-layer">
-                <button class="btn-use" @click="apply(tpl)">使用</button>
+                <button class="btn-use" @click="apply(tpl)">{{ t.templatePanel.use }}</button>
               </div>
               <!-- Card info -->
               <div class="tpl-info">
                 <div class="tpl-name">{{ tpl.name }}</div>
-                <div class="tpl-desc">{{ tpl.description }}</div>
+                <div class="tpl-desc">{{ tpl.description || t.templatePanel.defaultDescription }}</div>
                 <div class="tpl-tags">
                   <span v-for="tag in tpl.tags" :key="tag" class="tpl-tag">{{ tag }}</span>
                 </div>
                 <div class="tpl-stats">
-                  <span>{{ tpl.data.nodes.length }} 节点</span>
+                  <span>{{ tpl.data.nodes.length }} {{ t.templatePanel.nodes }}</span>
                   <span class="dot">·</span>
-                  <span>{{ tpl.data.edges.length }} 连线</span>
+                  <span>{{ tpl.data.edges.length }} {{ t.templatePanel.edges }}</span>
                 </div>
               </div>
             </div>
@@ -55,7 +55,8 @@
 
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue'
-import type { TemplateItem } from '@uni-draw/shared'
+import type { TemplateItem } from '../../shared'
+import { useLocale } from '../../locale'
 
 const props = defineProps<{
   visible: boolean
@@ -67,6 +68,7 @@ const emit = defineEmits<{
   (e: 'close'): void
 }>()
 
+const t = useLocale()
 const templates = computed(() => props.templates ?? [])
 const gridRef = ref<HTMLElement | null>(null)
 const visibleIds = ref(new Set<string>())

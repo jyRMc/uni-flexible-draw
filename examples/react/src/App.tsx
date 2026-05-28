@@ -1,9 +1,9 @@
-import { useRef, useState, useCallback, useEffect } from 'react'
+import { useRef, useState, useCallback, useEffect, useMemo } from 'react'
 import type { CSSProperties } from 'react'
 import { UniDraw, type UniDrawRef } from '@uni-draw/draw/react'
 import AIPanel, { type Message } from './components/AIPanel'
 import TopBar from './components/TopBar'
-import type { AssetItem, GraphData, TemplateItem } from '@uni-draw/draw'
+import { zhCN, enUS, type AssetItem, type GraphData, type TemplateItem, type UniDrawLocale } from '@uni-draw/draw'
 import { generateGraph, diagnoseSiliconFlow } from '../../vue/src/mocks/aiService'
 import { SCENARIO_TEMPLATES } from '../../vue/src/mocks/templates'
 
@@ -22,6 +22,7 @@ const templates = SCENARIO_TEMPLATES as unknown as TemplateItem[]
 const shellStyle: CSSProperties = { width: '100vw', height: '100vh', display: 'flex', flexDirection: 'column' }
 const workspaceStyle: CSSProperties = { flex: 1, minHeight: 0, display: 'flex' }
 const drawShellStyle: CSSProperties = { flex: 1, minWidth: 0 }
+type DemoLanguage = 'zh-CN' | 'en-US'
 
 export default function App() {
   const drawRef = useRef<UniDrawRef>(null)
@@ -36,11 +37,13 @@ export default function App() {
   const [aiLoading, setAiLoading] = useState(false)
   const [aiMessages, setAiMessages] = useState<Message[]>([])
   const [followUpQuestions, setFollowUpQuestions] = useState<string[]>([])
+  const [currentLanguage, setCurrentLanguage] = useState<DemoLanguage>('zh-CN')
   const [graphData, setGraphData] = useState<GraphData>({
     canvas: { backgroundColor: '#ffffff', grid: { size: 10, visible: true, type: 'dot' }, zoom: 1 },
     nodes: [],
     edges: [],
   })
+  const currentLocale = useMemo<UniDrawLocale>(() => (currentLanguage === 'en-US' ? enUS : zhCN), [currentLanguage])
 
   const normalizeAssetsResponse = useCallback((payload: unknown, requestedPage: number) => {
     if (Array.isArray(payload)) {
@@ -121,9 +124,9 @@ export default function App() {
   const handleShare = useCallback(() => {
     const json = drawRef.current?.exportJSON()
     if (json) {
-      navigator.clipboard.writeText(json).then(() => alert('已复制 JSON 到剪贴板'))
+      navigator.clipboard.writeText(json).then(() => alert(currentLocale.example.common.copiedJson))
     }
-  }, [])
+  }, [currentLocale])
 
   const handleToggleAiPanel = useCallback(() => {
     setAiPanelOpen((prev) => !prev)
@@ -151,9 +154,13 @@ export default function App() {
   }, [])
 
   const handleExit = useCallback(() => {
-    if (window.confirm('确定要退出吗？')) {
+    if (window.confirm(currentLocale.example.common.exitConfirm)) {
       window.close()
     }
+  }, [currentLocale])
+
+  const handleToggleLanguage = useCallback(() => {
+    setCurrentLanguage((prev) => (prev === 'zh-CN' ? 'en-US' : 'zh-CN'))
   }, [])
 
   const handleReady = useCallback(async () => {
@@ -198,10 +205,13 @@ export default function App() {
   return (
     <div style={shellStyle}>
       <TopBar
-        title={graphData.meta?.title || '未命名图表'}
+        title={graphData.meta?.title || currentLocale.example.common.untitled}
         zoomPercent={zoomPercent}
         editing={!readonly}
+        lang={currentLanguage}
+        texts={currentLocale.example.topBar}
         onToggleEdit={() => setReadonly(prev => !prev)}
+        onToggleLanguage={handleToggleLanguage}
         onTemplates={handleOpenTemplates}
         onAiDraw={handleToggleAiPanel}
         onNewChat={handleClearAiChat}
@@ -210,8 +220,10 @@ export default function App() {
       />
 
       <UniDraw
+        key={currentLanguage}
         ref={drawRef}
         value={graphData}
+        locale={currentLocale}
         assets={assets}
         assetPage={assetPage}
         assetTotalPages={assetTotalPages}

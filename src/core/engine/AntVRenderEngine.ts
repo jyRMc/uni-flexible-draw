@@ -71,7 +71,24 @@ export class AntVRenderEngine {
         : undefined,
       interacting: options.readonly
         ? { nodeMovable: false, edgeMovable: false, arrowheadMovable: false }
-        : { vertexAddable: true, vertexMovable: true, vertexDeletable: true, arrowheadMovable: true },
+        : ((cellView: any) => {
+            const cell = cellView.cell
+            const isLocked = cell?.getData?.()?.locked === true
+
+            if (cell?.isEdge?.()) {
+              return {
+                edgeMovable: !isLocked,
+                vertexAddable: !isLocked,
+                vertexMovable: !isLocked,
+                vertexDeletable: !isLocked,
+                arrowheadMovable: !isLocked,
+              }
+            }
+
+            return {
+              nodeMovable: !isLocked,
+            }
+          }),
       connecting: {
         allowBlank: true,
         allowMulti: true,

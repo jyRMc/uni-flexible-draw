@@ -72,7 +72,18 @@ export class AntVRenderEngine {
       interacting: options.readonly
         ? { nodeMovable: false, edgeMovable: false, arrowheadMovable: false }
         : ((cellView: any) => {
+            const isLocked = cellView.cell?.getData?.()?.locked === true
             if (cellView.cell?.isEdge?.()) {
+              if (isLocked) {
+                return {
+                  edgeMovable: false,
+                  vertexAddable: false,
+                  vertexMovable: false,
+                  vertexDeletable: false,
+                  arrowheadMovable: false,
+                }
+              }
+
               const isSelected = this.graph?.isSelected?.(cellView.cell) ?? false
               return {
                 edgeMovable: isSelected,
@@ -84,7 +95,7 @@ export class AntVRenderEngine {
             }
 
             return {
-              nodeMovable: true,
+              nodeMovable: !isLocked,
             }
           }),
       connecting: {

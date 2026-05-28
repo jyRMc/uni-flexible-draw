@@ -20,6 +20,7 @@
   flex: 1;
   overflow: hidden;
   min-height: 0;
+  position: relative;
 }
 
 .ud-left-panel {
@@ -27,9 +28,103 @@
   flex-direction: column;
   width: var(--uni-draw-panel-width, 220px);
   flex-shrink: 0;
-  background: var(--uni-draw-panel-bg-alt, #f5f5f5);
-  border-right: 1px solid var(--uni-draw-panel-border, #e0e0e0);
+  position: absolute;
+  top: 16px;
+  bottom: 16px;
+  left: 16px;
+  z-index: 20;
+  background: var(--uni-draw-panel-bg, #fff);
+  border: none;
+  border-radius: 10px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1), 0 1px 4px rgba(0, 0, 0, 0.06);
   overflow: hidden;
+}
+
+.ud-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  gap: 8px;
+  background: #fafbfc;
+  border-bottom: 1px solid #f0f0f0;
+  flex-shrink: 0;
+}
+
+.ud-panel-tabs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ud-panel-content {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.ud-tab {
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--uni-draw-text-muted, #999);
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all .15s;
+}
+
+.ud-tab:hover {
+  color: #333;
+  background: #f0f0f0;
+}
+
+.ud-tab.active {
+  color: var(--uni-draw-primary, #7166F0);
+  background: var(--uni-draw-primary-bg-light, #f4f3fe);
+}
+
+.ud-panel-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border: none;
+  background: transparent;
+  color: #999;
+  cursor: pointer;
+  border-radius: 4px;
+  padding: 0;
+  transition: all 0.15s;
+}
+
+.ud-panel-close:hover {
+  background: #f0f0f0;
+  color: #333;
+}
+
+.ud-left-panel-reopen {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  z-index: 20;
+  padding: 8px 12px;
+  border: none;
+  background: #fff;
+  color: #333;
+  border-radius: 10px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1), 0 1px 4px rgba(0, 0, 0, 0.06);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.ud-left-panel-reopen:hover {
+  background: #fafbfc;
 }
 
 .ud-canvas-area {

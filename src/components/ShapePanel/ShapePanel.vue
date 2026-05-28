@@ -4,7 +4,7 @@
       <input
         v-model="searchQuery"
         type="text"
-        placeholder="搜索图形"
+        :placeholder="t.panel.searchShapes"
         class="shape-panel-search-input"
       >
     </div>
@@ -24,6 +24,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import type { MaterialLibrary, MaterialItem } from '@uni-draw/shared'
+import { useLocale } from '../../locale'
 import ShapeCategory from './ShapeCategory.vue'
 
 export interface ShapePanelProps {
@@ -42,6 +43,7 @@ const emit = defineEmits<{
   (e: 'select', item: MaterialItem): void
 }>()
 
+const t = useLocale()
 const searchQuery = ref('')
 
 const filteredLibraries = computed(() => {
@@ -72,8 +74,9 @@ function onSelect(item: MaterialItem) {
 .shape-panel {
   display: flex;
   flex-direction: column;
-  width: 220px;
-  height: 100%;
+  width: 100%;
+  flex: 1;
+  min-height: 0;
   background: #fafbfc;
   border-right: 1px solid #e8e8e8;
   flex-shrink: 0;
@@ -106,7 +109,7 @@ function onSelect(item: MaterialItem) {
 .shape-panel-content {
   flex: 1;
   overflow-y: auto;
-  padding: 2px 0;
+  padding: 2px 0 12px;
 }
 
 </style>

@@ -9,6 +9,8 @@ import { registerAllShapes } from './shapes/register'
 import { getAllLibraries } from './materials'
 import type { GraphData, NodeData, EdgeData, MaterialItem } from './shared/types'
 import type { AssetItem, TemplateItem } from './shared/types'
+import zhCN from './locale/zh-CN'
+import type { UniDrawLocale } from './locale'
 import { PRIMARY_COLOR } from './shared/constants/theme'
 import { getEdgeLineConfig, getEdgeLineType, getEdgeLineTypeOptions, getEdgeLineVertices } from './shared'
 import { createNativeColorPicker, type NativeColorPickerInstance } from './components/ColorPicker/native'
@@ -52,6 +54,7 @@ export interface UniDrawOptions {
   snapline?: boolean
   /** Read-only mode */
   readonly?: boolean
+  locale?: UniDrawLocale
   /** Called once the canvas is ready */
   onReady?: () => void
   /** Fired whenever the selection changes */
@@ -249,6 +252,10 @@ export class UniDraw {
   private propertyColorPickers: NativeColorPickerInstance[] = []
   private propertiesHidden = false
 
+  private get t(): UniDrawLocale {
+    return this.opts.locale ?? zhCN
+  }
+
   constructor(container: HTMLElement, options: UniDrawOptions = {}) {
     this.opts = options
     this.root = el('div', 'ud-root')
@@ -298,9 +305,10 @@ export class UniDraw {
 
   private buildToolbar(): HTMLElement {
     const bar = el('div', 'toolbar-float')
+    const t = this.t
 
-    this.undoBtn = btn('tb-btn', '撤销 (Ctrl+Z)', ICONS.undo, () => this.undo())
-    this.redoBtn = btn('tb-btn', '重做 (Ctrl+Y)', ICONS.redo, () => this.redo())
+    this.undoBtn = btn('tb-btn', `${t.toolbar.undo} (Ctrl+Z)`, ICONS.undo, () => this.undo())
+    this.redoBtn = btn('tb-btn', `${t.toolbar.redo} (Ctrl+Y)`, ICONS.redo, () => this.redo())
     this.undoBtn.disabled = true
     this.redoBtn.disabled = true
 
@@ -311,15 +319,15 @@ export class UniDraw {
       this.undoBtn,
       this.redoBtn,
       sep(),
-      btn('tb-btn', '删除选中 (Delete)', ICONS.trash, () => this.deleteSelection()),
+      btn('tb-btn', `${t.contextMenu.delete} (Delete)`, ICONS.trash, () => this.deleteSelection()),
       sep(),
-      btn('tb-btn', '缩小', ICONS.zoomOut, () => this.zoomTool?.zoomOut()),
+      btn('tb-btn', t.toolbar.zoomOut, ICONS.zoomOut, () => this.zoomTool?.zoomOut()),
       this.zoomLabel,
-      btn('tb-btn', '放大', ICONS.zoomIn, () => this.zoomTool?.zoomIn()),
-      btn('tb-btn', '适应画布', ICONS.zoomFit, () => this.zoomTool?.zoomToFit({ padding: 24 })),
+      btn('tb-btn', t.toolbar.zoomIn, ICONS.zoomIn, () => this.zoomTool?.zoomIn()),
+      btn('tb-btn', t.toolbar.fitCanvas, ICONS.zoomFit, () => this.zoomTool?.zoomToFit({ padding: 24 })),
       sep(),
-      btn('tb-btn', '导出 JSON', ICONS.json, () => this.exportJSONToFile()),
-      btn('tb-btn', '导出 PNG', ICONS.download, () => this.exportPNGToFile()),
+      btn('tb-btn', t.toolbar.exportJson, ICONS.json, () => this.exportJSONToFile()),
+      btn('tb-btn', t.toolbar.exportPng, ICONS.download, () => this.exportPNGToFile()),
     )
 
     return bar
@@ -327,6 +335,7 @@ export class UniDraw {
 
   private buildSidebar(): HTMLElement {
     const aside = el('div', 'ud-left-panel')
+    const t = this.t
     const tabs = el('div', 'ud-panel-tabs')
     const panels = el('div', 'ud-sidebar-panels')
     const showAssetPagination = (this.opts.assetTotalPages ?? 1) > 1 || this.opts.assetPageLoading === true
@@ -345,8 +354,8 @@ export class UniDraw {
       addPanel(key)
     }
 
-    addTab('shapes', '图形')
-    if (showAssetsTab) addTab('assets', '素材')
+    addTab('shapes', t.panel.shapes)
+    if (showAssetsTab) addTab('assets', t.panel.assets)
     if (this.opts.showTemplates !== false) addPanel('templates')
 
     aside.append(tabs, panels)
@@ -360,6 +369,7 @@ export class UniDraw {
   private buildShapePanel(): void {
     const scroll = this.sidebarPanels.get('shapes')
     if (!scroll) return
+    const t = this.t
 
     scroll.innerHTML = ''
 
@@ -368,7 +378,7 @@ export class UniDraw {
     const searchWrap = el('div', 'shape-panel-search')
     const searchInput = document.createElement('input')
     searchInput.type = 'text'
-    searchInput.placeholder = '搜索图形'
+    searchInput.placeholder = t.panel.searchShapes
     searchInput.className = 'shape-panel-search-input'
     searchWrap.appendChild(searchInput)
 
@@ -387,7 +397,7 @@ export class UniDraw {
         : libs
 
       if (filteredLibraries.length === 0) {
-        content.appendChild(el('div', 'ud-empty-state', '未找到图形'))
+        content.appendChild(el('div', 'ud-empty-state', t.panel.noShapesFound))
         return
       }
 
@@ -395,7 +405,8 @@ export class UniDraw {
         const group = el('div', 'shape-category')
         const header = el('div', 'shape-category-header')
         const arrow = el('span', 'shape-category-arrow expanded', '›')
-        const name = el('span', 'shape-category-name', lib.name)
+        const localizedLibraryName = t.panel.shapeCategories[lib.id as keyof typeof t.panel.shapeCategories] ?? lib.name
+        const name = el('span', 'shape-category-name', localizedLibraryName)
         const count = el('span', 'shape-category-count', String(lib.items.length))
         header.append(arrow, name, count)
 
@@ -435,6 +446,7 @@ export class UniDraw {
   private buildAssetsPanel(): void {
     const panel = this.sidebarPanels.get('assets')
     if (!panel) return
+    const t = this.t
 
     panel.innerHTML = ''
 
@@ -452,7 +464,7 @@ export class UniDraw {
     panel.appendChild(content)
 
     if (assets.length === 0) {
-      grid.appendChild(el('div', 'ud-assets-empty', '暂无素材'))
+      grid.appendChild(el('div', 'ud-assets-empty', t.panel.noAssets))
     } else {
       for (const asset of assets) {
         const material = this.createAssetMaterial(asset)
@@ -480,12 +492,12 @@ export class UniDraw {
     if (!showPagination) return
 
     const pagination = el('div', 'ud-assets-pagination')
-    const prevBtn = el('button', 'ud-assets-page-btn', '上一页') as HTMLButtonElement
+    const prevBtn = el('button', 'ud-assets-page-btn', t.panel.previousPage) as HTMLButtonElement
     prevBtn.type = 'button'
     prevBtn.disabled = !canPrev || isLoading
     prevBtn.addEventListener('click', () => this.opts.onAssetsPrevPage?.())
     const indicator = el('span', 'ud-assets-page-indicator', `${page} / ${totalPages}`)
-    const nextBtn = el('button', 'ud-assets-page-btn', '下一页') as HTMLButtonElement
+    const nextBtn = el('button', 'ud-assets-page-btn', t.panel.nextPage) as HTMLButtonElement
     nextBtn.type = 'button'
     nextBtn.disabled = !canNext || isLoading
     nextBtn.addEventListener('click', () => this.opts.onAssetsNextPage?.())
@@ -496,12 +508,13 @@ export class UniDraw {
   private buildTemplatesPanel(): void {
     const panel = this.sidebarPanels.get('templates')
     if (!panel) return
+    const t = this.t
 
     panel.innerHTML = ''
 
     const templates = this.opts.templates ?? []
     if (templates.length === 0) {
-      panel.appendChild(el('div', 'ud-empty-state', '暂无模板，请通过 props 传入 templates'))
+      panel.appendChild(el('div', 'ud-empty-state', t.templatePanel.empty))
       return
     }
 
@@ -516,13 +529,13 @@ export class UniDraw {
         img.alt = template.name
         preview.appendChild(img)
       } else {
-        preview.textContent = `${template.data.nodes.length} 节点 / ${template.data.edges.length} 连线`
+        preview.textContent = `${template.data.nodes.length} ${t.templatePanel.nodes} / ${template.data.edges.length} ${t.templatePanel.edges}`
       }
 
       const info = el('div', 'ud-template-info')
       info.append(
         el('div', 'ud-template-title', template.name),
-        el('div', 'ud-template-desc', template.description ?? '快速应用模板到当前画布'),
+        el('div', 'ud-template-desc', template.description ?? t.templatePanel.defaultDescription),
       )
 
       if (template.tags?.length) {
@@ -533,7 +546,7 @@ export class UniDraw {
         info.appendChild(tags)
       }
 
-      const applyBtn = el('button', 'ud-template-apply', '应用') as HTMLButtonElement
+      const applyBtn = el('button', 'ud-template-apply', t.templatePanel.use) as HTMLButtonElement
       applyBtn.type = 'button'
       applyBtn.addEventListener('click', () => this.applyTemplate(template))
 
@@ -547,12 +560,13 @@ export class UniDraw {
   private buildPropertiesPanel(): HTMLElement {
     const aside = el('div', 'quick-action-card ud-properties-card') as HTMLDivElement
     this.propertiesPanelEl = aside
+    const t = this.t
 
     const header = el('div', 'qac-header')
-    this.propertiesTitleEl = el('span', 'qac-title', '属性') as HTMLSpanElement
+    this.propertiesTitleEl = el('span', 'qac-title', t.properties.title) as HTMLSpanElement
     const closeBtn = el('button', 'qac-close', '✕') as HTMLButtonElement
     closeBtn.type = 'button'
-    closeBtn.title = '关闭'
+    closeBtn.title = t.properties.close
     closeBtn.addEventListener('click', () => {
       this.propertiesHidden = true
       this.updatePropertiesPanelVisibility()
@@ -790,6 +804,7 @@ export class UniDraw {
 
   private updatePropertiesPanel(): void {
     if (!this.propertiesBody) return
+    const t = this.t
 
     for (const picker of this.propertyColorPickers) picker.destroy()
     this.propertyColorPickers = []
@@ -797,8 +812,8 @@ export class UniDraw {
     this.propertiesBody.innerHTML = ''
     const graph = (this as any)._graph
     if (!graph || (!this.selectedNodeId && !this.selectedEdgeId)) {
-      if (this.propertiesTitleEl) this.propertiesTitleEl.textContent = '属性'
-      this.propertiesBody.appendChild(el('div', 'ud-empty-state', '请选择画布元素查看和编辑属性'))
+      if (this.propertiesTitleEl) this.propertiesTitleEl.textContent = t.properties.title
+      this.propertiesBody.appendChild(el('div', 'ud-empty-state', t.properties.noSelection))
       return
     }
 
@@ -877,36 +892,36 @@ export class UniDraw {
     if (this.selectedNodeId) {
       const node = graph.getCellById(this.selectedNodeId)
       if (!node || !node.isNode?.()) {
-        if (this.propertiesTitleEl) this.propertiesTitleEl.textContent = '属性'
-        this.propertiesBody.appendChild(el('div', 'ud-empty-state', '当前节点不存在'))
+        if (this.propertiesTitleEl) this.propertiesTitleEl.textContent = t.properties.title
+        this.propertiesBody.appendChild(el('div', 'ud-empty-state', t.properties.nodeMissing))
         return
       }
 
-      if (this.propertiesTitleEl) this.propertiesTitleEl.textContent = '节点属性'
+      if (this.propertiesTitleEl) this.propertiesTitleEl.textContent = t.properties.nodeTitle
       const size = node.getSize?.() ?? { width: 80, height: 80 }
       const attrs = node.getAttrs?.() ?? {}
       const body = attrs.body ?? {}
 
-      this.propertiesBody.appendChild(el('div', 'ud-properties-section-title', '节点属性'))
-      appendTextInput('标题', node.getLabel?.() ?? '', (next) => {
+      this.propertiesBody.appendChild(el('div', 'ud-properties-section-title', t.properties.nodeTitle))
+      appendTextInput(t.properties.label, node.getLabel?.() ?? '', (next) => {
         node.setLabel?.(next)
         this.opts.onDataChange?.(this.getData())
       })
-      appendNumberInput('宽度', Number(size.width) || 80, (next) => {
+      appendNumberInput(t.properties.width, Number(size.width) || 80, (next) => {
         node.resize?.(next, size.height)
         this.updatePropertiesPanel()
         this.opts.onDataChange?.(this.getData())
       })
-      appendNumberInput('高度', Number(size.height) || 80, (next) => {
+      appendNumberInput(t.properties.height, Number(size.height) || 80, (next) => {
         node.resize?.(size.width, next)
         this.updatePropertiesPanel()
         this.opts.onDataChange?.(this.getData())
       })
-      appendColorInput('填充色', body.fill ?? '#ffffff', (next) => {
+      appendColorInput(t.properties.fillColor, body.fill ?? '#ffffff', (next) => {
         node.setAttrs?.({ body: { fill: next } })
         this.opts.onDataChange?.(this.getData())
       })
-      appendColorInput('边框色', body.stroke ?? PRIMARY_COLOR, (next) => {
+      appendColorInput(t.properties.borderColor, body.stroke ?? PRIMARY_COLOR, (next) => {
         node.setAttrs?.({ body: { stroke: next } })
         this.opts.onDataChange?.(this.getData())
       })
@@ -915,12 +930,12 @@ export class UniDraw {
 
     const edge = graph.getCellById(this.selectedEdgeId)
     if (!edge || !edge.isEdge?.()) {
-      if (this.propertiesTitleEl) this.propertiesTitleEl.textContent = '属性'
-      this.propertiesBody.appendChild(el('div', 'ud-empty-state', '当前连线不存在'))
+      if (this.propertiesTitleEl) this.propertiesTitleEl.textContent = t.properties.title
+      this.propertiesBody.appendChild(el('div', 'ud-empty-state', t.properties.edgeMissing))
       return
     }
 
-    if (this.propertiesTitleEl) this.propertiesTitleEl.textContent = '连线属性'
+    if (this.propertiesTitleEl) this.propertiesTitleEl.textContent = t.properties.edgeTitle
     const line = edge.getAttrs?.()?.line ?? {}
     const labels = edge.getLabels?.() ?? []
     const label = labels[0]?.attrs?.label?.text ?? ''
@@ -930,22 +945,29 @@ export class UniDraw {
     const sourceMarker = line.sourceMarker?.name ?? 'none'
     const targetMarker = line.targetMarker?.name ?? 'none'
 
-    this.propertiesBody.appendChild(el('div', 'ud-properties-section-title', '连线属性'))
-    appendTextInput('标题', label, (next) => {
+    this.propertiesBody.appendChild(el('div', 'ud-properties-section-title', t.properties.edgeTitle))
+    appendTextInput(t.properties.label, label, (next) => {
       if (next) edge.setLabels?.([{ attrs: { label: { text: next } } }])
       else edge.setLabels?.([])
       this.opts.onDataChange?.(this.getData())
     })
-    appendNumberInput('线宽', Number(line.strokeWidth) || 2, (next) => {
+    appendNumberInput(t.properties.strokeWidth, Number(line.strokeWidth) || 2, (next) => {
       edge.setAttrs?.({ line: { strokeWidth: next } })
       this.opts.onDataChange?.(this.getData())
     })
-    appendColorInput('颜色', line.stroke ?? PRIMARY_COLOR, (next) => {
+    appendColorInput(t.properties.color, line.stroke ?? PRIMARY_COLOR, (next) => {
       edge.setAttrs?.({ line: { stroke: next } })
       this.opts.onDataChange?.(this.getData())
     })
     if (edge.shape !== 'edge-sketch') {
-      appendIconButtonGroup('线型', lineType, getEdgeLineTypeOptions(), (next) => {
+      appendIconButtonGroup(t.properties.lineType, lineType, getEdgeLineTypeOptions({
+        straight: t.properties.straight,
+        curve: t.properties.curve,
+        rounded: t.properties.rounded,
+        orthogonal: t.properties.orthogonal,
+        manhattan: t.properties.manhattan,
+        jumpover: t.properties.jumpover,
+      }), (next) => {
         const { router: nextRouter, connector: nextConnector } = getEdgeLineConfig(next)
         const vertices = getEdgeLineVertices(next, edge.getSourcePoint?.(), edge.getTargetPoint?.())
         edge.setData?.({ ...(edge.getData?.() ?? {}), lineType: next })
@@ -955,32 +977,32 @@ export class UniDraw {
         this.opts.onDataChange?.(this.getData())
       })
     }
-    appendSelectInput('线样式', line.strokeDasharray ?? '', [
-      { label: '实线', value: '' },
-      { label: '虚线', value: '5 5' },
-      { label: '点线', value: '2 4' },
+    appendSelectInput(t.properties.lineStyle, line.strokeDasharray ?? '', [
+      { label: t.properties.solidLine, value: '' },
+      { label: t.properties.dashedLine, value: '5 5' },
+      { label: t.properties.dottedLine, value: '2 4' },
     ], (next) => {
       edge.setAttrs?.({ line: { strokeDasharray: next || null } })
       this.opts.onDataChange?.(this.getData())
     })
-    appendSelectInput('起点箭头', sourceMarker, [
-      { label: '无', value: 'none' },
-      { label: '经典', value: 'classic' },
-      { label: '实心', value: 'block' },
-      { label: '空心', value: 'open' },
-      { label: '菱形', value: 'diamond' },
-      { label: '圆形', value: 'circle' },
+    appendSelectInput(t.properties.sourceMarker, sourceMarker, [
+      { label: t.properties.markerNone, value: 'none' },
+      { label: t.properties.markerClassic, value: 'classic' },
+      { label: t.properties.markerBlock, value: 'block' },
+      { label: t.properties.markerOpen, value: 'open' },
+      { label: t.properties.markerDiamond, value: 'diamond' },
+      { label: t.properties.markerCircle, value: 'circle' },
     ], (next) => {
       edge.setAttrs?.({ line: { sourceMarker: next === 'none' ? null : { name: next } } })
       this.opts.onDataChange?.(this.getData())
     })
-    appendSelectInput('终点箭头', targetMarker, [
-      { label: '无', value: 'none' },
-      { label: '经典', value: 'classic' },
-      { label: '实心', value: 'block' },
-      { label: '空心', value: 'open' },
-      { label: '菱形', value: 'diamond' },
-      { label: '圆形', value: 'circle' },
+    appendSelectInput(t.properties.targetMarker, targetMarker, [
+      { label: t.properties.markerNone, value: 'none' },
+      { label: t.properties.markerClassic, value: 'classic' },
+      { label: t.properties.markerBlock, value: 'block' },
+      { label: t.properties.markerOpen, value: 'open' },
+      { label: t.properties.markerDiamond, value: 'diamond' },
+      { label: t.properties.markerCircle, value: 'circle' },
     ], (next) => {
       edge.setAttrs?.({ line: { targetMarker: next === 'none' ? null : { name: next } } })
       this.opts.onDataChange?.(this.getData())

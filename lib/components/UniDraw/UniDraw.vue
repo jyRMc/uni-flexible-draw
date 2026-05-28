@@ -4,48 +4,65 @@
     <div class="ud-body">
 
       <!-- Left panel -->
-      <aside v-if="showShapePanel !== false" class="ud-left-panel">
-        <div class="ud-panel-tabs">
-          <button :class="['ud-tab', { active: leftTab === 'shapes' }]" @click="leftTab = 'shapes'">图形</button>
+      <aside v-if="showShapePanel !== false && leftPanelVisible" class="ud-left-panel">
+        <div class="ud-panel-header">
+          <div class="ud-panel-tabs">
+            <button :class="['ud-tab', { active: leftTab === 'shapes' }]" @click="openLeftTab('shapes')">{{ t.panel.shapes }}</button>
+            <button
+              v-if="showAssetsPanel !== false"
+              :class="['ud-tab', { active: leftTab === 'assets' }]"
+              @click="openLeftTab('assets')"
+            >{{ t.panel.assets }}</button>
+          </div>
           <button
-            v-if="showAssetsPanel !== false"
-            :class="['ud-tab', { active: leftTab === 'assets' }]"
-            @click="leftTab = 'assets'"
-          >素材</button>
+            class="ud-panel-close"
+            :title="t.panel.close"
+            :aria-label="t.panel.close"
+            @click="closeLeftPanel"
+          >×</button>
         </div>
 
-        <!-- Shapes -->
-        <ShapePanel
-          v-show="leftTab === 'shapes'"
-          :libraries="libraries"
-          @select="onShapeAdd"
-          @dragstart="onShapeDragStart"
-        />
+        <div class="ud-panel-content">
+          <!-- Shapes -->
+          <ShapePanel
+            v-show="leftTab === 'shapes'"
+            :libraries="libraries"
+            @select="onShapeAdd"
+            @dragstart="onShapeDragStart"
+          />
 
-        <!-- External assets -->
-        <div v-if="leftTab === 'assets'" class="ud-assets-panel">
-          <div class="ud-assets-grid">
-            <div
-              v-for="asset in assets"
-              :key="asset.id"
-              class="ud-asset-cell"
-              draggable="true"
-              @click="onAssetAdd(asset)"
-              @dragstart="onAssetDragStart($event, asset)"
-            >
-              <!-- eslint-disable-next-line vue/no-v-html -->
-              <div v-if="asset.type === 'svg'" class="ud-asset-icon-wrap" v-html="asset.content" />
-              <img v-else class="ud-asset-icon-image" :src="asset.content" :alt="asset.name" />
+          <!-- External assets -->
+          <div v-if="leftTab === 'assets'" class="ud-assets-panel">
+            <div class="ud-assets-grid">
+              <div
+                v-for="asset in assets"
+                :key="asset.id"
+                class="ud-asset-cell"
+                draggable="true"
+                @click="onAssetAdd(asset)"
+                @dragstart="onAssetDragStart($event, asset)"
+              >
+                <!-- eslint-disable-next-line vue/no-v-html -->
+                <div v-if="asset.type === 'svg'" class="ud-asset-icon-wrap" v-html="asset.content" />
+                <img v-else class="ud-asset-icon-image" :src="asset.content" :alt="asset.name" />
+              </div>
+              <div v-if="!assets || assets.length === 0" class="ud-assets-empty">{{ t.panel.noAssets }}</div>
             </div>
-            <div v-if="!assets || assets.length === 0" class="ud-assets-empty">暂无素材</div>
-          </div>
-          <div v-if="showAssetPagination" class="ud-assets-pagination">
-            <button class="ud-assets-page-btn" :disabled="!canGoPrevAssets || assetPageLoading" @click="emit('assets:prev-page')">上一页</button>
-            <span class="ud-assets-page-indicator">{{ assetPage }} / {{ assetTotalPages }}</span>
-            <button class="ud-assets-page-btn" :disabled="!canGoNextAssets || assetPageLoading" @click="emit('assets:next-page')">下一页</button>
+            <div v-if="showAssetPagination" class="ud-assets-pagination">
+              <button class="ud-assets-page-btn" :disabled="!canGoPrevAssets || assetPageLoading" @click="emit('assets:prev-page')">{{ t.panel.previousPage }}</button>
+              <span class="ud-assets-page-indicator">{{ assetPage }} / {{ assetTotalPages }}</span>
+              <button class="ud-assets-page-btn" :disabled="!canGoNextAssets || assetPageLoading" @click="emit('assets:next-page')">{{ t.panel.nextPage }}</button>
+            </div>
           </div>
         </div>
       </aside>
+      <button
+        v-else-if="showShapePanel !== false"
+        class="ud-left-panel-reopen"
+        :title="t.panel.openShapePanel"
+        :aria-label="t.panel.openShapePanel"
+        @click="openLeftPanel"
+      >{{ t.panel.shapes }}</button>
 
       <!-- Template modal -->
       <TemplatePanel
@@ -65,8 +82,7 @@
           :snapline="snapline !== false"
           :readonly="readonly"
           @selection:change="onSelectionChange"
-          @dragover.prevent
-          @drop.prevent="onExternalDrop"
+          @add-to-materials="onAddToMaterials"
         />
 
         <!-- Quick action bar -->
@@ -110,14 +126,14 @@
       <div v-if="jsonModalOpen" class="ud-modal-backdrop" @click.self="jsonModalOpen = false">
         <div class="ud-modal">
           <div class="ud-modal-header">
-            <span>JSON 预览</span>
+            <span>{{ t.jsonPreview.title }}</span>
             <div class="ud-modal-actions">
-              <button class="ud-icon-btn" :title="copyDone ? '已复制' : '复制'" @click="copyJson">
+              <button class="ud-icon-btn" :title="copyDone ? t.jsonPreview.copied : t.jsonPreview.copy" @click="copyJson">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <rect x="9" y="9" width="13" height="13" rx="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
                 </svg>
               </button>
-              <button class="ud-icon-btn" title="下载" @click="downloadJson">
+              <button class="ud-icon-btn" :title="t.jsonPreview.download" @click="downloadJson">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" />
                 </svg>
@@ -135,7 +151,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, provide, onMounted } from 'vue'
+import { ref, computed, watch, provide, onMounted, reactive } from 'vue'
 import type { GraphData, NodeData, AssetItem, TemplateItem, UniDrawTheme } from '@uni-draw/shared'
 import { LOCALE_KEY } from '../../locale'
 import zhCN from '../../locale/zh-CN'
@@ -198,6 +214,7 @@ const emit = defineEmits<{
   (e: 'update:modelValue', data: GraphData): void
   (e: 'ready'): void
   (e: 'selection:change', nodes: NodeData[], edges: unknown[]): void
+  (e: 'add-to-materials', node: NodeData): void
   (e: 'assets:prev-page'): void
   (e: 'assets:next-page'): void
 }>()
@@ -206,7 +223,18 @@ const emit = defineEmits<{
 // Locale
 // ──────────────────────────────────────────────────────────────────────────────
 
-provide(LOCALE_KEY, props.locale ?? zhCN)
+const providedLocale = reactive({ ...(props.locale ?? zhCN) }) as UniDrawLocale
+
+watch(
+  () => props.locale,
+  (locale) => {
+    Object.assign(providedLocale, locale ?? zhCN)
+  },
+  { immediate: true, deep: true },
+)
+
+provide(LOCALE_KEY, providedLocale)
+const t = providedLocale
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Theme → CSS vars
@@ -268,6 +296,7 @@ watch(graphData, (val) => {
 const canvasRef = ref<InstanceType<typeof FlexibleDraw> | null>(null)
 const libraries = ref(getAllLibraries())
 const leftTab = ref<'shapes' | 'assets'>('shapes')
+const leftPanelVisible = ref(true)
 const templateOpen = ref(false)
 const sketchMode = ref(false)
 const drawMode = ref(false)
@@ -344,16 +373,6 @@ function onAssetDragStart(event: DragEvent, asset: AssetItem) {
   event.dataTransfer!.setData('text/plain', payload)
 }
 
-function onExternalDrop(event: DragEvent) {
-  const data = event.dataTransfer?.getData('application/json') || event.dataTransfer?.getData('text/plain')
-  if (!data) return
-  try {
-    const item: MaterialItem = JSON.parse(data)
-    const pos = canvasRef.value?.screenToCanvas(event.clientX, event.clientY) ?? { x: event.clientX, y: event.clientY }
-    canvasRef.value?.createElementFromMaterial(item, pos)
-  } catch { /* ignore */ }
-}
-
 // ──────────────────────────────────────────────────────────────────────────────
 // Template handler
 // ──────────────────────────────────────────────────────────────────────────────
@@ -361,6 +380,19 @@ function onExternalDrop(event: DragEvent) {
 function onTemplateApply(tpl: TemplateItem) {
   canvasRef.value?.setData(tpl.data)
   templateOpen.value = false
+}
+
+function openLeftTab(tab: 'shapes' | 'assets') {
+  leftTab.value = tab
+  leftPanelVisible.value = true
+}
+
+function openLeftPanel() {
+  leftPanelVisible.value = true
+}
+
+function closeLeftPanel() {
+  leftPanelVisible.value = false
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -373,6 +405,10 @@ function onSelectionChange(nodes: NodeData[], edges: any[] = []) {
   selectedEdge.value = edges.length > 0 ? edges[0] : null
   if (nodes.length > 0 || edges.length > 0) qabClosed.value = false
   emit('selection:change', nodes, edges)
+}
+
+function onAddToMaterials(node: NodeData) {
+  emit('add-to-materials', node)
 }
 
 watch(() => canvasRef.value?.selectedNodeData, (data) => {
@@ -539,6 +575,7 @@ defineExpose({
   flex: 1;
   overflow: hidden;
   min-height: 0;
+  position: relative;
 }
 
 /* ── Left panel ───────────────────────────────────────────── */
@@ -547,34 +584,100 @@ defineExpose({
   flex-direction: column;
   width: var(--uni-draw-panel-width, 220px);
   flex-shrink: 0;
-  background: var(--uni-draw-panel-bg-alt, #f5f5f5);
-  border-right: 1px solid var(--uni-draw-panel-border, #e0e0e0);
+  position: absolute;
+  top: 16px;
+  bottom: 16px;
+  left: 16px;
+  z-index: 20;
+  background: var(--uni-draw-panel-bg, #fff);
+  border: none;
+  border-radius: 10px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1), 0 1px 4px rgba(0, 0, 0, 0.06);
   overflow: hidden;
+}
+
+.ud-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  gap: 8px;
+  background: #fafbfc;
+  border-bottom: 1px solid #f0f0f0;
+  flex-shrink: 0;
 }
 
 .ud-panel-tabs {
   display: flex;
-  border-bottom: 1px solid var(--uni-draw-panel-border, #e0e0e0);
-  flex-shrink: 0;
+  align-items: center;
+  gap: 8px;
+}
+
+.ud-panel-content {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .ud-tab {
-  flex: 1;
-  padding: 8px 0;
+  padding: 6px 10px;
   font-size: 12px;
-  font-weight: 500;
+  font-weight: 600;
+  line-height: 1;
   color: var(--uni-draw-text-muted, #999);
-  background: none;
+  background: transparent;
   border: none;
-  border-bottom: 2px solid transparent;
+  border-radius: 8px;
   cursor: pointer;
   transition: all .15s;
 }
-.ud-tab:hover { color: var(--uni-draw-primary, #7166F0); }
+.ud-tab:hover {
+  color: #333;
+  background: #f0f0f0;
+}
 .ud-tab.active {
   color: var(--uni-draw-primary, #7166F0);
-  border-bottom-color: var(--uni-draw-primary, #7166F0);
   background: var(--uni-draw-primary-bg-light, #f4f3fe);
+}
+
+.ud-panel-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border: none;
+  background: transparent;
+  color: #999;
+  cursor: pointer;
+  border-radius: 4px;
+  padding: 0;
+  transition: all 0.15s;
+}
+.ud-panel-close:hover {
+  background: #f0f0f0;
+  color: #333;
+}
+
+.ud-left-panel-reopen {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  z-index: 20;
+  padding: 8px 12px;
+  border: none;
+  background: #fff;
+  color: #333;
+  border-radius: 10px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1), 0 1px 4px rgba(0, 0, 0, 0.06);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.ud-left-panel-reopen:hover {
+  background: #fafbfc;
 }
 
 /* ── Assets grid ──────────────────────────────────────────── */
@@ -584,7 +687,7 @@ defineExpose({
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 12px;
-  padding: 4px;
+  padding: 4px 4px 12px;
   align-content: start;
 }
 

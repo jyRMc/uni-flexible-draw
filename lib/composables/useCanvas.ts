@@ -34,6 +34,10 @@ export interface ContextMenuState {
   y: number
   hasSelection: boolean
   canPaste: boolean
+  nodeSelectionCount: number
+  edgeSelectionCount: number
+  hasSingleNodeSelection: boolean
+  allSelectedLocked: boolean
 }
 
 export interface DrawBrushStyle {
@@ -156,6 +160,10 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
     y: 0,
     hasSelection: false,
     canPaste: false,
+    nodeSelectionCount: 0,
+    edgeSelectionCount: 0,
+    hasSingleNodeSelection: false,
+    allSelectedLocked: false,
   })
 
   let engine: AntVRenderEngine | null = null
@@ -342,6 +350,33 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
     return selection?.getSelectedCells?.() ?? []
   }
 
+  function selectContextCell(cell: any): void {
+    const graph = getGraph()
+    if (!graph || !cell) return
+    if (graph.isSelected?.(cell)) {
+      updateContextMenuState()
+      return
+    }
+    if (typeof (graph as any).cleanSelection === 'function') {
+      ;(graph as any).cleanSelection()
+    }
+    if (typeof (graph as any).select === 'function') {
+      ;(graph as any).select(cell)
+    }
+  }
+
+  function clearContextSelection(): void {
+    const graph = getGraph()
+    if (!graph) return
+    if (typeof (graph as any).cleanSelection === 'function') {
+      ;(graph as any).cleanSelection()
+    }
+    selectedNodeData.value = null
+    selectedEdgeData.value = null
+    selectionCount.value = 0
+    updateContextMenuState()
+  }
+
   onMounted(() => {
     if (!containerRef.value) return
 
@@ -394,6 +429,19 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
     // 监听缩放
     graph.on('scale', ({ sx }: { sx: number }) => {
       zoom.value = sx
+    })
+
+    graph.on('cell:contextmenu', ({ cell, e }: any) => {
+      e?.preventDefault?.()
+      e?.stopPropagation?.()
+      selectContextCell(cell)
+      showContextMenu(e?.clientX ?? 0, e?.clientY ?? 0)
+    })
+    graph.on('blank:contextmenu', ({ e }: any) => {
+      e?.preventDefault?.()
+      e?.stopPropagation?.()
+      clearContextSelection()
+      hideContextMenu()
     })
 
     graph.on('edge:mouseenter', ({ edge }: any) => {
@@ -551,10 +599,32 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
 
   function updateContextMenuState() {
     const selected = getSelectedCells()
+    const nodeSelectionCount = selected.filter((cell: any) => cell.isNode?.()).length
+    const edgeSelectionCount = selected.filter((cell: any) => cell.isEdge?.()).length
+    const allSelectedLocked = selected.length > 0 && selected.every((cell: any) => cell.getData?.()?.locked === true)
     contextMenuState.value = {
       ...contextMenuState.value,
       hasSelection: selected.length > 0,
       canPaste: clipboardManager?.hasContent() ?? false,
+      nodeSelectionCount,
+      edgeSelectionCount,
+      hasSingleNodeSelection: nodeSelectionCount === 1 && edgeSelectionCount === 0,
+      allSelectedLocked,
+    }
+  }
+
+  function getSelectionViewBox(padding = 10): { x: number; y: number; width: number; height: number } | undefined {
+    const graph = getGraph()
+    if (!graph) return undefined
+    const selected = getSelectedCells()
+    if (selected.length === 0) return undefined
+    const bbox = (graph as any).getCellsBBox?.(selected)
+    if (!bbox) return undefined
+    return {
+      x: bbox.x - padding,
+      y: bbox.y - padding,
+      width: bbox.width + padding * 2,
+      height: bbox.height + padding * 2,
     }
   }
 
@@ -957,15 +1027,31 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
   }
 
   function paste(): void {
-    clipboardManager?.paste()
+    const graph = getGraph()
+    const added = clipboardManager?.paste() ?? []
+    if (graph && added.length > 0) {
+      if (typeof (graph as any).cleanSelection === 'function') {
+        ;(graph as any).cleanSelection()
+      }
+      if (typeof (graph as any).select === 'function') {
+        ;(graph as any).select(added)
+      }
+    }
     updateContextMenuState()
   }
 
   function duplicate(): void {
+    const graph = getGraph()
     const cells = getSelectedCells()
-    if (cells.length > 0) {
+    if (graph && cells.length > 0) {
       clipboardManager?.copy(cells)
-      clipboardManager?.paste()
+      const added = clipboardManager?.paste() ?? []
+      if (typeof (graph as any).cleanSelection === 'function') {
+        ;(graph as any).cleanSelection()
+      }
+      if (typeof (graph as any).select === 'function') {
+        ;(graph as any).select(added)
+      }
       updateContextMenuState()
     }
   }
@@ -1087,12 +1173,13 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
     const cells = getSelectedCells()
     cells.forEach((cell: any) => {
       const isLocked = cell.getData()?.locked === true
-      cell.setData({ ...cell.getData(), locked: !isLocked })
-      // 锁定后不可移动
-      if (!isLocked) {
-        cell.setProp('movable', false)
-      } else {
-        cell.setProp('movable', true)
+      const nextLocked = !isLocked
+      cell.setData({ ...cell.getData(), locked: nextLocked })
+      if (typeof cell.setProp === 'function') {
+        cell.setProp('movable', !nextLocked)
+        if (cell.isEdge?.()) {
+          cell.setProp('edgeMovable', !nextLocked)
+        }
       }
     })
   }
@@ -1135,9 +1222,11 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
   async function copyAsPng(): Promise<void> {
     const graph = getGraph()
     if (!graph) return
+    const selectionViewBox = getSelectionViewBox()
     try {
-      // 导出选中区域或整个画布
-      const dataUrl = await exportService?.toPNG({ backgroundColor: '#ffffff', padding: 10 })
+      const dataUrl = await exportService?.toPNG(selectionViewBox
+        ? { backgroundColor: '#ffffff', viewBox: selectionViewBox }
+        : { backgroundColor: '#ffffff', padding: 10 })
       if (!dataUrl) return
       const response = await fetch(dataUrl)
       const blob = await response.blob()
@@ -1145,8 +1234,9 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
         new ClipboardItem({ 'image/png': blob }),
       ])
     } catch {
-      // 降级：通过 canvas 复制
-      const dataUrl = await exportService?.toPNG({ backgroundColor: '#ffffff', padding: 10 })
+      const dataUrl = await exportService?.toPNG(selectionViewBox
+        ? { backgroundColor: '#ffffff', viewBox: selectionViewBox }
+        : { backgroundColor: '#ffffff', padding: 10 })
       if (!dataUrl) return
       const img = new Image()
       img.src = dataUrl
@@ -1171,7 +1261,10 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
 
   async function copyAsSvg(): Promise<void> {
     try {
-      const svgText = await exportService?.toSVG({ padding: 10 })
+      const selectionViewBox = getSelectionViewBox()
+      const svgText = await exportService?.toSVG(selectionViewBox
+        ? { viewBox: selectionViewBox }
+        : { padding: 10 })
       if (!svgText) return
       await navigator.clipboard.writeText(svgText)
     } catch { /* 忽略 */ }

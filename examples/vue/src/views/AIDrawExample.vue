@@ -2,10 +2,13 @@
   <div class="app-shell">
     <!-- 顶部业务栏 -->
     <TopBar
-      :title="graphData.meta?.title || '未命名图表'"
+      :title="graphData.meta?.title || exampleText.common.untitled"
       :zoom-percent="zoomPercent"
       :editing="!readonly"
+      :lang="currentLanguage"
+      :texts="exampleText.topBar"
       @toggle-edit="readonly = !readonly"
+      @toggle-language="toggleLanguage"
       @templates="openTemplates"
       @ai-draw="toggleAiPanel"
       @new-chat="clearAiChat"
@@ -26,6 +29,7 @@
         :can-next-assets="assetPage < assetTotalPages"
         :templates="templates"
         :readonly="readonly"
+        :locale="currentLocale"
         @assets:prev-page="goToPreviousAssetPage"
         @assets:next-page="goToNextAssetPage"
         @ready="onReady"
@@ -45,8 +49,8 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
-import { UniDraw } from '@uni-draw/draw'
+import { computed, onMounted, ref } from 'vue'
+import { UniDraw, zhCN, enUS, type UniDrawLocale } from '@uni-draw/draw'
 import type { AssetItem, GraphData, TemplateItem } from '@uni-draw/draw'
 import { generateGraph, diagnoseSiliconFlow } from '../mocks/aiService'
 import { SCENARIO_TEMPLATES } from '../mocks/templates'
@@ -68,6 +72,8 @@ interface SvgAssetsApiEnvelope {
   }
 }
 
+type DemoLanguage = 'zh-CN' | 'en-US'
+
 const ASSETS_API_URL = (import.meta as { env?: Record<string, string | undefined> }).env?.VITE_SVG_ASSETS_API ?? 'http://127.0.0.1:3077/api/assets'
 const templates = SCENARIO_TEMPLATES as unknown as TemplateItem[]
 const assets = ref<AssetItem[]>([])
@@ -83,6 +89,10 @@ const aiPanelOpen = ref(false)
 const aiLoading = ref(false)
 const aiMessages = ref<Message[]>([])
 const followUpQuestions = ref<string[]>([])
+const currentLanguage = ref<DemoLanguage>('zh-CN')
+
+const currentLocale = computed<UniDrawLocale>(() => (currentLanguage.value === 'en-US' ? enUS : zhCN))
+const exampleText = computed(() => currentLocale.value.example)
 
 const graphData = ref<GraphData>({
   canvas: { backgroundColor: '#ffffff', grid: { size: 10, visible: true, type: 'dot' }, zoom: 1 },
@@ -198,14 +208,18 @@ function appendAssistantMessage(content: string) {
 function onShare() {
   const json = drawRef.value?.exportJSON()
   if (json) {
-    navigator.clipboard.writeText(json).then(() => alert('已复制 JSON 到剪贴板'))
+    navigator.clipboard.writeText(json).then(() => alert(exampleText.value.common.copiedJson))
   }
 }
 
 function onExit() {
-  if (confirm('确定要退出吗？')) {
+  if (confirm(exampleText.value.common.exitConfirm)) {
     window.close()
   }
+}
+
+function toggleLanguage() {
+  currentLanguage.value = currentLanguage.value === 'zh-CN' ? 'en-US' : 'zh-CN'
 }
 
 async function onReady() {

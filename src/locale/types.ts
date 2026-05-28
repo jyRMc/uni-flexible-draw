@@ -21,6 +21,38 @@ export interface UniDrawLocale {
     exportJson: string
     exportPng: string
   }
+  panel: {
+    shapes: string
+    assets: string
+    templates: string
+    close: string
+    openShapePanel: string
+    searchShapes: string
+    noShapesFound: string
+    noAssets: string
+    previousPage: string
+    nextPage: string
+    shapeCategories: {
+      basic: string
+      edge: string
+      flowchart: string
+      uml: string
+      sequence: string
+      er: string
+      dfd: string
+      swimlane: string
+      state: string
+    }
+  }
+  templatePanel: {
+    title: string
+    hint: string
+    empty: string
+    use: string
+    nodes: string
+    edges: string
+    defaultDescription: string
+  }
   contextMenu: {
     cut: string
     copy: string
@@ -38,6 +70,7 @@ export interface UniDrawLocale {
     flipV: string
     addLink: string
     lock: string
+    unlock: string
     delete: string
   }
   quickAction: {
@@ -96,11 +129,78 @@ export interface UniDrawLocale {
     deleteRow: string
     deleteColumn: string
   }
+  properties: {
+    title: string
+    close: string
+    noSelection: string
+    nodeMissing: string
+    edgeMissing: string
+    nodeTitle: string
+    edgeTitle: string
+    label: string
+    width: string
+    height: string
+    fillColor: string
+    borderColor: string
+    strokeWidth: string
+    color: string
+    lineType: string
+    lineStyle: string
+    sourceMarker: string
+    targetMarker: string
+    solidLine: string
+    dashedLine: string
+    dottedLine: string
+    markerNone: string
+    markerClassic: string
+    markerBlock: string
+    markerOpen: string
+    markerDiamond: string
+    markerCircle: string
+    straight: string
+    curve: string
+    rounded: string
+    orthogonal: string
+    manhattan: string
+    jumpover: string
+  }
+  drawPanel: {
+    title: string
+    color: string
+    style: string
+    width: string
+    opacity: string
+  }
+  jsonPreview: {
+    title: string
+    copy: string
+    copied: string
+    download: string
+  }
   svgEditor: {
     title: string
     preview: string
     cancel: string
     apply: string
     placeholder: string
+  }
+  example: {
+    common: {
+      untitled: string
+      copiedJson: string
+      exitConfirm: string
+    }
+    topBar: {
+      exit: string
+      autosave: string
+      languageSwitch: string
+      share: string
+      templates: string
+      edit: string
+      search: string
+      help: string
+      aiDraw: string
+      newChat: string
+    }
   }
 }
