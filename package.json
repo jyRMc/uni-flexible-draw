@@ -2,6 +2,7 @@
   "name": "uni-flexible-draw",
   "version": "0.0.1",
   "description": "基于 Vue3 + AntV X6 的通用绘图组件库",
+  "license": "MIT",
   "type": "module",
   "packageManager": "pnpm@9.0.0",
   "scripts": {

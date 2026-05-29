@@ -7,6 +7,7 @@
   <img src="https://img.shields.io/badge/Vite-5.2.12-8A2BE2" alt="Vite 5.2.12">
   <img src="https://img.shields.io/badge/AntV%20X6-2.18.1-5B8CFF" alt="AntV X6 2.18.1">
   <img src="https://img.shields.io/badge/Node.js-18%2B-43853D" alt="Node.js 18+">
+  <img src="https://img.shields.io/badge/License-MIT-F4A261" alt="License MIT">
 </p>
 
 <p align="center">
@@ -193,6 +194,132 @@ const templates = ref<TemplateItem[]>([])
 - `zoomFit()`
 - `selectAll()`
 - `deleteSelection()`
+
+## Canvas Input / Output JSON Format
+
+The canvas data consumed and returned by `UniDraw` uses the `GraphData` structure.
+
+### Input APIs
+
+- Vue `v-model` / `modelValue`
+- React `value`
+- Instance method `setData(data)`
+
+### Output APIs
+
+- Vue `update:modelValue`
+- React `onChange`
+- Instance method `getData()`
+- Instance method `exportJSON()` returns the same structure as a JSON string
+
+### Root Structure
+
+```ts
+interface GraphData {
+  canvas: CanvasConfig
+  nodes: NodeData[]
+  edges: EdgeData[]
+  meta?: GraphMeta
+}
+```
+
+### Main Fields
+
+- `canvas`
+  - Canvas-level config such as `backgroundColor`, `grid`, `zoom`, and `offset`
+
+- `nodes`
+  - A list of nodes
+  - Each node typically contains `id`, `shape`, `position`, `size`
+  - Optional fields include `label`, `style`, `data`, `ports`, `locked`, `angle`, and `zIndex`
+
+- `edges`
+  - A list of edges
+  - Each edge typically contains `id`, `shape`, `source`, and `target`
+  - Optional fields include `label`, `style`, `data`, `vertices`, `router`, and `connector`
+
+- `meta`
+  - Optional metadata such as `title`, `type`, `createdAt`, `version`, and `aiGenerated`
+
+### Example JSON
+
+```json
+{
+  "canvas": {
+    "backgroundColor": "#ffffff",
+    "grid": {
+      "size": 10,
+      "visible": true,
+      "type": "dot",
+      "color": "#e5e7eb"
+    },
+    "zoom": 1,
+    "offset": { "x": 0, "y": 0 }
+  },
+  "nodes": [
+    {
+      "id": "node-start",
+      "shape": "flow-start",
+      "position": { "x": 120, "y": 100 },
+      "size": { "width": 120, "height": 48 },
+      "label": "Start",
+      "style": {
+        "fill": "#EEF4FF",
+        "stroke": "#5B8CFF",
+        "strokeWidth": 2
+      },
+      "data": {
+        "bizType": "entry"
+      }
+    },
+    {
+      "id": "node-process",
+      "shape": "flow-process",
+      "position": { "x": 340, "y": 100 },
+      "size": { "width": 160, "height": 56 },
+      "label": {
+        "text": "Process Data",
+        "position": "center",
+        "style": {
+          "fontSize": 14,
+          "fontWeight": "bold",
+          "fill": "#1f2937"
+        }
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge-1",
+      "shape": "flow-edge",
+      "source": { "cell": "node-start" },
+      "target": { "cell": "node-process" },
+      "label": "next",
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 2,
+        "targetMarker": {
+          "name": "classic",
+          "size": 8,
+          "fill": "#64748b"
+        }
+      }
+    }
+  ],
+  "meta": {
+    "title": "Sample Flow",
+    "type": "flowchart",
+    "version": "1.0.0"
+  }
+}
+```
+
+### Notes
+
+- `shape` must match a registered node or edge shape name.
+- `label` can be either a plain string or an object with text position and style.
+- `source` and `target` can reference a node ID, a `{ cell, port }` object, or a coordinate object.
+- `data` is reserved for your own business fields and will be preserved during import/export.
 
 ## Basic React Usage
 

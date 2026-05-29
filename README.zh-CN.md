@@ -7,6 +7,7 @@
   <img src="https://img.shields.io/badge/Vite-5.2.12-8A2BE2" alt="Vite 5.2.12">
   <img src="https://img.shields.io/badge/AntV%20X6-2.18.1-5B8CFF" alt="AntV X6 2.18.1">
   <img src="https://img.shields.io/badge/Node.js-18%2B-43853D" alt="Node.js 18+">
+  <img src="https://img.shields.io/badge/License-MIT-F4A261" alt="License MIT">
 </p>
 
 <p align="center">
@@ -193,6 +194,132 @@ const templates = ref<TemplateItem[]>([])
 - `zoomFit()`
 - `selectAll()`
 - `deleteSelection()`
+
+## 组件画布输入输出 JSON 格式
+
+`UniDraw` 组件接收和产出的画布数据，统一使用 `GraphData` 结构。
+
+### 输入方式
+
+- Vue `v-model` / `modelValue`
+- React `value`
+- 实例方法 `setData(data)`
+
+### 输出方式
+
+- Vue `update:modelValue`
+- React `onChange`
+- 实例方法 `getData()`
+- 实例方法 `exportJSON()`，返回同结构的 JSON 字符串
+
+### 根结构
+
+```ts
+interface GraphData {
+  canvas: CanvasConfig
+  nodes: NodeData[]
+  edges: EdgeData[]
+  meta?: GraphMeta
+}
+```
+
+### 主要字段说明
+
+- `canvas`
+  - 画布级配置，例如 `backgroundColor`、`grid`、`zoom`、`offset`
+
+- `nodes`
+  - 节点数组
+  - 每个节点通常包含 `id`、`shape`、`position`、`size`
+  - 可选字段包括 `label`、`style`、`data`、`ports`、`locked`、`angle`、`zIndex`
+
+- `edges`
+  - 连线数组
+  - 每条边通常包含 `id`、`shape`、`source`、`target`
+  - 可选字段包括 `label`、`style`、`data`、`vertices`、`router`、`connector`
+
+- `meta`
+  - 可选元数据，例如 `title`、`type`、`createdAt`、`version`、`aiGenerated`
+
+### JSON 示例
+
+```json
+{
+  "canvas": {
+    "backgroundColor": "#ffffff",
+    "grid": {
+      "size": 10,
+      "visible": true,
+      "type": "dot",
+      "color": "#e5e7eb"
+    },
+    "zoom": 1,
+    "offset": { "x": 0, "y": 0 }
+  },
+  "nodes": [
+    {
+      "id": "node-start",
+      "shape": "flow-start",
+      "position": { "x": 120, "y": 100 },
+      "size": { "width": 120, "height": 48 },
+      "label": "Start",
+      "style": {
+        "fill": "#EEF4FF",
+        "stroke": "#5B8CFF",
+        "strokeWidth": 2
+      },
+      "data": {
+        "bizType": "entry"
+      }
+    },
+    {
+      "id": "node-process",
+      "shape": "flow-process",
+      "position": { "x": 340, "y": 100 },
+      "size": { "width": 160, "height": 56 },
+      "label": {
+        "text": "Process Data",
+        "position": "center",
+        "style": {
+          "fontSize": 14,
+          "fontWeight": "bold",
+          "fill": "#1f2937"
+        }
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge-1",
+      "shape": "flow-edge",
+      "source": { "cell": "node-start" },
+      "target": { "cell": "node-process" },
+      "label": "next",
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 2,
+        "targetMarker": {
+          "name": "classic",
+          "size": 8,
+          "fill": "#64748b"
+        }
+      }
+    }
+  ],
+  "meta": {
+    "title": "Sample Flow",
+    "type": "flowchart",
+    "version": "1.0.0"
+  }
+}
+```
+
+### 说明
+
+- `shape` 必须和已注册的节点或边类型名称一致。
+- `label` 可以是纯字符串，也可以是带位置和样式的对象。
+- `source` / `target` 可以是节点 ID、`{ cell, port }` 对象，或者坐标对象。
+- `data` 用于承载你的业务字段，导入导出时会原样保留。
 
 ## React 基础使用
 
