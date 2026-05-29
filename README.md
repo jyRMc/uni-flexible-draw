@@ -1,79 +1,98 @@
+<p align="center">
+  <img src="docs/img/logo.svg" width="320" alt="Uni Flexible Draw logo">
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Vue-3.4.27-33A06F" alt="Vue 3.4.27">
+  <img src="https://img.shields.io/badge/Vite-5.2.12-8A2BE2" alt="Vite 5.2.12">
+  <img src="https://img.shields.io/badge/AntV%20X6-2.18.1-5B8CFF" alt="AntV X6 2.18.1">
+  <img src="https://img.shields.io/badge/Node.js-18%2B-43853D" alt="Node.js 18+">
+</p>
+
+<p align="center">
+  <img src="docs/screenshot-20260529-085959.png" alt="Uni Flexible Draw editor screenshot" width="100%">
+</p>
+
+<p align="center">
+  <strong>English</strong> | <a href="./README.zh-CN.md">简体中文</a>
+</p>
+
 # Uni Flexible Draw
 
-基于 `Vue 3 + AntV X6` 的通用绘图组件库，提供：
+A universal diagramming component library built with `Vue 3 + AntV X6`, featuring:
 
-- 一体化编辑器 `UniDraw`
-- 可拆分的画布与面板子组件
-- Vue 使用方式
-- React 包装层使用方式
-- 图形库、素材面板、模板面板、快捷操作栏等能力
-- 独立 Node.js server，用于素材接口与 AI 代理接口
+- The all-in-one editor `UniDraw`
+- Composable canvas and panel subcomponents
+- Vue integration
+- React wrapper integration
+- Shape libraries, asset panel, template panel, quick action bar, and related capabilities
+- A standalone Node.js server for asset APIs and AI proxy endpoints
 
-## 项目定位
+## Project Positioning
 
-该仓库当前同时包含两条使用路径：
+This repository currently provides two usage paths:
 
-- **Vue 组件路径**
-  - 主入口：`@uni-draw/draw`
-  - 适合直接在 Vue 项目中使用完整编辑器或子组件
+- **Vue component path**
+  - Main entry: `@uni-draw/draw`
+  - Best when you want to use the full editor or individual subcomponents directly in a Vue app
 
-- **React 路径**
-  - 入口：`@uni-draw/draw/react`
-  - 本质上是对 `lib/UniDraw.ts` 的 React 包装
-  - 适合在 React 项目中以组件 + ref API 的方式使用
+- **React path**
+  - Entry: `@uni-draw/draw/react`
+  - Internally this is a React wrapper around `lib/UniDraw.ts`
+  - Best when you want to use the editor in a React project via a component plus ref API
 
-## 组件封装说明
+## Component Overview
 
 ### 1. `UniDraw`
 
-主编辑器组件，内部已封装以下区域：
+The main editor component, which already includes:
 
-- 左侧图形面板
-- 左侧素材面板
-- 模板面板
-- 中央画布
-- 浮动工具栏
-- 快捷操作栏
+- Left shape panel
+- Left asset panel
+- Template panel
+- Central canvas
+- Floating toolbar
+- Quick action bar
 
-适合场景：
+Recommended when:
 
-- 希望快速接入完整绘图编辑器
-- 不想自行拼装工具栏、面板、画布
+- You want to integrate a complete diagram editor quickly
+- You do not want to assemble the toolbar, panels, and canvas yourself
 
 ### 2. `FlexibleDraw`
 
-底层画布组件，负责图元绘制、选择、拖拽、连线、缩放等核心能力。
+The low-level canvas component responsible for core drawing features such as rendering elements, selection, drag-and-drop, connections, and zooming.
 
-适合场景：
+Recommended when:
 
-- 需要自定义外层布局
-- 希望自己组合工具栏、面板、右侧属性区
+- You need a custom outer layout
+- You want to compose your own toolbar, panels, and right-side properties area
 
 ### 3. `ShapePanel`
 
-图形面板组件，用于展示内置图形库并支持点击添加、拖拽到画布。
+Displays built-in shape libraries and supports click-to-add and drag-to-canvas interactions.
 
 ### 4. `Toolbar`
 
-工具栏组件，负责撤销、重做、缩放、导出、画布操作等行为入口。
+Provides actions such as undo, redo, zoom, export, and other canvas controls.
 
 ### 5. `QuickActionBar`
 
-快捷操作栏组件，用于在选中节点/边后进行样式与局部编辑操作。
+Provides style editing and contextual actions after selecting nodes or edges.
 
-### 6. 其他导出
+### 6. Other Exports
 
-仓库还导出以下能力，适合高级用法：
+The repository also exports the following building blocks for advanced usage:
 
 - `MiniMap`
 - `ContextMenu`
 - `useCanvas`
 - `registerAllShapes`
 - `getAllLibraries`
-- 各类 `shared types`
-- 核心引擎与管理器：`AntVRenderEngine`、`GraphManager`、`ExportService` 等
+- Various `shared types`
+- Core engines and managers such as `AntVRenderEngine`, `GraphManager`, and `ExportService`
 
-## 导出入口说明
+## Export Entrypoints
 
 ### Vue
 
@@ -81,7 +100,7 @@
 import { UniDraw } from '@uni-draw/draw'
 ```
 
-也可使用默认安装插件方式：
+You can also install it as a plugin:
 
 ```ts
 import UniDrawPlugin from '@uni-draw/draw'
@@ -94,15 +113,15 @@ app.use(UniDrawPlugin)
 import { UniDraw } from '@uni-draw/draw/react'
 ```
 
-### Vue 单独入口
+### Vue Standalone Entrypoint
 
 ```ts
 import UniDraw from '@uni-draw/draw/vue'
 ```
 
-## 使用说明
+## Usage
 
-## Vue 基础使用
+## Basic Vue Usage
 
 ```vue
 <script setup lang="ts">
@@ -129,7 +148,7 @@ const templates = ref<TemplateItem[]>([])
 </template>
 ```
 
-### Vue 常用 Props
+### Common Vue Props
 
 - `modelValue`
 - `assets`
@@ -150,7 +169,7 @@ const templates = ref<TemplateItem[]>([])
 - `locale`
 - `theme`
 
-### Vue 常用事件
+### Common Vue Events
 
 - `update:modelValue`
 - `ready`
@@ -158,7 +177,7 @@ const templates = ref<TemplateItem[]>([])
 - `assets:prev-page`
 - `assets:next-page`
 
-### Vue ref 暴露方法
+### Vue Ref Methods
 
 - `openTemplatePanel()`
 - `getData()`
@@ -175,7 +194,7 @@ const templates = ref<TemplateItem[]>([])
 - `selectAll()`
 - `deleteSelection()`
 
-## React 基础使用
+## Basic React Usage
 
 ```tsx
 import { useRef, useState } from 'react'
@@ -203,18 +222,18 @@ export default function App() {
 }
 ```
 
-### React Props 对应关系
+### React Prop Mapping
 
-React 包装层对外主要做了以下映射：
+The React wrapper mainly exposes the following mappings:
 
-- `value` -> 初始化/同步图数据
-- `onChange` -> 数据变化回调
-- `onReady` -> 实例准备完成
-- `onSelectionChange` -> 选区变化
+- `value` -> initialize or sync diagram data
+- `onChange` -> data change callback
+- `onReady` -> invoked when the instance is ready
+- `onSelectionChange` -> selection change callback
 
-其余大部分配置项沿用底层 `UniDrawOptions`。
+Most other options follow the underlying `UniDrawOptions` API.
 
-### React ref 方法
+### React Ref Methods
 
 - `getData()`
 - `setData(data)`
@@ -231,26 +250,26 @@ React 包装层对外主要做了以下映射：
 - `selectAll()`
 - `deleteSelection()`
 
-## AI 接入说明
+## AI Integration
 
-当前仓库中的 AI 面板已经改为**外部面板 + 运行时配置**模式，不再依赖内置的 `showAiPanel` 或 `ai:generate` 事件。
+The AI panel in this repository has been refactored to an **external panel + runtime configuration** model and no longer depends on built-in `showAiPanel` or `ai:generate` events.
 
-你需要在业务层显式提供以下输入：
+At the application layer, you need to explicitly provide:
 
 - `model`
 - `apiUrl`
 - `apiKey`
 
-共享 AI 客户端位于：
+The shared AI client is located at:
 
 - `src/shared/utils/aiService.ts`
 
-主要接口：
+Main APIs:
 
 - `diagnoseAiConnection(config)`
 - `generateGraph(prompt, config, onToken)`
 
-配置结构：
+Configuration shape:
 
 ```ts
 interface AIConnectionConfig {
@@ -260,100 +279,100 @@ interface AIConnectionConfig {
 }
 ```
 
-示例项目中的 AI 面板位置：
+AI panel examples can be found in:
 
 - `src/views/AIPanel.vue`
 - `examples/vue/src/views/AIPanel.vue`
 - `examples/react/src/components/AIPanel.tsx`
 
-所有 AI 请求默认会转发到本地 Node server：
+All AI requests are proxied to the local Node.js server by default:
 
 - `POST /api/ai/diagnose`
 - `POST /api/ai/chat`
 
-默认 server 地址：
+Default server address:
 
 - `http://127.0.0.1:3077`
 
-如果需要修改，可以通过环境变量覆盖：
+You can override it with environment variables if needed:
 
 - `VITE_UNIDRAW_SERVER`
 - `VITE_SVG_ASSETS_API`
 
-## 高级使用说明
+## Advanced Usage
 
-如果你不想直接使用一体化 `UniDraw`，可以改为：
+If you do not want to use the all-in-one `UniDraw`, you can instead:
 
-- 使用 `FlexibleDraw` 作为核心画布
-- 使用 `ShapePanel` 自定义左栏
-- 使用 `Toolbar` 自定义工具栏
-- 使用 `QuickActionBar` 自定义右侧/浮动编辑区
-- 使用 `useCanvas` 自行控制数据与交互
+- Use `FlexibleDraw` as the core canvas
+- Use `ShapePanel` to build a custom left panel
+- Use `Toolbar` to build a custom toolbar
+- Use `QuickActionBar` to build a custom right-side or floating editor
+- Use `useCanvas` to control data and interactions yourself
 
-这适合：
+This approach is suitable when you need:
 
-- 自定义业务布局
-- 自定义顶栏、侧栏、属性面板
-- 嵌入到已有设计器系统中
+- A custom business layout
+- A custom top bar, sidebars, or properties panel
+- Embedding into an existing design tool system
 
-## 运行说明
+## Development
 
-## 环境要求
+## Requirements
 
 - Node.js 18+
 - pnpm 9+
-- 如需抓取素材，需具备 Python 运行环境
+- Python is required if you want to crawl asset resources
 
-## 安装依赖
+## Install Dependencies
 
 ```bash
 pnpm install
 ```
 
-## 启动方式
+## Start Commands
 
-### 1. 启动主开发环境
+### 1. Start the main development environment
 
 ```bash
 pnpm dev
 ```
 
-### 2. 启动 Vue 示例
+### 2. Start the Vue example
 
 ```bash
 pnpm dev:vue
 ```
 
-### 3. 启动 React 示例
+### 3. Start the React example
 
 ```bash
 pnpm dev:react
 ```
 
-### 4. 启动素材 API 服务
+### 4. Start the asset API server
 
 ```bash
 pnpm dev:server
 ```
 
-兼容旧命令：
+Legacy command still supported:
 
 ```bash
 pnpm dev:assets-api
 ```
 
-该服务会同时提供：
+This service provides:
 
 - `GET /health`
 - `GET /api/assets`
 - `POST /api/ai/diagnose`
 - `POST /api/ai/chat`
 
-默认地址：
+Default address:
 
 - `http://127.0.0.1:3077`
 
-`/api/assets` 支持：
+`/api/assets` supports:
 
 - `page`
 - `pageSize`
@@ -361,65 +380,65 @@ pnpm dev:assets-api
 - `category`
 - `reload=true`
 
-默认分页大小为 `80`，最大 `200`。
+The default page size is `80`, with a maximum of `200`.
 
-Vue / React 示例都依赖这个本地 server 拉取素材并转发 AI 请求。
+Both the Vue and React examples rely on this local server for asset loading and AI request proxying.
 
-### 5. 抓取 SciDraw 素材
+### 5. Crawl SciDraw assets
 
 ```bash
 pnpm crawl:assets
 ```
 
-该命令依赖 Python 脚本 `scripts/crawl_scidraw_assets.py`。
+This command depends on the Python script `scripts/crawl_scidraw_assets.py`.
 
-## 构建与检查
+## Build and Checks
 
-### 构建
+### Build
 
 ```bash
 pnpm build
 ```
 
-### 预览构建结果
+### Preview the production build
 
 ```bash
 pnpm preview
 ```
 
-### 代码检查
+### Lint
 
 ```bash
 pnpm lint
 ```
 
-### 自动修复格式/部分 lint
+### Auto-fix formatting and some lint issues
 
 ```bash
 pnpm lint:fix
 pnpm format
 ```
 
-## 项目结构说明
+## Project Structure
 
 ```text
 server/
-  index.mjs           素材接口与 AI 代理服务
+  index.mjs           Asset API and AI proxy service
 lib/
-  components/        Vue 组件实现
-  react/             React 包装层
-  vue/               Vue 单独导出入口
-  core/              渲染、图管理、工具、导出等核心能力
-  materials/         内置图形库
-  shared/            共享类型、常量、工具
+  components/        Vue component implementation
+  react/             React wrapper
+  vue/               Vue standalone export entry
+  core/              Rendering, graph management, tools, export, and other core modules
+  materials/         Built-in shape libraries
+  shared/            Shared types, constants, and utilities
 examples/
-  vue/               Vue 示例
-  react/             React 示例
+  vue/               Vue example
+  react/             React example
 scripts/
   crawl_scidraw_assets.py
 ```
 
-## 说明
+## Notes
 
-- 仓库中的示例当前使用 `@uni-draw/draw`、`@uni-draw/draw/react` 等别名进行联调。
-- 如果你要对外发布到 npm，请以你最终的包名和导出配置为准。
+- The examples in this repository currently use aliases such as `@uni-draw/draw` and `@uni-draw/draw/react` for local development.
+- If you plan to publish this package to npm, use your final package name and export configuration as the source of truth.

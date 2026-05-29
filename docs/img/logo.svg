@@ -1,0 +1,48 @@
+<svg width="1200" height="320" viewBox="0 0 1200 320" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="80" y1="40" x2="1120" y2="280" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#F7F9FF"/>
+    </linearGradient>
+    <linearGradient id="panel" x1="72" y1="52" x2="232" y2="212" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#7C5CFF"/>
+      <stop offset="1" stop-color="#4F8CFF"/>
+    </linearGradient>
+    <linearGradient id="title" x1="300" y1="74" x2="822" y2="170" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#262B45"/>
+      <stop offset="1" stop-color="#4F5E85"/>
+    </linearGradient>
+    <filter id="shadow" x="24" y="24" width="1152" height="272" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feFlood flood-opacity="0" result="BackgroundImageFix"/>
+      <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
+      <feOffset dy="10"/>
+      <feGaussianBlur stdDeviation="18"/>
+      <feColorMatrix type="matrix" values="0 0 0 0 0.172 0 0 0 0 0.216 0 0 0 0 0.38 0 0 0 0.14 0"/>
+      <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow"/>
+      <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow" result="shape"/>
+    </filter>
+  </defs>
+  <g filter="url(#shadow)">
+    <rect x="60" y="42" width="1080" height="236" rx="32" fill="url(#bg)"/>
+    <rect x="60.75" y="42.75" width="1078.5" height="234.5" rx="31.25" stroke="#E7EBF6" stroke-width="1.5"/>
+  </g>
+  <rect x="92" y="76" width="152" height="152" rx="38" fill="url(#panel)"/>
+  <rect x="108" y="92" width="120" height="120" rx="28" fill="#FFFFFF" fill-opacity="0.08"/>
+  <path d="M131 123C131 117.477 135.477 113 141 113H191C196.523 113 201 117.477 201 123V181C201 186.523 196.523 191 191 191H141C135.477 191 131 186.523 131 181V123Z" fill="#FFFFFF" fill-opacity="0.14"/>
+  <path d="M148 174L171 151L188 165L208 137" stroke="white" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="148" cy="174" r="10" fill="#FFFFFF"/>
+  <circle cx="171" cy="151" r="10" fill="#FFFFFF"/>
+  <circle cx="188" cy="165" r="10" fill="#FFFFFF"/>
+  <circle cx="208" cy="137" r="10" fill="#FFFFFF"/>
+  <path d="M145 126H178" stroke="white" stroke-width="7" stroke-linecap="round" opacity="0.95"/>
+  <path d="M145 141H193" stroke="white" stroke-width="7" stroke-linecap="round" opacity="0.72"/>
+  <text x="286" y="126" fill="url(#title)" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="58" font-weight="800">Uni Flexible Draw</text>
+  <text x="288" y="166" fill="#667085" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="24" font-weight="500">Universal diagram editor for Vue, React and modern workflows</text>
+  <text x="288" y="198" fill="#667085" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="24" font-weight="500">Composable canvas, materials, templates and AI-ready integrations</text>
+  <rect x="288" y="220" width="148" height="34" rx="17" fill="#F3EEFF"/>
+  <text x="320" y="242" fill="#714BFF" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="18" font-weight="700">Composable</text>
+  <rect x="450" y="220" width="140" height="34" rx="17" fill="#EEF5FF"/>
+  <text x="482" y="242" fill="#4F8CFF" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="18" font-weight="700">Extensible</text>
+  <rect x="604" y="220" width="128" height="34" rx="17" fill="#EBFBF6"/>
+  <text x="638" y="242" fill="#12B981" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="18" font-weight="700">Beautiful</text>
+</svg>
