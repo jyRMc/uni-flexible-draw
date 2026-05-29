@@ -4,7 +4,7 @@ import { UniDraw, type UniDrawRef } from '@uni-draw/draw/react'
 import AIPanel, { type Message } from './components/AIPanel'
 import TopBar from './components/TopBar'
 import { zhCN, enUS, type AssetItem, type GraphData, type TemplateItem, type UniDrawLocale } from '@uni-draw/draw'
-import { generateGraph, diagnoseSiliconFlow } from '../../vue/src/mocks/aiService'
+import { generateGraph, diagnoseAiConnection, type AIConnectionConfig } from '../../vue/src/mocks/aiService'
 import { SCENARIO_TEMPLATES } from '../../vue/src/mocks/templates'
 
 interface SvgAssetsApiEnvelope {
@@ -17,7 +17,8 @@ interface SvgAssetsApiEnvelope {
   }
 }
 
-const ASSETS_API_URL = (import.meta as { env?: Record<string, string | undefined> }).env?.VITE_SVG_ASSETS_API ?? 'http://127.0.0.1:3077/api/assets'
+const SERVER_BASE_URL = (import.meta as { env?: Record<string, string | undefined> }).env?.VITE_UNIDRAW_SERVER ?? 'http://127.0.0.1:3077'
+const ASSETS_API_URL = (import.meta as { env?: Record<string, string | undefined> }).env?.VITE_SVG_ASSETS_API ?? `${SERVER_BASE_URL}/api/assets`
 const templates = SCENARIO_TEMPLATES as unknown as TemplateItem[]
 const shellStyle: CSSProperties = { width: '100vw', height: '100vh', display: 'flex', flexDirection: 'column' }
 const workspaceStyle: CSSProperties = { flex: 1, minHeight: 0, display: 'flex' }
@@ -37,6 +38,7 @@ export default function App() {
   const [aiLoading, setAiLoading] = useState(false)
   const [aiMessages, setAiMessages] = useState<Message[]>([])
   const [followUpQuestions, setFollowUpQuestions] = useState<string[]>([])
+  const [aiConfig, setAiConfig] = useState<AIConnectionConfig>({ model: '', apiUrl: '', apiKey: '' })
   const [currentLanguage, setCurrentLanguage] = useState<DemoLanguage>('zh-CN')
   const [graphData, setGraphData] = useState<GraphData>({
     canvas: { backgroundColor: '#ffffff', grid: { size: 10, visible: true, type: 'dot' }, zoom: 1 },
@@ -164,12 +166,12 @@ export default function App() {
   }, [])
 
   const handleReady = useCallback(async () => {
-    const diag = await diagnoseSiliconFlow()
+    const diag = await diagnoseAiConnection(aiConfig)
     setAiMessages([{ role: 'assistant', content: `🔌 API 连通诊断: ${diag}` }])
     setFollowUpQuestions([
       '如何绘制流程图？', '如何绘制 UML 类图？', '如何绘制实体关系图？',
     ])
-  }, [])
+  }, [aiConfig])
 
   const handleAiGenerate = useCallback(async (prompt: string) => {
     const normalizedPrompt = prompt.trim()
@@ -179,7 +181,7 @@ export default function App() {
     setAiLoading(true)
     setFollowUpQuestions([])
     try {
-      const data = await generateGraph(normalizedPrompt, (_token, full) => {
+      const data = await generateGraph(normalizedPrompt, aiConfig, (_token, full) => {
         appendAssistantMessage(full)
       })
       const nodeLabels = data.nodes.map(node => node.label || node.shape).filter(Boolean)
@@ -195,7 +197,7 @@ export default function App() {
     } finally {
       setAiLoading(false)
     }
-  }, [aiLoading, appendAssistantMessage])
+  }, [aiConfig, aiLoading, appendAssistantMessage])
 
   const handleDataChange = useCallback((data: GraphData) => {
     setGraphData(data)
@@ -219,27 +221,39 @@ export default function App() {
         onExit={handleExit}
       />
 
-      <UniDraw
-        key={currentLanguage}
-        ref={drawRef}
-        value={graphData}
-        locale={currentLocale}
-        assets={assets}
-        assetPage={assetPage}
-        assetTotalPages={assetTotalPages}
-        assetPageLoading={assetsLoading}
-        canPrevAssets={assetPage > 1}
-        canNextAssets={assetPage < assetTotalPages}
-        templates={templates}
-        readonly={readonly}
-        showAiPanel
-        onAssetsPrevPage={goToPreviousAssetPage}
-        onAssetsNextPage={goToNextAssetPage}
-        onAiGenerate={handleAiGenerate}
-        onReady={handleReady}
-        onChange={handleDataChange}
-        style={{ flex: 1 }}
-      />
+      <div style={workspaceStyle}>
+        <div style={drawShellStyle}>
+          <UniDraw
+            key={currentLanguage}
+            ref={drawRef}
+            value={graphData}
+            locale={currentLocale}
+            assets={assets}
+            assetPage={assetPage}
+            assetTotalPages={assetTotalPages}
+            assetPageLoading={assetsLoading}
+            canPrevAssets={assetPage > 1}
+            canNextAssets={assetPage < assetTotalPages}
+            templates={templates}
+            readonly={readonly}
+            onAssetsPrevPage={goToPreviousAssetPage}
+            onAssetsNextPage={goToNextAssetPage}
+            onReady={handleReady}
+            onChange={handleDataChange}
+            style={{ width: '100%', height: '100%' }}
+          />
+        </div>
+        {aiPanelOpen && (
+          <AIPanel
+            messages={aiMessages}
+            isLoading={aiLoading}
+            followUpQuestions={followUpQuestions}
+            config={aiConfig}
+            onConfigChange={setAiConfig}
+            onSend={handleAiGenerate}
+          />
+        )}
+      </div>
     </div>
   )
 }

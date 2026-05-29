@@ -87,7 +87,30 @@
         </button>
       </div>
       <div class="ai-model-selector">
-        <span class="ai-model-label">DeepSeek-V3 · SiliconFlow</span>
+        <div class="ai-config-grid">
+          <input
+            :value="props.config.model"
+            type="text"
+            class="ai-config-input"
+            placeholder="模型名称，例如 deepseek-ai/DeepSeek-V3"
+            @input="onModelInput"
+          >
+          <input
+            :value="props.config.apiUrl"
+            type="text"
+            class="ai-config-input"
+            placeholder="RestAPI 调用地址，例如 https://api.example.com/v1/chat/completions"
+            @input="onApiUrlInput"
+          >
+          <input
+            :value="props.config.apiKey"
+            type="password"
+            class="ai-config-input"
+            placeholder="API Key"
+            @input="onApiKeyInput"
+          >
+        </div>
+        <span class="ai-model-label">{{ props.config.model || '未配置模型' }}</span>
       </div>
     </div>
   </div>
@@ -95,6 +118,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import type { AIConnectionConfig } from '../mocks/aiService'
 
 export interface Message {
   role: 'user' | 'assistant'
@@ -106,6 +130,7 @@ export interface AIPanelProps {
   suggestions?: string[]
   isLoading?: boolean
   followUpQuestions?: string[]
+  config?: AIConnectionConfig
 }
 
 const props = withDefaults(defineProps<AIPanelProps>(), {
@@ -117,10 +142,12 @@ const props = withDefaults(defineProps<AIPanelProps>(), {
   ],
   isLoading: false,
   followUpQuestions: () => [],
+  config: () => ({ model: '', apiUrl: '', apiKey: '' }),
 })
 
 const emit = defineEmits<{
   (e: 'send', prompt: string): void
+  (e: 'update:config', config: AIConnectionConfig): void
 }>()
 
 const inputValue = ref('')
@@ -142,6 +169,25 @@ function sendInput() {
   activeTab.value = 'chat'
   emit('send', inputValue.value.trim())
   inputValue.value = ''
+}
+
+function updateConfig(patch: Partial<AIConnectionConfig>) {
+  emit('update:config', {
+    ...props.config,
+    ...patch,
+  })
+}
+
+function onModelInput(event: Event) {
+  updateConfig({ model: (event.target as HTMLInputElement | null)?.value ?? '' })
+}
+
+function onApiUrlInput(event: Event) {
+  updateConfig({ apiUrl: (event.target as HTMLInputElement | null)?.value ?? '' })
+}
+
+function onApiKeyInput(event: Event) {
+  updateConfig({ apiKey: (event.target as HTMLInputElement | null)?.value ?? '' })
 }
 </script>
 
@@ -419,8 +465,10 @@ function sendInput() {
 
 .ai-model-selector {
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  align-items: stretch;
   margin-top: 8px;
+  gap: 8px;
 }
 
 .ai-model-label {
@@ -429,5 +477,28 @@ function sendInput() {
   padding: 2px 8px;
   background: #f5f5f5;
   border-radius: 4px;
+  align-self: flex-start;
+}
+
+.ai-config-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ai-config-input {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 12px;
+  outline: none;
+  background: #fafafa;
+  box-sizing: border-box;
+}
+
+.ai-config-input:focus {
+  border-color: var(--primary);
+  background: #fff;
 }
 </style>

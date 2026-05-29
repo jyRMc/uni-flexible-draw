@@ -41,7 +41,9 @@
         :messages="aiMessages"
         :is-loading="aiLoading"
         :follow-up-questions="followUpQuestions"
+        :config="aiConfig"
         class="ai-shell"
+        @update:config="onAiConfigChange"
         @send="onAiGenerate"
       />
     </div>
@@ -52,7 +54,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { UniDraw, zhCN, enUS, type UniDrawLocale } from '@uni-draw/draw'
 import type { AssetItem, GraphData, TemplateItem } from '@uni-draw/draw'
-import { generateGraph, diagnoseSiliconFlow } from '../mocks/aiService'
+import { generateGraph, diagnoseAiConnection, type AIConnectionConfig } from '../mocks/aiService'
 import { SCENARIO_TEMPLATES } from '../mocks/templates'
 import AIPanel from './AIPanel.vue'
 import TopBar from './TopBar.vue'
@@ -74,7 +76,8 @@ interface SvgAssetsApiEnvelope {
 
 type DemoLanguage = 'zh-CN' | 'en-US'
 
-const ASSETS_API_URL = (import.meta as { env?: Record<string, string | undefined> }).env?.VITE_SVG_ASSETS_API ?? 'http://127.0.0.1:3077/api/assets'
+const SERVER_BASE_URL = (import.meta as { env?: Record<string, string | undefined> }).env?.VITE_UNIDRAW_SERVER ?? 'http://127.0.0.1:3077'
+const ASSETS_API_URL = (import.meta as { env?: Record<string, string | undefined> }).env?.VITE_SVG_ASSETS_API ?? `${SERVER_BASE_URL}/api/assets`
 const templates = SCENARIO_TEMPLATES as unknown as TemplateItem[]
 const assets = ref<AssetItem[]>([])
 const assetPage = ref(1)
@@ -90,6 +93,11 @@ const aiLoading = ref(false)
 const aiMessages = ref<Message[]>([])
 const followUpQuestions = ref<string[]>([])
 const currentLanguage = ref<DemoLanguage>('zh-CN')
+const aiConfig = ref<AIConnectionConfig>({
+  model: '',
+  apiUrl: '',
+  apiKey: '',
+})
 
 const currentLocale = computed<UniDrawLocale>(() => (currentLanguage.value === 'en-US' ? enUS : zhCN))
 const exampleText = computed(() => currentLocale.value.example)
@@ -222,8 +230,12 @@ function toggleLanguage() {
   currentLanguage.value = currentLanguage.value === 'zh-CN' ? 'en-US' : 'zh-CN'
 }
 
+function onAiConfigChange(config: AIConnectionConfig) {
+  aiConfig.value = config
+}
+
 async function onReady() {
-  const diag = await diagnoseSiliconFlow()
+  const diag = await diagnoseAiConnection(aiConfig.value)
   aiMessages.value = [{ role: 'assistant', content: `🔌 API 连通诊断: ${diag}` }]
   followUpQuestions.value = [
     '如何绘制流程图？', '如何绘制 UML 类图？', '如何绘制实体关系图？',
@@ -238,7 +250,7 @@ async function onAiGenerate(prompt: string) {
   aiLoading.value = true
   followUpQuestions.value = []
   try {
-    const data = await generateGraph(normalizedPrompt, (_token, full) => {
+    const data = await generateGraph(normalizedPrompt, aiConfig.value, (_token, full) => {
       appendAssistantMessage(full)
     })
     const nodeLabels = data.nodes.map(n => n.label || n.shape).filter(Boolean)

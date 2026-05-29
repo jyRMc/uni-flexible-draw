@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type { CSSProperties } from 'react'
+import type { AIConnectionConfig } from '../../../vue/src/mocks/aiService'
 
 export interface Message {
   role: 'user' | 'assistant'
@@ -11,6 +12,8 @@ interface AIPanelProps {
   suggestions?: string[]
   isLoading?: boolean
   followUpQuestions?: string[]
+  config?: AIConnectionConfig
+  onConfigChange?: (config: AIConnectionConfig) => void
   onSend?: (prompt: string) => void
   style?: CSSProperties
 }
@@ -186,8 +189,10 @@ const styles: Record<string, CSSProperties> = {
   },
   modelSelector: {
     display: 'flex',
-    alignItems: 'center',
+    flexDirection: 'column',
+    alignItems: 'stretch',
     marginTop: 8,
+    gap: 8,
   },
   modelLabel: {
     fontSize: 11,
@@ -195,6 +200,22 @@ const styles: Record<string, CSSProperties> = {
     padding: '2px 8px',
     background: '#f5f5f5',
     borderRadius: 4,
+    alignSelf: 'flex-start',
+  },
+  configGrid: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 8,
+  },
+  configInput: {
+    width: '100%',
+    padding: '8px 10px',
+    border: '1px solid #e0e0e0',
+    borderRadius: 8,
+    fontSize: 12,
+    outline: 'none',
+    background: '#fafafa',
+    boxSizing: 'border-box',
   },
 }
 
@@ -213,6 +234,8 @@ export default function AIPanel({
   ],
   isLoading = false,
   followUpQuestions = [],
+  config = { model: '', apiUrl: '', apiKey: '' },
+  onConfigChange,
   onSend,
   style,
 }: AIPanelProps) {
@@ -230,6 +253,13 @@ export default function AIPanel({
     setInputValue('')
     setActiveTab('chat')
     onSend?.(nextPrompt)
+  }
+
+  const updateConfig = (patch: Partial<AIConnectionConfig>) => {
+    onConfigChange?.({
+      ...config,
+      ...patch,
+    })
   }
 
   return (
@@ -332,7 +362,30 @@ export default function AIPanel({
           </button>
         </div>
         <div style={styles.modelSelector}>
-          <span style={styles.modelLabel}>DeepSeek-V3 · SiliconFlow</span>
+          <div style={styles.configGrid}>
+            <input
+              value={config.model}
+              type="text"
+              placeholder="模型名称，例如 deepseek-ai/DeepSeek-V3"
+              style={styles.configInput}
+              onChange={(event) => updateConfig({ model: event.target.value })}
+            />
+            <input
+              value={config.apiUrl}
+              type="text"
+              placeholder="RestAPI 调用地址，例如 https://api.example.com/v1/chat/completions"
+              style={styles.configInput}
+              onChange={(event) => updateConfig({ apiUrl: event.target.value })}
+            />
+            <input
+              value={config.apiKey}
+              type="password"
+              placeholder="API Key"
+              style={styles.configInput}
+              onChange={(event) => updateConfig({ apiKey: event.target.value })}
+            />
+          </div>
+          <span style={styles.modelLabel}>{config.model || '未配置模型'}</span>
         </div>
       </div>
     </div>

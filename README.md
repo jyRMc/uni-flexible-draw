@@ -6,7 +6,8 @@
 - 可拆分的画布与面板子组件
 - Vue 使用方式
 - React 包装层使用方式
-- 图形库、素材面板、模板面板、AI 面板、快捷操作栏等能力
+- 图形库、素材面板、模板面板、快捷操作栏等能力
+- 独立 Node.js server，用于素材接口与 AI 代理接口
 
 ## 项目定位
 
@@ -33,7 +34,6 @@
 - 中央画布
 - 浮动工具栏
 - 快捷操作栏
-- AI 面板
 
 适合场景：
 
@@ -118,10 +118,6 @@ const graphData = ref<GraphData>({
 
 const assets = ref<AssetItem[]>([])
 const templates = ref<TemplateItem[]>([])
-
-function onAiGenerate(prompt: string, context: GraphData) {
-  console.log(prompt, context)
-}
 </script>
 
 <template>
@@ -129,8 +125,6 @@ function onAiGenerate(prompt: string, context: GraphData) {
     v-model="graphData"
     :assets="assets"
     :templates="templates"
-    :show-ai-panel="true"
-    @ai:generate="onAiGenerate"
   />
 </template>
 ```
@@ -153,7 +147,6 @@ function onAiGenerate(prompt: string, context: GraphData) {
 - `showTemplates`
 - `showToolbar`
 - `showMinimap`
-- `showAiPanel`
 - `locale`
 - `theme`
 
@@ -162,15 +155,11 @@ function onAiGenerate(prompt: string, context: GraphData) {
 - `update:modelValue`
 - `ready`
 - `selection:change`
-- `ai:generate`
 - `assets:prev-page`
 - `assets:next-page`
 
 ### Vue ref 暴露方法
 
-- `openAiPanel()`
-- `closeAiPanel()`
-- `toggleAiPanel()`
 - `openTemplatePanel()`
 - `getData()`
 - `setData(data)`
@@ -185,7 +174,6 @@ function onAiGenerate(prompt: string, context: GraphData) {
 - `zoomFit()`
 - `selectAll()`
 - `deleteSelection()`
-- `applyAiResult(data?, message?, followUp?)`
 
 ## React 基础使用
 
@@ -208,7 +196,6 @@ export default function App() {
         ref={drawRef}
         value={graphData}
         onChange={setGraphData}
-        showAiPanel
         style={{ width: '100%', height: '100%' }}
       />
     </div>
@@ -223,7 +210,6 @@ React 包装层对外主要做了以下映射：
 - `value` -> 初始化/同步图数据
 - `onChange` -> 数据变化回调
 - `onReady` -> 实例准备完成
-- `onAiGenerate` -> AI 生成事件
 - `onSelectionChange` -> 选区变化
 
 其余大部分配置项沿用底层 `UniDrawOptions`。
@@ -237,10 +223,6 @@ React 包装层对外主要做了以下映射：
 - `exportSVG()`
 - `exportJSON()`
 - `openTemplatePanel()`
-- `openAiPanel()`
-- `closeAiPanel()`
-- `toggleAiPanel()`
-- `clearAiChat()`
 - `undo()`
 - `redo()`
 - `zoomIn()`
@@ -248,7 +230,55 @@ React 包装层对外主要做了以下映射：
 - `zoomFit()`
 - `selectAll()`
 - `deleteSelection()`
-- `applyAiResult(data?, message?, followUp?)`
+
+## AI 接入说明
+
+当前仓库中的 AI 面板已经改为**外部面板 + 运行时配置**模式，不再依赖内置的 `showAiPanel` 或 `ai:generate` 事件。
+
+你需要在业务层显式提供以下输入：
+
+- `model`
+- `apiUrl`
+- `apiKey`
+
+共享 AI 客户端位于：
+
+- `src/shared/utils/aiService.ts`
+
+主要接口：
+
+- `diagnoseAiConnection(config)`
+- `generateGraph(prompt, config, onToken)`
+
+配置结构：
+
+```ts
+interface AIConnectionConfig {
+  model: string
+  apiUrl: string
+  apiKey: string
+}
+```
+
+示例项目中的 AI 面板位置：
+
+- `src/views/AIPanel.vue`
+- `examples/vue/src/views/AIPanel.vue`
+- `examples/react/src/components/AIPanel.tsx`
+
+所有 AI 请求默认会转发到本地 Node server：
+
+- `POST /api/ai/diagnose`
+- `POST /api/ai/chat`
+
+默认 server 地址：
+
+- `http://127.0.0.1:3077`
+
+如果需要修改，可以通过环境变量覆盖：
+
+- `VITE_UNIDRAW_SERVER`
+- `VITE_SVG_ASSETS_API`
 
 ## 高级使用说明
 
@@ -303,10 +333,37 @@ pnpm dev:react
 ### 4. 启动素材 API 服务
 
 ```bash
+pnpm dev:server
+```
+
+兼容旧命令：
+
+```bash
 pnpm dev:assets-api
 ```
 
-默认脚本会启动本地素材接口，供 Vue / React 示例拉取 SVG 素材数据。
+该服务会同时提供：
+
+- `GET /health`
+- `GET /api/assets`
+- `POST /api/ai/diagnose`
+- `POST /api/ai/chat`
+
+默认地址：
+
+- `http://127.0.0.1:3077`
+
+`/api/assets` 支持：
+
+- `page`
+- `pageSize`
+- `keyword`
+- `category`
+- `reload=true`
+
+默认分页大小为 `80`，最大 `200`。
+
+Vue / React 示例都依赖这个本地 server 拉取素材并转发 AI 请求。
 
 ### 5. 抓取 SciDraw 素材
 
@@ -346,6 +403,8 @@ pnpm format
 ## 项目结构说明
 
 ```text
+server/
+  index.mjs           素材接口与 AI 代理服务
 lib/
   components/        Vue 组件实现
   react/             React 包装层
@@ -357,7 +416,6 @@ examples/
   vue/               Vue 示例
   react/             React 示例
 scripts/
-  serve-svg-assets.mjs
   crawl_scidraw_assets.py
 ```
 

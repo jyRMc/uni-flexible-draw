@@ -21,13 +21,5 @@ export default defineConfig({
   },
   server: {
     port: 3002,
-    proxy: {
-      '/ai-proxy': {
-        target: 'https://api.siliconflow.com',
-        changeOrigin: true,
-        rewrite: (path: string) => path.replace(/^\/ai-proxy/, ''),
-        secure: true,
-      },
-    },
   },
 })

@@ -7,6 +7,10 @@
       <Redo2 :size="16" />
     </button>
     <div class="tb-divider" />
+    <button class="tb-btn" :class="{ active: leftPanelVisible }" :title="leftPanelVisible ? t.panel.close : t.panel.openShapePanel" @click="emitAction('toggleLeftPanel')">
+      <component :is="leftPanelVisible ? PanelLeftClose : PanelLeftOpen" :size="16" />
+    </button>
+    <div class="tb-divider" />
     <button class="tb-btn" :title="`${t.toolbar.selectAll} (Ctrl+A)`" @click="emitAction('selectAll')">
       <MousePointer2 :size="16" />
     </button>
@@ -74,7 +78,7 @@
 
 <script setup lang="ts">
 import {
-  Undo2, Redo2, Hand, ZoomIn, ZoomOut, Maximize2, PenLine, Brush, Trash2, MousePointer2, FileJson, ImageDown,
+  Undo2, Redo2, Hand, ZoomIn, ZoomOut, Maximize2, PenLine, Brush, Trash2, MousePointer2, FileJson, ImageDown, PanelLeftOpen, PanelLeftClose,
   AlignStartVertical, AlignCenterVertical, AlignEndVertical,
   AlignStartHorizontal, AlignCenterHorizontal, AlignEndHorizontal,
   AlignHorizontalSpaceBetween, AlignVerticalSpaceBetween,
@@ -85,6 +89,7 @@ export interface ToolbarProps {
   zoom?: number
   canUndo?: boolean
   canRedo?: boolean
+  leftPanelVisible?: boolean
   panMode?: boolean
   sketchMode?: boolean
   drawMode?: boolean
@@ -95,6 +100,7 @@ withDefaults(defineProps<ToolbarProps>(), {
   zoom: 1,
   canUndo: false,
   canRedo: false,
+  leftPanelVisible: true,
   panMode: false,
   sketchMode: false,
   drawMode: false,

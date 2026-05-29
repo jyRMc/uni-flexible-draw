@@ -75,9 +75,12 @@ const ICONS = {
   zoomIn:   svg('<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/>'),
   zoomOut:  svg('<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="8" y1="11" x2="14" y2="11"/>'),
   zoomFit:  svg('<path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>'),
+  panelLeftClose: svg('<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/><path d="m16 9-3 3 3 3"/>'),
+  panelLeftOpen: svg('<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/><path d="m14 9 3 3-3 3"/>'),
   trash:    svg('<polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>'),
   download: svg('<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>'),
   json:     svg('<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>'),
+  close:    svg('<path d="M18 6 6 18"/><path d="m6 6 12 12"/>', 14),
 }
 
 // ─── DOM helpers ────────────────────────────────────────────────────────────
@@ -239,9 +242,13 @@ export class UniDraw {
   private undoBtn!: HTMLButtonElement
   private redoBtn!: HTMLButtonElement
   private zoomLabel!: HTMLSpanElement
+  private sidebarOpenBtn: HTMLButtonElement | null = null
+  private sidebarOpenDivider: HTMLDivElement | null = null
+  private sidebarEl: HTMLDivElement | null = null
   private sidebarTabs = new Map<'shapes' | 'assets' | 'templates', HTMLButtonElement>()
   private sidebarPanels = new Map<'shapes' | 'assets' | 'templates', HTMLDivElement>()
   private activeSidebarTab: 'shapes' | 'assets' | 'templates' | null = null
+  private sidebarVisible = true
  
   // Properties panel state
   private propertiesBody!: HTMLDivElement
@@ -301,6 +308,7 @@ export class UniDraw {
     body.appendChild(canvasWrap)
 
     this.root.appendChild(body)
+    this.updateSidebarVisibility()
   }
 
   private buildToolbar(): HTMLElement {
@@ -314,10 +322,14 @@ export class UniDraw {
 
     const sep = () => el('div', 'tb-divider')
     this.zoomLabel = el('span', 'tb-zoom', '100%') as HTMLSpanElement
+    this.sidebarOpenDivider = sep() as HTMLDivElement
+    this.sidebarOpenBtn = btn('tb-btn', t.panel.openShapePanel, ICONS.panelLeftOpen, () => this.toggleLeftPanel())
 
     bar.append(
       this.undoBtn,
       this.redoBtn,
+      this.sidebarOpenDivider,
+      this.sidebarOpenBtn,
       sep(),
       btn('tb-btn', `${t.contextMenu.delete} (Delete)`, ICONS.trash, () => this.deleteSelection()),
       sep(),
@@ -335,7 +347,9 @@ export class UniDraw {
 
   private buildSidebar(): HTMLElement {
     const aside = el('div', 'ud-left-panel')
+    this.sidebarEl = aside
     const t = this.t
+    const header = el('div', 'ud-panel-header')
     const tabs = el('div', 'ud-panel-tabs')
     const panels = el('div', 'ud-sidebar-panels')
     const showAssetPagination = (this.opts.assetTotalPages ?? 1) > 1 || this.opts.assetPageLoading === true
@@ -358,7 +372,10 @@ export class UniDraw {
     if (showAssetsTab) addTab('assets', t.panel.assets)
     if (this.opts.showTemplates !== false) addPanel('templates')
 
-    aside.append(tabs, panels)
+    const closeBtn = btn('qac-close', t.panel.close, ICONS.close, () => this.closeLeftPanel())
+    closeBtn.type = 'button'
+    header.append(tabs, closeBtn)
+    aside.append(header, panels)
 
     const firstTab = this.sidebarTabs.keys().next().value as 'shapes' | 'assets' | 'templates' | undefined
     if (firstTab) this.setSidebarTab(firstTab)
@@ -564,7 +581,7 @@ export class UniDraw {
 
     const header = el('div', 'qac-header')
     this.propertiesTitleEl = el('span', 'qac-title', t.properties.title) as HTMLSpanElement
-    const closeBtn = el('button', 'qac-close', '✕') as HTMLButtonElement
+    const closeBtn = el('button', 'qac-close', ICONS.close) as HTMLButtonElement
     closeBtn.type = 'button'
     closeBtn.title = t.properties.close
     closeBtn.addEventListener('click', () => {
@@ -591,6 +608,32 @@ export class UniDraw {
 
     for (const [key, panel] of this.sidebarPanels) {
       panel.style.display = key === tab ? 'block' : 'none'
+    }
+  }
+
+  private openLeftPanel(): void {
+    this.sidebarVisible = true
+    this.updateSidebarVisibility()
+  }
+
+  private closeLeftPanel(): void {
+    this.sidebarVisible = false
+    this.updateSidebarVisibility()
+  }
+
+  private toggleLeftPanel(): void {
+    this.sidebarVisible = !this.sidebarVisible
+    this.updateSidebarVisibility()
+  }
+
+  private updateSidebarVisibility(): void {
+    if (this.sidebarEl) {
+      this.sidebarEl.style.display = this.sidebarVisible ? 'flex' : 'none'
+    }
+    if (this.sidebarOpenBtn) {
+      this.sidebarOpenBtn.title = this.sidebarVisible ? this.t.panel.close : this.t.panel.openShapePanel
+      this.sidebarOpenBtn.innerHTML = this.sidebarVisible ? ICONS.panelLeftClose : ICONS.panelLeftOpen
+      this.sidebarOpenBtn.classList.toggle('active', this.sidebarVisible)
     }
   }
 
@@ -1084,6 +1127,7 @@ export class UniDraw {
 
   openTemplatePanel(): void {
     if (this.opts.showTemplates === false) return
+    this.openLeftPanel()
     if (this.sidebarPanels.has('templates')) this.setSidebarTab('templates')
   }
 

@@ -19,7 +19,9 @@
             :title="t.panel.close"
             :aria-label="t.panel.close"
             @click="closeLeftPanel"
-          >×</button>
+          >
+            <XIcon :size="14" />
+          </button>
         </div>
 
         <div class="ud-panel-content">
@@ -56,13 +58,6 @@
           </div>
         </div>
       </aside>
-      <button
-        v-else-if="showShapePanel !== false"
-        class="ud-left-panel-reopen"
-        :title="t.panel.openShapePanel"
-        :aria-label="t.panel.openShapePanel"
-        @click="openLeftPanel"
-      >{{ t.panel.shapes }}</button>
 
       <!-- Template modal -->
       <TemplatePanel
@@ -112,6 +107,7 @@
           :zoom="canvasRef?.zoom ?? 1"
           :can-undo="canvasRef?.canUndo ?? false"
           :can-redo="canvasRef?.canRedo ?? false"
+          :left-panel-visible="leftPanelVisible"
           :pan-mode="canvasRef?.panMode ?? false"
           :sketch-mode="sketchMode"
           :draw-mode="drawMode"
@@ -152,6 +148,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, provide, onMounted, reactive } from 'vue'
+import { XIcon } from 'lucide-vue-next'
 import type { GraphData, NodeData, AssetItem, TemplateItem, UniDrawTheme } from '@uni-draw/shared'
 import { LOCALE_KEY } from '../../locale'
 import zhCN from '../../locale/zh-CN'
@@ -387,12 +384,12 @@ function openLeftTab(tab: 'shapes' | 'assets') {
   leftPanelVisible.value = true
 }
 
-function openLeftPanel() {
-  leftPanelVisible.value = true
-}
-
 function closeLeftPanel() {
   leftPanelVisible.value = false
+}
+
+function toggleLeftPanel() {
+  leftPanelVisible.value = !leftPanelVisible.value
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -471,6 +468,10 @@ function onToggleElementSketch(id: string) {
 // ──────────────────────────────────────────────────────────────────────────────
 
 function onToolbarAction(action: string) {
+  if (action === 'toggleLeftPanel') {
+    toggleLeftPanel()
+    return
+  }
   const c = canvasRef.value
   if (!c) return
   switch (action) {
@@ -659,25 +660,6 @@ defineExpose({
 .ud-panel-close:hover {
   background: #f0f0f0;
   color: #333;
-}
-
-.ud-left-panel-reopen {
-  position: absolute;
-  top: 16px;
-  left: 16px;
-  z-index: 20;
-  padding: 8px 12px;
-  border: none;
-  background: #fff;
-  color: #333;
-  border-radius: 10px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1), 0 1px 4px rgba(0, 0, 0, 0.06);
-  cursor: pointer;
-  transition: all 0.15s;
-}
-
-.ud-left-panel-reopen:hover {
-  background: #fafbfc;
 }
 
 /* ── Assets grid ──────────────────────────────────────────── */
