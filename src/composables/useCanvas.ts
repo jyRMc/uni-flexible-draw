@@ -18,6 +18,7 @@ import {
   ClipboardManager,
 } from '../core'
 import type { MiniMapOptions } from '../core/tool/MiniMapTool'
+import { highlightEdge, unhighlightEdge } from '../core/graph/highlight'
 
 export interface UseCanvasOptions {
   modelValue: Ref<GraphData>
@@ -378,11 +379,9 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
         selectedEdgeData.value = extractEdgeData(cell)
         selectedNodeData.value = null
         ensureAutoVertex(cell)
+        highlightEdge(cell)
         const toolItems = isSketchStraightEdge(cell)
-          ? [
-              { name: 'source-arrowhead', args: { attrs: { fill: PRIMARY_COLOR, r: 5 } } },
-              { name: 'target-arrowhead', args: { attrs: { fill: PRIMARY_COLOR, r: 5 } } },
-            ]
+          ? []
           : [
               {
                 name: 'segments',
@@ -403,15 +402,13 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
                   },
                 },
               },
-              { name: 'source-arrowhead', args: { attrs: { fill: PRIMARY_COLOR, r: 5 } } },
-              { name: 'target-arrowhead', args: { attrs: { fill: PRIMARY_COLOR, r: 5 } } },
             ]
-        cell.setTools({
-          items: toolItems,
-        }, { async: false })
-        const view = graph.findViewByCell(cell)
-        if (view) {
-          ;(view as any).renderTools?.()
+        if (toolItems.length > 0) {
+          cell.setTools({ items: toolItems }, { async: false })
+          const view = graph.findViewByCell(cell)
+          if (view) {
+            ;(view as any).renderTools?.()
+          }
         }
       } else {
         selectedNodeData.value = null
@@ -431,6 +428,7 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
       ).filter((c: any) => c.isNode?.()).length
       if (cell.isEdge?.()) {
         releaseAutoVertex(cell)
+        unhighlightEdge(cell)
         // 卸载边工具
         const view = graph.findViewByCell(cell)
         if (view) {

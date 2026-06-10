@@ -66,8 +66,8 @@ export const basicImage: Node.Config = {
   height: 80,
   attrs: {
     image: {
-      width: 80,
-      height: 80,
+      refWidth: '100%',
+      refHeight: '100%',
       x: 0,
       y: 0,
       'xlink:href': "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Crect width='80' height='80' fill='%23f0f2f5' rx='4'/%3E%3Crect x='18' y='14' width='44' height='32' fill='none' stroke='%23bbb' stroke-width='2' rx='2'/%3E%3Cpolygon points='18,46 34,30 44,38 56,24 62,46' fill='%23ddd'/%3E%3Ccircle cx='28' cy='24' r='5' fill='%23ddd'/%3E%3C/svg%3E",

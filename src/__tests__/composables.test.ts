@@ -80,16 +80,28 @@ describe('useStyleEditor', () => {
     }
   }
 
-  function makeMockNode(id: string) {
-    const attrs = { body: { fill: '#fff', stroke: '#333', strokeWidth: 2 } }
+  function makeMockNode(id: string, shape = 'basic-rect') {
+    const attrs: Record<string, any> = { body: { fill: '#fff', stroke: '#333', strokeWidth: 2 } }
     return {
       id,
-      shape: 'basic-rect',
+      shape,
       isNode: () => true,
       getAttrs: () => attrs,
-      setAttrs: (a: any) => Object.assign(attrs, a),
+      setAttrs: (a: any) => {
+        for (const key of Object.keys(a)) {
+          attrs[key] = { ...(attrs[key] ?? {}), ...a[key] }
+        }
+      },
       setLabel: (l: string) => { /* no-op */ },
-      setAttrByPath: () => { /* no-op */ },
+      setAttrByPath: (path: string, val: any) => {
+        const parts = path.split('/')
+        let target: any = attrs
+        for (let i = 0; i < parts.length - 1; i++) {
+          target[parts[i]] = target[parts[i]] ?? {}
+          target = target[parts[i]]
+        }
+        target[parts[parts.length - 1]] = val
+      },
     }
   }
 
@@ -152,6 +164,30 @@ describe('useStyleEditor', () => {
 
     updateEdgeStyle('e1', { label: '' })
     expect(edge.getLabels()).toHaveLength(0)
+  })
+
+  it('should update node ry style', () => {
+    const node = makeMockNode('n1')
+    const graph = makeMockGraph({ n1: node }, {})
+    const selectedEdge = ref<EdgeViewData | null>(null)
+    const { updateNodeStyle } = useStyleEditor(() => graph as any, selectedEdge as any)
+
+    updateNodeStyle('n1', { rx: 10, ry: 6 })
+    expect(node.getAttrs().body.rx).toBe(10)
+    expect(node.getAttrs().body.ry).toBe(6)
+  })
+
+  it('should update text node label attributes', () => {
+    const node = makeMockNode('n2', 'basic-text')
+    const graph = makeMockGraph({ n2: node }, {})
+    const selectedEdge = ref<EdgeViewData | null>(null)
+    const { updateNodeStyle } = useStyleEditor(() => graph as any, selectedEdge as any)
+
+    updateNodeStyle('n2', { fontFamily: 'serif', fontWeight: 'bold', lineHeight: 1.5, textAlign: 'right' })
+    expect(node.getAttrs().label.fontFamily).toBe('serif')
+    expect(node.getAttrs().label.fontWeight).toBe('bold')
+    expect(node.getAttrs().label.lineHeight).toBe(1.5)
+    expect(node.getAttrs().label.textAnchor).toBe('end')
   })
 
   it('should extract edge data with correct lineType', () => {

@@ -124,6 +124,17 @@ export interface UniDrawLocale {
     labelBottom: string
     labelLeft: string
     labelRight: string
+    radiusY: string
+    fontFamily: string
+    fontWeight: string
+    textAlign: string
+    lineHeight: string
+    labelColor: string
+    uploadImage: string
+    imageFit: string
+    fitContain: string
+    fitCover: string
+    fitFill: string
     addRow: string
     addColumn: string
     deleteRow: string

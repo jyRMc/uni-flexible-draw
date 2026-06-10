@@ -61,6 +61,8 @@ export interface UniDrawOptions {
   onSelectionChange?: (nodes: NodeData[], edges: EdgeData[]) => void
   /** Fired whenever graph data changes */
   onDataChange?: (data: GraphData) => void
+  /** Upload handler for image nodes: receives a File, returns a URL string (or Promise<string>) */
+  uploadApi?: (file: File) => string | Promise<string>
 }
 
 // ─── Tiny SVG icon helper ──────────────────────────────────────────────────
@@ -932,6 +934,17 @@ export class UniDraw {
       this.propertiesBody.appendChild(createRow(labelText, group))
     }
 
+    const appendFileInput = (labelText: string, accept: string, onChange: (file: File) => void): void => {
+      const input = document.createElement('input')
+      input.className = 'ud-property-input'
+      input.type = 'file'
+      input.accept = accept
+      input.addEventListener('change', () => {
+        if (input.files?.[0]) onChange(input.files[0])
+      })
+      this.propertiesBody.appendChild(createRow(labelText, input))
+    }
+
     if (this.selectedNodeId) {
       const node = graph.getCellById(this.selectedNodeId)
       if (!node || !node.isNode?.()) {
@@ -948,6 +961,11 @@ export class UniDraw {
       this.propertiesBody.appendChild(el('div', 'ud-properties-section-title', t.properties.nodeTitle))
       appendTextInput(t.properties.label, node.getLabel?.() ?? '', (next) => {
         node.setLabel?.(next)
+        this.opts.onDataChange?.(this.getData())
+      })
+      const labelAttrs = attrs.label ?? {}
+      appendColorInput(t.properties.labelColor, String(labelAttrs.fill ?? '#333333'), (next) => {
+        node.setAttrByPath?.('label/fill', next)
         this.opts.onDataChange?.(this.getData())
       })
       appendNumberInput(t.properties.width, Number(size.width) || 80, (next) => {
@@ -968,6 +986,83 @@ export class UniDraw {
         node.setAttrs?.({ body: { stroke: next } })
         this.opts.onDataChange?.(this.getData())
       })
+      if (node.shape === 'basic-image' || node.shape === 'basic-svg') {
+        appendFileInput(t.properties.uploadImage, 'image/*,.svg', async (file) => {
+          let url: string
+          if (this.opts.uploadApi) {
+            url = await this.opts.uploadApi(file)
+          } else {
+            url = await new Promise<string>((resolve) => {
+              const reader = new FileReader()
+              reader.onload = () => resolve(reader.result as string)
+              reader.readAsDataURL(file)
+            })
+          }
+          node.attr?.('image/xlink:href', url)
+          const data = node.getData?.() ?? {}
+          node.setData?.({ ...data, imageHref: url })
+          this.opts.onDataChange?.(this.getData())
+        })
+        const imageAttrs = attrs.image ?? {}
+        const currentFit = imageAttrs.preserveAspectRatio === 'xMidYMid slice' ? 'cover' : imageAttrs.preserveAspectRatio === 'none' ? 'fill' : 'contain'
+        appendSelectInput(t.properties.imageFit, currentFit, [
+          { label: t.properties.fitContain, value: 'contain' },
+          { label: t.properties.fitCover, value: 'cover' },
+          { label: t.properties.fitFill, value: 'fill' },
+        ], (next) => {
+          const map: Record<string, string> = {
+            contain: 'xMidYMid meet',
+            cover: 'xMidYMid slice',
+            fill: 'none',
+          }
+          node.attr?.('image/preserveAspectRatio', map[next] ?? 'xMidYMid meet')
+          const data = node.getData?.() ?? {}
+          node.setData?.({ ...data, imageFit: next })
+          this.opts.onDataChange?.(this.getData())
+        })
+      }
+      const rxVal = Number(body.rx) || 0
+      const ryVal = Number(body.ry) || 0
+      appendNumberInput(t.properties.radius, rxVal, (next) => {
+        node.setAttrs?.({ body: { rx: next } })
+        this.opts.onDataChange?.(this.getData())
+      })
+      appendNumberInput(t.properties.radiusY ?? 'Radius Y', ryVal, (next) => {
+        node.setAttrs?.({ body: { ry: next } })
+        this.opts.onDataChange?.(this.getData())
+      })
+
+      if (node.shape === 'basic-text') {
+        const labelAttrs = attrs.label ?? {}
+        appendSelectInput(t.properties.fontFamily ?? 'Font', String(labelAttrs.fontFamily ?? 'sans-serif'), [
+          { label: 'Sans', value: 'sans-serif' },
+          { label: 'Serif', value: 'serif' },
+          { label: 'Mono', value: 'monospace' },
+        ], (next) => {
+          node.setAttrByPath('label/fontFamily', next)
+          this.opts.onDataChange?.(this.getData())
+        })
+        appendSelectInput(t.properties.fontWeight ?? 'Weight', String(labelAttrs.fontWeight ?? 'normal'), [
+          { label: 'Normal', value: 'normal' },
+          { label: 'Bold', value: 'bold' },
+        ], (next) => {
+          node.setAttrByPath('label/fontWeight', next)
+          this.opts.onDataChange?.(this.getData())
+        })
+        const textAlign = labelAttrs.textAnchor === 'start' ? 'left' : labelAttrs.textAnchor === 'end' ? 'right' : 'center'
+        appendSelectInput(t.properties.textAlign ?? 'Align', textAlign, [
+          { label: 'Left', value: 'left' },
+          { label: 'Center', value: 'center' },
+          { label: 'Right', value: 'right' },
+        ], (next) => {
+          node.setAttrByPath('label/textAnchor', next === 'left' ? 'start' : next === 'right' ? 'end' : 'middle')
+          this.opts.onDataChange?.(this.getData())
+        })
+        appendNumberInput(t.properties.lineHeight ?? 'Line Ht', Number(labelAttrs.lineHeight) || 1.2, (next) => {
+          node.setAttrByPath('label/lineHeight', next)
+          this.opts.onDataChange?.(this.getData())
+        })
+      }
       return
     }
 

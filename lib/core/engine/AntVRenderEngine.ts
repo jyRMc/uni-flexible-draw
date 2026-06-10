@@ -4,6 +4,7 @@ import { Selection } from '@antv/x6-plugin-selection'
 import { Transform } from '@antv/x6-plugin-transform'
 import type { CanvasConfig } from '@uni-draw/shared'
 import { PRIMARY_COLOR } from '@uni-draw/shared'
+import { highlightEdge, unhighlightEdge } from '../graph/highlight'
 
 export interface AntVRenderEngineOptions {
   canvasConfig?: CanvasConfig
@@ -12,6 +13,7 @@ export interface AntVRenderEngineOptions {
   snapline?: boolean
   keyboard?: boolean
   minimap?: boolean
+  rotateHandlePath?: string
 }
 
 /**
@@ -44,7 +46,7 @@ export class AntVRenderEngine {
       autoResize: true,
       panning: {
         enabled: true,
-        eventTypes: ['rightMouseDown'],
+        eventTypes: ['rightMouseDown', 'mouseWheelDown'],
       },
       mousewheel: {
         enabled: true,
@@ -145,6 +147,9 @@ export class AntVRenderEngine {
       }),
     )
 
+    // 注入旋转控制柄自定义图标
+    this.injectRotateHandleStyle(options.rotateHandlePath)
+
     // 监听容器尺寸变化
     this.resizeObserver = new ResizeObserver(() => {
       if (this.graph && this.container) {
@@ -180,40 +185,38 @@ export class AntVRenderEngine {
         node.removeTools()
       })
 
+      // 悬停边时高亮线条并显示顶点手柄
       this.graph.on('edge:mouseenter', ({ edge }: any) => {
-        edge.setTools(edge.shape === 'edge-sketch'
-          ? [
-              { name: 'source-arrowhead', args: { attrs: { fill: PRIMARY_COLOR, r: 5 } } },
-              { name: 'target-arrowhead', args: { attrs: { fill: PRIMARY_COLOR, r: 5 } } },
-            ]
-          : [
-              {
-                name: 'segments',
-                args: {
-                  threshold: 12,
-                  snapRadius: 10,
-                  attrs: {
-                    fill: PRIMARY_COLOR,
-                    stroke: '#fff',
-                    'stroke-width': 2,
-                    width: 20,
-                    height: 8,
-                    x: -10,
-                    y: -4,
-                    rx: 4,
-                    ry: 4,
-                    cursor: 'move',
-                  },
+        highlightEdge(edge)
+        if (edge.shape !== 'edge-sketch') {
+          edge.setTools([
+            {
+              name: 'segments',
+              args: {
+                threshold: 12,
+                snapRadius: 10,
+                attrs: {
+                  fill: PRIMARY_COLOR,
+                  stroke: '#fff',
+                  'stroke-width': 2,
+                  width: 20,
+                  height: 8,
+                  x: -10,
+                  y: -4,
+                  rx: 4,
+                  ry: 4,
+                  cursor: 'move',
                 },
               },
-              { name: 'source-arrowhead', args: { attrs: { fill: PRIMARY_COLOR, r: 5 } } },
-              { name: 'target-arrowhead', args: { attrs: { fill: PRIMARY_COLOR, r: 5 } } },
-            ])
+            },
+          ])
+        }
       })
       this.graph.on('edge:mouseleave', ({ edge, e }: any) => {
         const graph = this.graph
         if (!graph) return
         if (graph.isSelected?.(edge) || isEdgeToolElement(e?.relatedTarget ?? null)) return
+        unhighlightEdge(edge)
         edge.removeTools()
       })
 
@@ -287,6 +290,22 @@ export class AntVRenderEngine {
     }
 
     return this.graph
+  }
+
+  /**
+   * 注入旋转控制柄自定义 SVG 图标
+   */
+  private injectRotateHandleStyle(path?: string): void {
+    if (typeof document === 'undefined') return
+    const id = 'uni-draw-rotate-handle-style'
+    if (document.getElementById(id)) return
+    const handlePath = path ?? 'M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2'
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="${PRIMARY_COLOR}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="${handlePath}"/></svg>`
+    const encoded = encodeURIComponent(svg)
+    const style = document.createElement('style')
+    style.id = id
+    style.textContent = `.x6-widget-transform-rotate{width:18px;height:18px;border:none;background:transparent;top:-22px;left:-22px;cursor:grab}.x6-widget-transform-rotate::before{content:'';display:block;width:100%;height:100%;background-image:url("data:image/svg+xml,${encoded}");background-repeat:no-repeat;background-position:center}`
+    document.head.appendChild(style)
   }
 
   /**

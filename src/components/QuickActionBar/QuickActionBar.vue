@@ -53,9 +53,31 @@
             <input type="range" :value="currentRx" min="0" max="50" step="1" @input="onRange('rx', $event)">
             <span class="qab-val">{{ currentRx }}</span>
           </div>
+          <div v-if="rxSupported" class="qab-row">
+            <label>{{ t.quickAction.radiusY }}</label>
+            <input type="range" :value="currentRy" min="0" max="50" step="1" @input="onRange('ry', $event)">
+            <span class="qab-val">{{ currentRy }}</span>
+          </div>
         </div>
 
         <div class="qab-divider" />
+
+        <div v-if="isImageNode" class="qab-section">
+          <div class="qab-section-title">{{ t.quickAction.uploadImage }}</div>
+          <div class="qab-row">
+            <input type="file" accept="image/*,.svg" style="flex:1;min-width:0;font-size:11px" @change="onImageUpload">
+          </div>
+          <div class="qab-row">
+            <label>{{ t.quickAction.imageFit }}</label>
+            <select class="qab-input-select" :value="currentImageFit" @change="onSelectImageFit($event)">
+              <option value="contain">{{ t.quickAction.fitContain }}</option>
+              <option value="cover">{{ t.quickAction.fitCover }}</option>
+              <option value="fill">{{ t.quickAction.fitFill }}</option>
+            </select>
+          </div>
+        </div>
+
+        <div v-if="isImageNode" class="qab-divider" />
 
         <div class="qab-section">
           <div class="qab-section-title">{{ t.quickAction.fill }}</div>
@@ -116,6 +138,10 @@
             <label>{{ t.quickAction.text }}</label>
             <input type="text" :value="currentLabel" :placeholder="t.quickAction.inputLabelPlaceholder" @input="onNodeLabel($event)">
           </div>
+          <div class="qab-row">
+            <label>{{ t.quickAction.labelColor }}</label>
+            <ColorPicker :model-value="currentLabelFill" @update:model-value="onColorChange('labelFill', $event)" />
+          </div>
         </div>
 
         <div v-if="!isTableNode" class="qab-divider" />
@@ -137,6 +163,36 @@
             <input type="range" :value="currentFontSize" min="8" max="36" step="1" @input="onRange('fontSize', $event)">
             <span class="qab-val">{{ currentFontSize }}</span>
           </div>
+          <template v-if="isTextNode">
+            <div class="qab-row">
+              <label>{{ t.quickAction.fontFamily }}</label>
+              <select class="qab-input-select" :value="currentFontFamily" @change="onSelectFontFamily($event)">
+                <option value="sans-serif">Sans</option>
+                <option value="serif">Serif</option>
+                <option value="monospace">Mono</option>
+              </select>
+            </div>
+            <div class="qab-row">
+              <label>{{ t.quickAction.fontWeight }}</label>
+              <div class="qab-icon-row">
+                <button class="qab-icon-btn" :class="{active: currentFontWeight === 'normal'}" @click="onSelectValue('fontWeight', 'normal')">N</button>
+                <button class="qab-icon-btn" :class="{active: currentFontWeight === 'bold'}" @click="onSelectValue('fontWeight', 'bold')">B</button>
+              </div>
+            </div>
+            <div class="qab-row">
+              <label>{{ t.quickAction.textAlign }}</label>
+              <div class="qab-icon-row">
+                <button class="qab-icon-btn" :class="{active: currentTextAlign === 'left'}" @click="onSelectValue('textAlign', 'left')">L</button>
+                <button class="qab-icon-btn" :class="{active: currentTextAlign === 'center'}" @click="onSelectValue('textAlign', 'center')">C</button>
+                <button class="qab-icon-btn" :class="{active: currentTextAlign === 'right'}" @click="onSelectValue('textAlign', 'right')">R</button>
+              </div>
+            </div>
+            <div class="qab-row">
+              <label>{{ t.quickAction.lineHeight }}</label>
+              <input type="range" :value="currentLineHeight" min="1" max="3" step="0.1" @input="onRange('lineHeight', $event)">
+              <span class="qab-val">{{ currentLineHeight }}</span>
+            </div>
+          </template>
         </div>
       </template>
 
@@ -267,6 +323,7 @@ export interface QuickActionBarProps {
   selectedEdge: { id: string; shape: string; stroke: string; strokeWidth: number; strokeDasharray: string; lineType: string; label?: string; sourceMarker?: string; targetMarker?: string } | null
   sketchMode: boolean
   elementSketchIds: Set<string>
+  uploadApi?: (file: File) => string | Promise<string>
 }
 
 const props = defineProps<QuickActionBarProps>()
@@ -303,6 +360,8 @@ const sketchElementSupported = computed(() => {
   return shape !== 'basic-image' && shape !== 'basic-svg' && shape !== 'basic-table'
 })
 const isTableNode = computed(() => props.selectedNode?.shape === 'basic-table')
+const isTextNode = computed(() => props.selectedNode?.shape === 'basic-text')
+const isImageNode = computed(() => props.selectedNode?.shape === 'basic-image' || props.selectedNode?.shape === 'basic-svg')
 const tableRows = computed(() => {
   const table = props.selectedNode?.data?.table as { rows?: number } | undefined
   return table?.rows ?? 0
@@ -350,11 +409,18 @@ const currentStroke = ref(PRIMARY_COLOR)
 const currentStrokeWidth = ref(2)
 const currentStrokeDash = ref('')
 const currentRx = ref(0)
+const currentRy = ref(0)
 const currentFill = ref('#ffffff')
 const currentFontSize = ref(14)
+const currentFontFamily = ref('sans-serif')
+const currentFontWeight = ref<'normal' | 'bold'>('normal')
+const currentTextAlign = ref<'left' | 'center' | 'right'>('center')
+const currentLineHeight = ref(1.2)
 const currentLabelPos = ref('center')
 const currentOpacity = ref(1)
 const currentLabel = ref('')
+const currentLabelFill = ref('#333333')
+const currentImageFit = ref<'contain' | 'cover' | 'fill'>('contain')
 
 // 边状态
 const edgeStroke = ref(PRIMARY_COLOR)
@@ -375,11 +441,19 @@ watch(
     currentStrokeWidth.value = (s.strokeWidth as number) ?? 2
     currentStrokeDash.value = (s.strokeDasharray as string) ?? ''
     currentRx.value = (s.rx as number) ?? 0
+    currentRy.value = (s.ry as number) ?? 0
     currentFill.value = (s.fill as string) ?? '#ffffff'
     currentOpacity.value = (s.opacity as number) ?? 1
-    currentFontSize.value = (n.label as any)?.style?.fontSize ?? 14
+    const labelStyle = (n.label as any)?.style ?? {}
+    currentFontSize.value = labelStyle.fontSize ?? 14
+    currentFontFamily.value = labelStyle.fontFamily ?? 'sans-serif'
+    currentFontWeight.value = labelStyle.fontWeight ?? 'normal'
+    currentTextAlign.value = (n.data?.textAlign as any) ?? 'center'
+    currentLineHeight.value = labelStyle.lineHeight ?? 1.2
+    currentLabelFill.value = labelStyle.fill ?? '#333333'
     currentLabelPos.value = (n.label as any)?.position ?? 'center'
     currentLabel.value = typeof n.label === 'string' ? n.label : ((n.label as any)?.text ?? '')
+    currentImageFit.value = (n.data?.imageFit as any) ?? 'contain'
   },
   { immediate: true },
 )
@@ -418,6 +492,7 @@ function onColorChange(key: string, val: string) {
   if (!props.selectedNode) return
   if (key === 'stroke') currentStroke.value = val
   if (key === 'fill') currentFill.value = val
+  if (key === 'labelFill') currentLabelFill.value = val
   emit('update-style', props.selectedNode.id, { [key]: val })
 }
 
@@ -426,8 +501,26 @@ function onRange(key: string, ev: Event) {
   const val = Number((ev.target as HTMLInputElement).value)
   if (key === 'strokeWidth') currentStrokeWidth.value = val
   if (key === 'rx') currentRx.value = val
+  if (key === 'ry') currentRy.value = val
   if (key === 'fontSize') currentFontSize.value = val
+  if (key === 'lineHeight') currentLineHeight.value = val
   if (key === 'opacity') currentOpacity.value = val
+  emit('update-style', props.selectedNode.id, { [key]: val })
+}
+
+function onSelectFontFamily(ev: Event) {
+  const val = (ev.target as HTMLSelectElement).value
+  currentFontFamily.value = val
+  if (props.selectedNode) {
+    emit('update-style', props.selectedNode.id, { fontFamily: val })
+  }
+}
+
+function onSelectValue(key: string, val: string) {
+  if (!props.selectedNode) return
+  if (key === 'fontFamily') currentFontFamily.value = val
+  if (key === 'fontWeight') currentFontWeight.value = val as 'normal' | 'bold'
+  if (key === 'textAlign') currentTextAlign.value = val as 'left' | 'center' | 'right'
   emit('update-style', props.selectedNode.id, { [key]: val })
 }
 
@@ -435,6 +528,30 @@ function onNodeLabel(ev: Event) {
   if (!props.selectedNode) return
   currentLabel.value = (ev.target as HTMLInputElement).value
   emit('update-style', props.selectedNode.id, { label: currentLabel.value })
+}
+
+async function onImageUpload(ev: Event) {
+  const file = (ev.target as HTMLInputElement).files?.[0]
+  if (!file || !props.selectedNode) return
+  let url: string
+  if (props.uploadApi) {
+    url = await props.uploadApi(file)
+  } else {
+    url = await new Promise<string>((resolve) => {
+      const reader = new FileReader()
+      reader.onload = () => resolve(reader.result as string)
+      reader.readAsDataURL(file)
+    })
+  }
+  emit('update-style', props.selectedNode.id, { imageHref: url })
+}
+
+function onSelectImageFit(ev: Event) {
+  const val = (ev.target as HTMLSelectElement).value as 'contain' | 'cover' | 'fill'
+  currentImageFit.value = val
+  if (props.selectedNode) {
+    emit('update-style', props.selectedNode.id, { imageFit: val })
+  }
 }
 
 function setLabelPos(val: string) {
@@ -495,7 +612,7 @@ function setTargetMarker(val: string) {
 }
 
 function setEdgeStrokeDash(val: string) {
-  if (!props.selectedEdge) return
+  if (!props.selectedEdge) return 
   edgeStrokeDash.value = val
   emit('update-edge-style', props.selectedEdge.id, { strokeDasharray: val })
 }
@@ -685,6 +802,18 @@ function onEdgeWidth(ev: Event) {
   flex: 1;
   min-width: 0;
   accent-color: var(--uni-draw-primary);
+}
+
+.qab-input-select {
+  flex: 1;
+  min-width: 0;
+  padding: 3px 5px;
+  border: 1px solid #d9d9d9;
+  border-radius: 4px;
+  font-size: 12px;
+  outline: none;
+  background: #fff;
+  color: #555;
 }
 
 .qab-val {

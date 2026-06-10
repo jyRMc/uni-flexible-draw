@@ -4,6 +4,7 @@ export type { AntVRenderEngineOptions } from './engine/AntVRenderEngine'
 
 // 图管理
 export { GraphManager } from './graph/GraphManager'
+export { highlightEdge, unhighlightEdge } from './graph/highlight'
 
 // 节点
 export { NodeRegistry } from './node/NodeRegistry'

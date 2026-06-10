@@ -1,3 +1,4 @@
+import { Graph } from '@antv/x6'
 import { NodeRegistry, EdgeRegistry } from '@uni-draw/core'
 import {
   BASIC_SHAPES,

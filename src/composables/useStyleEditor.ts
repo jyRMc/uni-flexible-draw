@@ -87,7 +87,13 @@ export function useStyleEditor(
           opacity: bodyAttrs.opacity ?? currentBody.opacity,
         }) as any, { overwrite: true })
       } else {
-        node.setAttrs({ body: bodyAttrs })
+        if ('opacity' in bodyAttrs && (node.shape === 'basic-image' || node.shape === 'basic-svg')) {
+          node.attr('image/opacity', bodyAttrs.opacity)
+          delete bodyAttrs.opacity
+        }
+        if (Object.keys(bodyAttrs).length > 0) {
+          node.setAttrs({ body: bodyAttrs })
+        }
       }
     }
 
@@ -97,6 +103,27 @@ export function useStyleEditor(
 
     if ('fontSize' in style) {
       node.setAttrByPath('label/fontSize', style.fontSize)
+    }
+
+    if ('fontFamily' in style) {
+      node.setAttrByPath('label/fontFamily', style.fontFamily)
+    }
+
+    if ('fontWeight' in style) {
+      node.setAttrByPath('label/fontWeight', style.fontWeight)
+    }
+
+    if ('lineHeight' in style) {
+      node.setAttrByPath('label/lineHeight', style.lineHeight)
+    }
+
+    if ('labelFill' in style) {
+      node.setAttrByPath('label/fill', style.labelFill)
+    }
+
+    if ('textAlign' in style) {
+      const align = style.textAlign as string
+      node.setAttrByPath('label/textAnchor', align === 'left' ? 'start' : align === 'right' ? 'end' : 'middle')
     }
 
     if ('labelPosition' in style) {
@@ -110,6 +137,21 @@ export function useStyleEditor(
           refY: yAttr,
         },
       })
+    }
+
+    if ('imageHref' in style) {
+      node.attr('image/xlink:href', style.imageHref)
+      const data = node.getData() ?? {}
+      node.setData({ ...data, imageHref: style.imageHref })
+    }
+
+    if ('imageFit' in style) {
+      const map: Record<string, string> = {
+        contain: 'xMidYMid meet',
+        cover: 'xMidYMid slice',
+        fill: 'none',
+      }
+      node.attr('image/preserveAspectRatio', map[style.imageFit as string] ?? 'xMidYMid meet')
     }
   }
 

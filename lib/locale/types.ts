@@ -124,6 +124,12 @@ export interface UniDrawLocale {
     labelBottom: string
     labelLeft: string
     labelRight: string
+    labelColor: string
+    uploadImage: string
+    imageFit: string
+    fitContain: string
+    fitCover: string
+    fitFill: string
     addRow: string
     addColumn: string
     deleteRow: string
@@ -163,6 +169,18 @@ export interface UniDrawLocale {
     orthogonal: string
     manhattan: string
     jumpover: string
+    radius: string
+    radiusY: string
+    fontFamily: string
+    fontWeight: string
+    textAlign: string
+    lineHeight: string
+    labelColor: string
+    uploadImage: string
+    imageFit: string
+    fitContain: string
+    fitCover: string
+    fitFill: string
   }
   drawPanel: {
     title: string

@@ -18,6 +18,7 @@ import {
   ClipboardManager,
 } from '@uni-draw/core'
 import type { MiniMapOptions } from '@uni-draw/core'
+import { highlightEdge, unhighlightEdge } from '@uni-draw/core'
 
 export interface UseCanvasOptions {
   modelValue: Ref<GraphData>
@@ -254,36 +255,29 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
   function renderEdgeEditTools(edge: any): void {
     const graph = getGraph()
     if (!graph) return
-    const toolItems = isSketchStraightEdge(edge)
-      ? [
-          { name: 'source-arrowhead', args: { attrs: { fill: PRIMARY_COLOR, r: 5 } } },
-          { name: 'target-arrowhead', args: { attrs: { fill: PRIMARY_COLOR, r: 5 } } },
-        ]
-      : [
-          {
-            name: 'segments',
-            args: {
-              threshold: 12,
-              snapRadius: 10,
-              attrs: {
-                fill: PRIMARY_COLOR,
-                stroke: '#fff',
-                'stroke-width': 2,
-                width: 20,
-                height: 8,
-                x: -10,
-                y: -4,
-                rx: 4,
-                ry: 4,
-                cursor: 'move',
-              },
+    if (isSketchStraightEdge(edge)) return
+    edge.setTools({
+      items: [
+        {
+          name: 'segments',
+          args: {
+            threshold: 12,
+            snapRadius: 10,
+            attrs: {
+              fill: PRIMARY_COLOR,
+              stroke: '#fff',
+              'stroke-width': 2,
+              width: 20,
+              height: 8,
+              x: -10,
+              y: -4,
+              rx: 4,
+              ry: 4,
+              cursor: 'move',
             },
           },
-          { name: 'source-arrowhead', args: { attrs: { fill: PRIMARY_COLOR, r: 5 } } },
-          { name: 'target-arrowhead', args: { attrs: { fill: PRIMARY_COLOR, r: 5 } } },
-        ]
-    edge.setTools({
-      items: toolItems,
+        },
+      ],
     }, { async: false })
     const view = graph.findViewByCell(edge)
     if (view) {
@@ -310,12 +304,14 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
     const graph = getGraph()
     if (!graph || graph.isSelected?.(edge)) return
     ensureAutoVertex(edge)
+    highlightEdge(edge)
     renderEdgeEditTools(edge)
   }
 
   function hideEdgeEditToolsOnHover(edge: any, event?: MouseEvent): void {
     const graph = getGraph()
     if (!graph || graph.isSelected?.(edge) || isEdgeToolElement(event?.relatedTarget ?? null)) return
+    unhighlightEdge(edge)
     removeEdgeEditTools(edge)
     releaseAutoVertex(edge)
   }
@@ -465,6 +461,7 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
         selectedEdgeData.value = extractEdgeData(cell)
         selectedNodeData.value = null
         ensureAutoVertex(cell)
+        highlightEdge(cell)
         renderEdgeEditTools(cell)
       } else {
         selectedNodeData.value = null
@@ -484,6 +481,7 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
       ).filter((c: any) => c.isNode?.()).length
       if (cell.isEdge?.()) {
         releaseAutoVertex(cell)
+        unhighlightEdge(cell)
         removeEdgeEditTools(cell)
       }
       selectedNodeData.value = null

@@ -83,9 +83,59 @@ describe('NodeFactory', () => {
     expect(output.shape).toBe(input.shape)
     expect(output.position).toEqual(input.position)
     expect(output.size).toEqual(input.size)
-    expect(output.label).toBe(input.label)
+    const outputLabelText = typeof output.label === 'string' ? output.label : output.label?.text
+    expect(outputLabelText).toBe(input.label)
     expect(output.style).toMatchObject(input.style)
     expect(output.data).toEqual(input.data)
+  })
+
+  it('should round-trip rx/ry through toData', () => {
+    const input = {
+      id: 'n-rx',
+      shape: 'basic-rounded-rect',
+      position: { x: 0, y: 0 },
+      size: { width: 100, height: 60 },
+      style: { rx: 12, ry: 8, fill: '#fff', stroke: '#333' },
+    }
+    const node = NodeFactory.createNode(graph, input)
+    const output = NodeFactory.toData(node)
+    expect(output.style?.rx).toBe(12)
+    expect(output.style?.ry).toBe(8)
+  })
+
+  it('should round-trip label style through toData', () => {
+    const input = {
+      id: 'n-label-style',
+      shape: 'basic-text',
+      position: { x: 0, y: 0 },
+      size: { width: 120, height: 36 },
+      label: {
+        text: 'Styled',
+        style: { fontSize: 20, fontFamily: 'serif', fontWeight: 'bold' as const },
+      },
+    }
+    const node = NodeFactory.createNode(graph, input)
+    const output = NodeFactory.toData(node)
+    expect(typeof output.label).toBe('object')
+    const lbl = output.label as any
+    expect(lbl.text).toBe('Styled')
+    expect(lbl.style?.fontSize).toBe(20)
+    expect(lbl.style?.fontFamily).toBe('serif')
+    expect(lbl.style?.fontWeight).toBe('bold')
+  })
+
+  it('should save textAlign into data for basic-text', () => {
+    const input = {
+      id: 'n-text-align',
+      shape: 'basic-text',
+      position: { x: 0, y: 0 },
+      size: { width: 120, height: 36 },
+      label: 'AlignLeft',
+      data: { textAlign: 'left' },
+    }
+    const node = NodeFactory.createNode(graph, input)
+    const output = NodeFactory.toData(node)
+    expect(output.data?.textAlign).toBe('left')
   })
 })
 

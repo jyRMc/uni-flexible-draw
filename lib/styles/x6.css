@@ -1,0 +1,6 @@
+.x6-widget-transform .x6-widget-transform-rotate {
+    border: none;
+}
+.x6-widget-transform .x6-widget-transform-rotate.x6-widget-transform-active-handle {
+    background-color: #d3d3d3;
+}

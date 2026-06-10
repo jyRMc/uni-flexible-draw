@@ -57,6 +57,23 @@
 
         <div class="qab-divider" />
 
+        <div v-if="isImageNode" class="qab-section">
+          <div class="qab-section-title">{{ t.quickAction.uploadImage }}</div>
+          <div class="qab-row">
+            <input type="file" accept="image/*,.svg" style="flex:1;min-width:0;font-size:11px" @change="onImageUpload">
+          </div>
+          <div class="qab-row">
+            <label>{{ t.quickAction.imageFit }}</label>
+            <select class="qab-input-select" :value="currentImageFit" @change="onSelectImageFit($event)">
+              <option value="contain">{{ t.quickAction.fitContain }}</option>
+              <option value="cover">{{ t.quickAction.fitCover }}</option>
+              <option value="fill">{{ t.quickAction.fitFill }}</option>
+            </select>
+          </div>
+        </div>
+
+        <div v-if="isImageNode" class="qab-divider" />
+
         <div class="qab-section">
           <div class="qab-section-title">{{ t.quickAction.fill }}</div>
           <div class="qab-row">
@@ -115,6 +132,10 @@
           <div class="qab-row">
             <label>{{ t.quickAction.text }}</label>
             <input type="text" :value="currentLabel" :placeholder="t.quickAction.inputLabelPlaceholder" @input="onNodeLabel($event)">
+          </div>
+          <div class="qab-row">
+            <label>{{ t.quickAction.labelColor }}</label>
+            <ColorPicker :model-value="currentLabelFill" @update:model-value="onColorChange('labelFill', $event)" />
           </div>
         </div>
 
@@ -267,6 +288,7 @@ export interface QuickActionBarProps {
   selectedEdge: { id: string; shape: string; stroke: string; strokeWidth: number; strokeDasharray: string; lineType: string; label?: string; sourceMarker?: string; targetMarker?: string } | null
   sketchMode: boolean
   elementSketchIds: Set<string>
+  uploadApi?: (file: File) => string | Promise<string>
 }
 
 const props = defineProps<QuickActionBarProps>()
@@ -303,6 +325,7 @@ const sketchElementSupported = computed(() => {
   return shape !== 'basic-image' && shape !== 'basic-svg' && shape !== 'basic-table'
 })
 const isTableNode = computed(() => props.selectedNode?.shape === 'basic-table')
+const isImageNode = computed(() => props.selectedNode?.shape === 'basic-image' || props.selectedNode?.shape === 'basic-svg')
 const tableRows = computed(() => {
   const table = props.selectedNode?.data?.table as { rows?: number } | undefined
   return table?.rows ?? 0
@@ -355,6 +378,8 @@ const currentFontSize = ref(14)
 const currentLabelPos = ref('center')
 const currentOpacity = ref(1)
 const currentLabel = ref('')
+const currentLabelFill = ref('#333333')
+const currentImageFit = ref<'contain' | 'cover' | 'fill'>('contain')
 
 // 边状态
 const edgeStroke = ref(PRIMARY_COLOR)
@@ -378,8 +403,10 @@ watch(
     currentFill.value = (s.fill as string) ?? '#ffffff'
     currentOpacity.value = (s.opacity as number) ?? 1
     currentFontSize.value = (n.label as any)?.style?.fontSize ?? 14
+    currentLabelFill.value = (n.label as any)?.style?.fill ?? '#333333'
     currentLabelPos.value = (n.label as any)?.position ?? 'center'
     currentLabel.value = typeof n.label === 'string' ? n.label : ((n.label as any)?.text ?? '')
+    currentImageFit.value = (n.data?.imageFit as any) ?? 'contain'
   },
   { immediate: true },
 )
@@ -418,6 +445,7 @@ function onColorChange(key: string, val: string) {
   if (!props.selectedNode) return
   if (key === 'stroke') currentStroke.value = val
   if (key === 'fill') currentFill.value = val
+  if (key === 'labelFill') currentLabelFill.value = val
   emit('update-style', props.selectedNode.id, { [key]: val })
 }
 
@@ -435,6 +463,30 @@ function onNodeLabel(ev: Event) {
   if (!props.selectedNode) return
   currentLabel.value = (ev.target as HTMLInputElement).value
   emit('update-style', props.selectedNode.id, { label: currentLabel.value })
+}
+
+async function onImageUpload(ev: Event) {
+  const file = (ev.target as HTMLInputElement).files?.[0]
+  if (!file || !props.selectedNode) return
+  let url: string
+  if (props.uploadApi) {
+    url = await props.uploadApi(file)
+  } else {
+    url = await new Promise<string>((resolve) => {
+      const reader = new FileReader()
+      reader.onload = () => resolve(reader.result as string)
+      reader.readAsDataURL(file)
+    })
+  }
+  emit('update-style', props.selectedNode.id, { imageHref: url })
+}
+
+function onSelectImageFit(ev: Event) {
+  const val = (ev.target as HTMLSelectElement).value as 'contain' | 'cover' | 'fill'
+  currentImageFit.value = val
+  if (props.selectedNode) {
+    emit('update-style', props.selectedNode.id, { imageFit: val })
+  }
 }
 
 function setLabelPos(val: string) {
@@ -598,7 +650,9 @@ function onEdgeWidth(ev: Event) {
 
 .qab-row input[type="text"],
 .qab-row input[type="number"] {
-  width: 52px;
+  flex: 1;
+  min-width: 0;
+  width: auto;
   padding: 3px 5px;
   border: 1px solid #d9d9d9;
   border-radius: 4px;

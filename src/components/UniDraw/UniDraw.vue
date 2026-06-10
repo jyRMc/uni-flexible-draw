@@ -88,6 +88,7 @@
           :selected-edge="selectedEdge"
           :sketch-mode="sketchMode"
           :element-sketch-ids="elementSketchIds"
+          :upload-api="uploadApi"
           @update-style="onUpdateStyle"
           @update-edge-style="onUpdateEdgeStyle"
           @change-edge-type="onChangeEdgeType"
@@ -186,6 +187,7 @@ export interface UniDrawProps {
   showMinimap?: boolean
   locale?: UniDrawLocale
   theme?: UniDrawTheme
+  uploadApi?: (file: File) => string | Promise<string>
 }
 
 const props = withDefaults(defineProps<UniDrawProps>(), {
