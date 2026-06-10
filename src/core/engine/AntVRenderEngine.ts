@@ -80,6 +80,7 @@ export class AntVRenderEngine {
             if (cell?.isEdge?.()) {
               return {
                 edgeMovable: !isLocked,
+                edgeLabelMovable: !isLocked,
                 vertexAddable: !isLocked,
                 vertexMovable: !isLocked,
                 vertexDeletable: !isLocked,
@@ -89,6 +90,7 @@ export class AntVRenderEngine {
 
             return {
               nodeMovable: !isLocked,
+              magnetConnectable: !isLocked,
             }
           }),
       connecting: {
@@ -134,12 +136,12 @@ export class AntVRenderEngine {
     this.graph.use(
       new Transform({
         resizing: {
-          enabled: true,
+          enabled: (node) => node.getData()?.locked !== true,
           orthogonal: false,
           preserveAspectRatio: false,
         },
         rotating: {
-          enabled: true,
+          enabled: (node) => node.getData()?.locked !== true,
         },
       }),
     )
@@ -296,8 +298,8 @@ export class AntVRenderEngine {
     if (typeof document === 'undefined') return
     const id = 'uni-draw-rotate-handle-style'
     if (document.getElementById(id)) return
-    const handlePath = path ?? 'M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2'
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="${PRIMARY_COLOR}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="${handlePath}"/></svg>`
+    const handlePath = path ?? 'M482.773333 66.517333l148.181334 151.168a21.333333 21.333333 0 0 1 0 29.866667l-147.84 150.826667a21.333333 21.333333 0 0 1-28.16 2.090666l-2.346667-2.090666-27.050667-27.605334a21.333333 21.333333 0 0 1 0-29.866666l69.888-71.338667a304.64 304.64 0 1 0 318.421334 352.682667l1.024-6.826667c0.170667-1.408 0.426667-3.285333 0.64-5.632a21.333333 21.333333 0 0 1 22.314666-19.114667l42.666667 2.261334a21.333333 21.333333 0 0 1 20.224 22.4l-0.085333 1.024-1.194667 10.496A389.973333 389.973333 0 1 1 484.821333 184.746667l-59.306666-60.458667a21.333333 21.333333 0 0 1 0-29.866667l27.093333-27.605333a21.333333 21.333333 0 0 1 30.165333-0.298667z'
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 32 32" fill="none" stroke="${PRIMARY_COLOR}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="${handlePath}"/></svg>`
     const encoded = encodeURIComponent(svg)
     const style = document.createElement('style')
     style.id = id

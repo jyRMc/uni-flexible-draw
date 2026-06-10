@@ -20,6 +20,8 @@ export interface UniDrawLocale {
     clearCanvas: string
     exportJson: string
     exportPng: string
+    group: string
+    ungroup: string
   }
   panel: {
     shapes: string
@@ -71,6 +73,8 @@ export interface UniDrawLocale {
     addLink: string
     lock: string
     unlock: string
+    group: string
+    ungroup: string
     delete: string
   }
   quickAction: {

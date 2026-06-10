@@ -63,6 +63,8 @@
     :edge-selection-count="contextMenuState.edgeSelectionCount"
     :has-single-node-selection="contextMenuState.hasSingleNodeSelection"
     :all-selected-locked="contextMenuState.allSelectedLocked"
+    :can-group="contextMenuState.canGroup"
+    :can-ungroup="contextMenuState.canUngroup"
     @action="onContextAction"
     @close="canvas.hideContextMenu"
   />
@@ -487,6 +489,10 @@ defineExpose({
   flipH: canvas.flipH,
   flipV: canvas.flipV,
   toggleLock: canvas.toggleLock,
+  groupNodes: canvas.groupNodes,
+  ungroupNodes: canvas.ungroupNodes,
+  canGroup: canvas.canGroup,
+  canUngroup: canvas.canUngroup,
   createFrame: canvas.createFrame,
   copyAsPng: canvas.copyAsPng,
   copyAsSvg: canvas.copyAsSvg,

@@ -22,6 +22,8 @@ const enUS: UniDrawLocale = {
     clearCanvas: 'Clear Canvas',
     exportJson: 'Export JSON',
     exportPng: 'Export PNG',
+    group: 'Group',
+    ungroup: 'Ungroup',
   },
   panel: {
     shapes: 'Shapes',
@@ -73,6 +75,8 @@ const enUS: UniDrawLocale = {
     addLink: 'Add Link',
     lock: 'Lock',
     unlock: 'Unlock',
+    group: 'Group',
+    ungroup: 'Ungroup',
     delete: 'Delete',
   },
   quickAction: {

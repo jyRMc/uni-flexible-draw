@@ -40,6 +40,8 @@ export interface ContextMenuState {
   edgeSelectionCount: number
   hasSingleNodeSelection: boolean
   allSelectedLocked: boolean
+  canGroup: boolean
+  canUngroup: boolean
 }
 
 export interface DrawBrushStyle {
@@ -120,6 +122,11 @@ export interface UseCanvasReturn {
   flipV: () => void
   // 锁定
   toggleLock: () => void
+  // 组合
+  groupNodes: () => void
+  ungroupNodes: () => void
+  canGroup: Ref<boolean>
+  canUngroup: Ref<boolean>
   // 创建画框
   createFrame: () => void
   // 复制为图片
@@ -159,6 +166,8 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
   })
   const selectionCount = ref(0)
   const svgEditState = ref<{ nodeId: string; content: string } | null>(null)
+  const canGroup = ref(false)
+  const canUngroup = ref(false)
   const contextMenuState = ref<ContextMenuState>({
     visible: false,
     x: 0,
@@ -169,6 +178,8 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
     edgeSelectionCount: 0,
     hasSingleNodeSelection: false,
     allSelectedLocked: false,
+    canGroup: false,
+    canUngroup: false,
   })
 
   let engine: AntVRenderEngine | null = null
@@ -336,6 +347,8 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
     shortcutManager.registerAction('flipV', () => flipV())
     shortcutManager.registerAction('addLink', () => addLink())
     shortcutManager.registerAction('toggleLock', () => toggleLock())
+    shortcutManager.registerAction('group', () => groupNodes())
+    shortcutManager.registerAction('ungroup', () => ungroupNodes())
     shortcutManager.bind()
     clipboardManager = new ClipboardManager(graph)
 
@@ -555,6 +568,10 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
     const nodeSelectionCount = selected.filter((cell: any) => cell.isNode?.()).length
     const edgeSelectionCount = selected.filter((cell: any) => cell.isEdge?.()).length
     const allSelectedLocked = selected.length > 0 && selected.every((cell: any) => cell.getData?.()?.locked === true)
+    const nextCanGroup = nodeSelectionCount >= 2
+    const nextCanUngroup = selected.some((cell: any) => cell.isNode?.() && (cell.getChildren?.() ?? []).length > 0)
+    canGroup.value = nextCanGroup
+    canUngroup.value = nextCanUngroup
     contextMenuState.value = {
       ...contextMenuState.value,
       hasSelection: selected.length > 0,
@@ -563,6 +580,8 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
       edgeSelectionCount,
       hasSingleNodeSelection: nodeSelectionCount === 1 && edgeSelectionCount === 0,
       allSelectedLocked,
+      canGroup: nextCanGroup,
+      canUngroup: nextCanUngroup,
     }
   }
 
@@ -1014,7 +1033,7 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
   function deleteSelected(): void {
     const graph = getGraph()
     if (!graph) return
-    const cells = getSelectedCells()
+    const cells = getSelectedCells().filter((c: any) => c.getData?.()?.locked !== true)
     if (cells.length > 0) {
       graph.removeCells(cells)
     }
@@ -1123,18 +1142,108 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
   // ==================== 锁定 ====================
 
   function toggleLock(): void {
+    const graph = getGraph()
     const cells = getSelectedCells()
     cells.forEach((cell: any) => {
       const isLocked = cell.getData()?.locked === true
       const nextLocked = !isLocked
       cell.setData({ ...cell.getData(), locked: nextLocked })
-      if (typeof cell.setProp === 'function') {
-        cell.setProp('movable', !nextLocked)
-        if (cell.isEdge?.()) {
-          cell.setProp('edgeMovable', !nextLocked)
-        }
+      if (nextLocked && graph?.isSelected?.(cell)) {
+        graph.unselect(cell)
       }
     })
+  }
+
+  // ==================== 组合 ====================
+
+  function groupNodes(): void {
+    const graph = getGraph()
+    if (!graph) return
+    const cells = getSelectedCells()
+    const nodes = cells.filter((c: any) => c.isNode?.())
+    if (nodes.length < 2) return
+
+    let minX = Infinity
+    let minY = Infinity
+    let maxX = -Infinity
+    let maxY = -Infinity
+    nodes.forEach((n: any) => {
+      const pos = n.getPosition()
+      const size = n.getSize()
+      minX = Math.min(minX, pos.x)
+      minY = Math.min(minY, pos.y)
+      maxX = Math.max(maxX, pos.x + size.width)
+      maxY = Math.max(maxY, pos.y + size.height)
+    })
+
+    const padding = 10
+    const groupX = minX - padding
+    const groupY = minY - padding
+    const groupW = maxX - minX + padding * 2
+    const groupH = maxY - minY + padding * 2
+
+    const minZIndex = Math.min(...nodes.map((n: any) => n.getZIndex?.() ?? 0))
+    const group = graph.addNode({
+      id: shortId('group'),
+      shape: 'rect',
+      x: groupX,
+      y: groupY,
+      width: groupW,
+      height: groupH,
+      zIndex: minZIndex - 1,
+      attrs: {
+        body: {
+          fill: 'transparent',
+          stroke: PRIMARY_COLOR,
+          strokeWidth: 1,
+          strokeDasharray: '4 2',
+        },
+      },
+      data: { isGroup: true },
+    })
+
+    nodes.forEach((n: any) => {
+      const pos = n.getPosition()
+      n.setPosition({ x: pos.x - groupX, y: pos.y - groupY })
+      group.addChild(n)
+    })
+
+    if (typeof (graph as any).cleanSelection === 'function') {
+      ;(graph as any).cleanSelection()
+    }
+    if (typeof (graph as any).select === 'function') {
+      ;(graph as any).select(group)
+    }
+  }
+
+  function ungroupNodes(): void {
+    const graph = getGraph()
+    if (!graph) return
+    const cells = getSelectedCells()
+    const groups = cells.filter((c: any) => c.isNode?.() && (c.getChildren?.() ?? []).length > 0)
+    if (groups.length === 0) return
+
+    const toSelect: any[] = []
+    groups.forEach((group: any) => {
+      const children = group.getChildren() ?? []
+      const gPos = group.getPosition()
+      children.forEach((child: any) => {
+        const cPos = child.getPosition()
+        child.setPosition({ x: cPos.x + gPos.x, y: cPos.y + gPos.y })
+        group.removeChild(child)
+        toSelect.push(child)
+      })
+      group.remove()
+    })
+
+    if (toSelect.length > 0) {
+      if (typeof (graph as any).cleanSelection === 'function') {
+        ;(graph as any).cleanSelection()
+      }
+      if (typeof (graph as any).select === 'function') {
+        ;(graph as any).select(toSelect)
+      }
+    }
   }
 
   // ==================== 创建画框 ====================
@@ -1288,6 +1397,8 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
       case 'addLink': addLink(); break
       case 'copyAsPng': copyAsPng(); break
       case 'copyAsSvg': copyAsSvg(); break
+      case 'group': groupNodes(); break
+      case 'ungroup': ungroupNodes(); break
     }
   }
 
@@ -1357,6 +1468,10 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
     flipH,
     flipV,
     toggleLock,
+    groupNodes,
+    ungroupNodes,
+    canGroup,
+    canUngroup,
     createFrame,
     copyAsPng,
     copyAsSvg,

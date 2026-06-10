@@ -6,6 +6,7 @@ export type ShortcutAction =
   | 'toBack' | 'toFront' | 'moveDown' | 'moveUp'
   | 'flipH' | 'flipV'
   | 'addLink' | 'toggleLock'
+  | 'group' | 'ungroup'
 
 /**
  * 快捷键管理器
@@ -113,6 +114,14 @@ export class ShortcutManager {
       if (ctrlOrCmd && shift && key === 'l') {
         e.preventDefault(); this.dispatch('toggleLock'); return
       }
+      // Ctrl+G → 组合
+      if (ctrlOrCmd && !shift && key === 'g') {
+        e.preventDefault(); this.dispatch('group'); return
+      }
+      // Ctrl+Shift+G → 取消组合
+      if (ctrlOrCmd && shift && key === 'g') {
+        e.preventDefault(); this.dispatch('ungroup'); return
+      }
 
       // Ctrl+0 / Cmd+0 → 实际大小
       if (ctrlOrCmd && !shift && key === '0') {
@@ -128,11 +137,12 @@ export class ShortcutManager {
         return
       }
 
-      // Delete / Backspace → 删除选中
+      // Delete / Backspace → 删除选中（过滤掉锁定节点）
       if (key === 'delete' || key === 'backspace') {
-        const cells = typeof this.graph.getSelectedCells === 'function'
+        const cells = (typeof this.graph.getSelectedCells === 'function'
           ? this.graph.getSelectedCells()
           : []
+        ).filter((c: any) => c.getData?.()?.locked !== true)
         if (cells.length > 0) {
           e.preventDefault()
           this.graph.removeCells(cells)

@@ -114,6 +114,8 @@
           :sketch-mode="sketchMode"
           :draw-mode="drawMode"
           :selection-count="canvasRef?.selectionCount ?? 0"
+          :can-group="canvasRef?.canGroup ?? false"
+          :can-ungroup="canvasRef?.canUngroup ?? false"
           @action="onToolbarAction"
         />
       </main>
@@ -490,6 +492,8 @@ function onToolbarAction(action: string) {
     case 'selectAll': c.selectAll(); break
     case 'export:json': onExportJSON(); break
     case 'export:png': onExportPNG(); break
+    case 'group': c.groupNodes(); break
+    case 'ungroup': c.ungroupNodes(); break
     default:
       if (action.startsWith('align:')) c.alignNodes(action.slice(6))
   }

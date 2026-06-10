@@ -64,7 +64,7 @@
             draggable="true"
             @dragstart="onMaterialDragStart($event, item)"
           >
-            <img :src="item.previewURL" :alt="item.tags" class="material-thumb" loading="lazy" />
+            <img :data-src="item.previewURL" :alt="item.tags" class="material-thumb" />
           </div>
         </div>
         <div v-if="materialLoading" class="assets-loading">加载中...</div>
@@ -77,7 +77,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, shallowRef, watch, h, createApp, onMounted, onUnmounted, type Component } from 'vue'
+import { ref, computed, shallowRef, watch, h, createApp, onMounted, onUnmounted, nextTick, type Component } from 'vue'
 
 // ── Types ─────────────────────────────────────────────────────────────
 interface IconEntry {
@@ -227,6 +227,46 @@ async function searchMaterials(append = false) {
 
 function loadMoreMaterials() { materialPage.value++; searchMaterials(true) }
 
+// ── Image lazy loading ────────────────────────────────────────────────
+let imageObserver: IntersectionObserver | null = null
+
+function setupImageObserver() {
+  if (imageObserver) return
+  imageObserver = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        const img = entry.target as HTMLImageElement
+        const src = img.dataset.src
+        if (src) {
+          img.src = src
+          img.removeAttribute('data-src')
+        }
+        imageObserver!.unobserve(img)
+      }
+    })
+  }, { root: materialScrollRef.value })
+}
+
+function observeMaterialImages() {
+  if (!imageObserver || !materialScrollRef.value) return
+  const imgs = materialScrollRef.value.querySelectorAll<HTMLImageElement>('img[data-src]')
+  imgs.forEach((img) => imageObserver!.observe(img))
+}
+
+watch(materialItems, () => {
+  nextTick(() => observeMaterialImages())
+}, { deep: true })
+
+onMounted(() => {
+  setupImageObserver()
+  observeMaterialImages()
+})
+
+onUnmounted(() => {
+  imageObserver?.disconnect()
+  imageObserver = null
+})
+
 function onMaterialDragStart(event: DragEvent, item: PixabayItem) {
   if (event.dataTransfer) event.dataTransfer.effectAllowed = 'copy'
   event.dataTransfer?.setData('application/json', JSON.stringify({
@@ -328,7 +368,7 @@ function onIconDragStart(event: DragEvent, entry: IconEntry) {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 8px 2px;
+  padding: 2px;
   border-radius: 6px;
   cursor: grab;
   transition: background 0.12s;
@@ -398,7 +438,7 @@ function onIconDragStart(event: DragEvent, entry: IconEntry) {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 4px;
-  padding: 4px 2px;
+  padding: 4px;
 }
 
 .material-cell {

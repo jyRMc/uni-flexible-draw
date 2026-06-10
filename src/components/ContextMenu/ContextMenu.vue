@@ -91,6 +91,29 @@
         <div class="context-menu-group">
           <button
             class="context-menu-item"
+            :class="{ disabled: !canGroup }"
+            :disabled="!canGroup"
+            @click="$emit('action', 'group')"
+          >
+            <span class="menu-label">{{ t.contextMenu.group }}</span>
+            <span class="menu-shortcut">Ctrl+G</span>
+          </button>
+          <button
+            class="context-menu-item"
+            :class="{ disabled: !canUngroup }"
+            :disabled="!canUngroup"
+            @click="$emit('action', 'ungroup')"
+          >
+            <span class="menu-label">{{ t.contextMenu.ungroup }}</span>
+            <span class="menu-shortcut">Ctrl+Shift+G</span>
+          </button>
+        </div>
+
+        <div class="context-menu-divider" />
+
+        <div class="context-menu-group">
+          <button
+            class="context-menu-item"
             :class="{ disabled: !canAddToMaterials }"
             :disabled="!canAddToMaterials"
             @click="$emit('action', 'addToMaterials')"
@@ -196,8 +219,8 @@
         <div class="context-menu-group">
           <button
             class="context-menu-item context-menu-item-danger"
-            :class="{ disabled: !hasSelection }"
-            :disabled="!hasSelection"
+            :class="{ disabled: !hasSelection || allSelectedLocked }"
+            :disabled="!hasSelection || allSelectedLocked"
             @click="$emit('action', 'delete')"
           >
             <span class="menu-label">{{ t.contextMenu.delete }}</span>
@@ -223,6 +246,8 @@ const props = defineProps<{
   edgeSelectionCount: number
   hasSingleNodeSelection: boolean
   allSelectedLocked: boolean
+  canGroup: boolean
+  canUngroup: boolean
 }>()
 
 const emit = defineEmits<{

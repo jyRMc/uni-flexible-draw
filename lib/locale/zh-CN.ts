@@ -22,6 +22,8 @@ const zhCN: UniDrawLocale = {
     clearCanvas: '清空画布',
     exportJson: '导出 JSON',
     exportPng: '导出 PNG',
+    group: '组合',
+    ungroup: '取消组合',
   },
   panel: {
     shapes: '图形',
@@ -73,6 +75,8 @@ const zhCN: UniDrawLocale = {
     addLink: '添加链接',
     lock: '锁定',
     unlock: '解除锁定',
+    group: '组合',
+    ungroup: '取消组合',
     delete: '删除',
   },
   quickAction: {

@@ -87,7 +87,7 @@ export class NodeFactory {
       if (isImageShape && imageHref) {
         const imageFit = data.data?.imageFit as string | undefined
         const preserveAspectRatio = imageFit === 'cover' ? 'xMidYMid slice' : imageFit === 'fill' ? 'none' : 'xMidYMid meet'
-        return {
+        const result: Record<string, any> = {
           image: {
             'xlink:href': imageHref,
             refWidth: '100%',
@@ -97,6 +97,15 @@ export class NodeFactory {
             preserveAspectRatio,
           },
         }
+        const bodyKeys = ['fill', 'stroke', 'strokeWidth', 'strokeDasharray', 'opacity']
+        const bodyAttrs: Record<string, any> = {}
+        for (const k of bodyKeys) {
+          if (data.style && k in data.style) bodyAttrs[k] = (data.style as any)[k]
+        }
+        if (Object.keys(bodyAttrs).length > 0) {
+          result.body = bodyAttrs
+        }
+        return result
       }
       if (data.shape === 'basic-table' && tableData) {
         return buildTableAttrs(tableData, (data.style ?? {}) as any) as any

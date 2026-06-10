@@ -39,7 +39,18 @@ export const basicSvg: Node.Config = {
   inherit: 'image',
   width: 200,
   height: 200,
+  markup: [
+    { tagName: 'rect', selector: 'body' },
+    { tagName: 'image', selector: 'image' },
+    { tagName: 'text', selector: 'label' },
+  ],
   attrs: {
+    body: {
+      fill: 'transparent',
+      stroke: 'none',
+      refWidth: '100%',
+      refHeight: '100%',
+    },
     image: {
       refWidth: '100%',
       refHeight: '100%',
@@ -64,7 +75,18 @@ export const basicImage: Node.Config = {
   inherit: 'image',
   width: 80,
   height: 80,
+  markup: [
+    { tagName: 'rect', selector: 'body' },
+    { tagName: 'image', selector: 'image' },
+    { tagName: 'text', selector: 'label' },
+  ],
   attrs: {
+    body: {
+      fill: 'transparent',
+      stroke: 'none',
+      refWidth: '100%',
+      refHeight: '100%',
+    },
     image: {
       refWidth: '100%',
       refHeight: '100%',

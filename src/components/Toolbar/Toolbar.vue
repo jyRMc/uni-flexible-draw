@@ -55,6 +55,12 @@
       <button class="tb-btn" :title="t.toolbar.distributeV" @click="emitAction('align:v-equal')">
         <AlignVerticalSpaceBetween :size="16" />
       </button>
+      <button v-if="canGroup" class="tb-btn" :title="`${t.toolbar.group} (Ctrl+G)`" @click="emitAction('group')">
+        <Group :size="16" />
+      </button>
+      <button v-if="canUngroup" class="tb-btn" :title="`${t.toolbar.ungroup} (Ctrl+Shift+G)`" @click="emitAction('ungroup')">
+        <Ungroup :size="16" />
+      </button>
       <div class="tb-divider" />
     </template>
     <button class="tb-btn" :class="{ active: drawMode }" :title="`${t.toolbar.freehand} (F)`" @click="emitAction('toggleDraw')">
@@ -82,6 +88,7 @@ import {
   AlignStartVertical, AlignCenterVertical, AlignEndVertical,
   AlignStartHorizontal, AlignCenterHorizontal, AlignEndHorizontal,
   AlignHorizontalSpaceBetween, AlignVerticalSpaceBetween,
+  Group, Ungroup,
 } from 'lucide-vue-next'
 import { useLocale } from '../../locale'
 
@@ -94,6 +101,8 @@ export interface ToolbarProps {
   sketchMode?: boolean
   drawMode?: boolean
   selectionCount?: number
+  canGroup?: boolean
+  canUngroup?: boolean
 }
 
 withDefaults(defineProps<ToolbarProps>(), {
@@ -105,6 +114,8 @@ withDefaults(defineProps<ToolbarProps>(), {
   sketchMode: false,
   drawMode: false,
   selectionCount: 0,
+  canGroup: false,
+  canUngroup: false,
 })
 
 const emit = defineEmits<{

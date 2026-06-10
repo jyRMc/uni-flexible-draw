@@ -68,30 +68,21 @@ export class AntVRenderEngine {
       interacting: options.readonly
         ? { nodeMovable: false, edgeMovable: false, arrowheadMovable: false }
         : ((cellView: any) => {
-            const isLocked = cellView.cell?.getData?.()?.locked === true
-            if (cellView.cell?.isEdge?.()) {
-              if (isLocked) {
-                return {
-                  edgeMovable: false,
-                  vertexAddable: false,
-                  vertexMovable: false,
-                  vertexDeletable: false,
-                  arrowheadMovable: false,
-                }
-              }
-
-              const isSelected = this.graph?.isSelected?.(cellView.cell) ?? false
+            const cell = cellView.cell
+            const isLocked = cell?.getData?.()?.locked === true
+            if (cell?.isEdge?.()) {
               return {
-                edgeMovable: isSelected,
-                vertexAddable: !isSelected,
-                vertexMovable: !isSelected,
-                vertexDeletable: !isSelected,
-                arrowheadMovable: !isSelected,
+                edgeMovable: !isLocked,
+                edgeLabelMovable: !isLocked,
+                vertexAddable: !isLocked,
+                vertexMovable: !isLocked,
+                vertexDeletable: !isLocked,
+                arrowheadMovable: !isLocked,
               }
             }
-
             return {
               nodeMovable: !isLocked,
+              magnetConnectable: !isLocked,
             }
           }),
       connecting: {
@@ -137,12 +128,12 @@ export class AntVRenderEngine {
     this.graph.use(
       new Transform({
         resizing: {
-          enabled: true,
+          enabled: (node) => node.getData()?.locked !== true,
           orthogonal: false,
           preserveAspectRatio: false,
         },
         rotating: {
-          enabled: true,
+          enabled: (node) => node.getData()?.locked !== true,
         },
       }),
     )
@@ -299,8 +290,8 @@ export class AntVRenderEngine {
     if (typeof document === 'undefined') return
     const id = 'uni-draw-rotate-handle-style'
     if (document.getElementById(id)) return
-    const handlePath = path ?? 'M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2'
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="${PRIMARY_COLOR}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="${handlePath}"/></svg>`
+    const handlePath = path ?? 'M512 112A400 400 0 1 0 912 512H832a320 320 0 1 1-55.36-179.968H672v80h240v-240H832v99.904A399.36 399.36 0 0 0 512 112z'
+    const svg = `<svg style="vertical-align: middle;" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 1024 1024" fill="#99999C" stroke="#99999C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="${handlePath}"/></svg>`
     const encoded = encodeURIComponent(svg)
     const style = document.createElement('style')
     style.id = id
