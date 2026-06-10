@@ -76,6 +76,7 @@
           :grid="grid !== false"
           :snapline="snapline !== false"
           :readonly="readonly"
+          :minimap="showMinimap !== false"
           @selection:change="onSelectionChange"
           @add-to-materials="onAddToMaterials"
         />

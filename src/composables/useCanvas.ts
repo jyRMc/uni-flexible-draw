@@ -17,6 +17,7 @@ import {
   NodeFactory,
   ClipboardManager,
 } from '../core'
+import type { MiniMapOptions } from '../core/tool/MiniMapTool'
 
 export interface UseCanvasOptions {
   modelValue: Ref<GraphData>
@@ -135,6 +136,9 @@ export interface UseCanvasReturn {
   showContextMenu: (x: number, y: number) => void
   hideContextMenu: () => void
   handleContextAction: (action: string) => void
+  // minimap
+  enableMinimap: (container: HTMLElement, options?: MiniMapOptions) => void
+  disableMinimap: () => void
 }
 
 export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
@@ -174,6 +178,7 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
   let panTool: PanTool | null = null
   let shortcutManager: ShortcutManager | null = null
   let clipboardManager: ClipboardManager | null = null
+  let miniMapTool: MiniMapTool | null = null
   let unwatchModelValue: (() => void) | null = null
   let isEmittingUpdate = false
   const autoVertexEdgeIds = new Set<string>()
@@ -315,7 +320,7 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
     exportService = new ExportService(graph)
     zoomTool = new ZoomTool(graph)
     panTool = new PanTool(graph)
-    new MiniMapTool(graph)
+    miniMapTool = new MiniMapTool(graph)
     shortcutManager = new ShortcutManager(graph)
     shortcutManager.registerAction('cut', () => cut())
     shortcutManager.registerAction('copy', () => copy())
@@ -542,6 +547,7 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
   onUnmounted(() => {
     unwatchModelValue?.()
     shortcutManager?.unbind()
+    miniMapTool?.disable()
     engine?.dispose()
     eventBus?.clear()
   })
@@ -1257,6 +1263,14 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
     }
   }
 
+  function enableMinimap(container: HTMLElement, options?: MiniMapOptions): void {
+    miniMapTool?.enable(container, options)
+  }
+
+  function disableMinimap(): void {
+    miniMapTool?.disable()
+  }
+
   function handleContextAction(action: string): void {
     hideContextMenu()
     switch (action) {
@@ -1357,5 +1371,7 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
     showContextMenu,
     hideContextMenu,
     handleContextAction,
+    enableMinimap,
+    disableMinimap,
   }
 }

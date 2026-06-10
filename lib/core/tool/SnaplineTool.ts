@@ -5,7 +5,7 @@ import type { Graph } from '@antv/x6'
  * X6 内置能力，此处做开关封装
  */
 export class SnaplineTool {
-  constructor(private graph: Graph) {}
+  constructor(_graph: Graph) {}
 
   enable(): void {
     // X6 2.x snapline 在 Graph 初始化时已配置

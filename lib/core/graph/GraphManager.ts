@@ -1,5 +1,5 @@
 import type { Graph, Node, Edge } from '@antv/x6'
-import type { GraphData, NodeData, EdgeData } from '@uni-draw/shared'
+import type { GraphData, NodeData, EdgeData, CanvasConfig } from '@uni-draw/shared'
 import { NodeFactory } from '../node/NodeFactory'
 import { EdgeFactory } from '../edge/EdgeFactory'
 import { GraphEventBus } from '../event/GraphEventBus'
@@ -12,6 +12,12 @@ export class GraphManager {
   private graph: Graph
   private eventBus: GraphEventBus
   private isUpdating = false
+  /** 最近一次通过 loadData / setData 传入的 canvas 配置，用于 exportData 回读 */
+  private lastCanvasConfig: CanvasConfig = {
+    backgroundColor: '#ffffff',
+    grid: { size: 10, visible: true, type: 'dot' },
+    zoom: 1,
+  }
 
   constructor(graph: Graph, eventBus: GraphEventBus) {
     this.graph = graph
@@ -27,6 +33,7 @@ export class GraphManager {
     // 暂停历史记录，防止批量加载操作进入 undo 栈
     ;(this.graph as any).disableHistory?.()
     try {
+      this.applyCanvasConfig(data.canvas)
       this.graph.clearCells()
 
       for (const nodeData of data.nodes) {
@@ -56,13 +63,15 @@ export class GraphManager {
 
     return {
       canvas: {
-        backgroundColor: this.graph.options.background?.color as string | undefined,
+        backgroundColor: this.lastCanvasConfig.backgroundColor,
         grid: {
-          size: this.graph.options.grid?.size ?? 10,
-          visible: this.graph.options.grid?.visible ?? true,
-          type: (this.graph.options.grid?.type as 'dot' | 'line') ?? 'dot',
+          size: this.lastCanvasConfig.grid?.size ?? 10,
+          visible: this.lastCanvasConfig.grid?.visible ?? true,
+          type: this.lastCanvasConfig.grid?.type ?? 'dot',
+          ...(this.lastCanvasConfig.grid?.color ? { color: this.lastCanvasConfig.grid.color } : {}),
         },
         zoom: this.graph.zoom(),
+        ...(this.lastCanvasConfig.offset ? { offset: this.lastCanvasConfig.offset } : {}),
       },
       nodes,
       edges,
@@ -106,6 +115,45 @@ export class GraphManager {
    */
   getGraph(): Graph {
     return this.graph
+  }
+
+  /**
+   * 应用画布级配置到 X6 Graph
+   */
+  private applyCanvasConfig(canvas: CanvasConfig): void {
+    this.lastCanvasConfig = canvas
+
+    // 背景色
+    if (canvas.backgroundColor) {
+      ;(this.graph as any).drawBackground?.({ color: canvas.backgroundColor })
+    } else {
+      ;(this.graph as any).clearBackground?.()
+    }
+
+    // 网格
+    if (canvas.grid && canvas.grid.visible !== false) {
+      const gridCfg: any = {
+        size: canvas.grid.size ?? 10,
+        visible: true,
+        type: canvas.grid.type ?? 'dot',
+      }
+      if (canvas.grid.color) {
+        gridCfg.args = { color: canvas.grid.color }
+      }
+      ;(this.graph as any).drawGrid?.(gridCfg)
+    } else {
+      ;(this.graph as any).clearGrid?.()
+    }
+
+    // 缩放
+    if (typeof canvas.zoom === 'number') {
+      this.graph.zoomTo(canvas.zoom)
+    }
+
+    // 偏移
+    if (canvas.offset) {
+      this.graph.translate(canvas.offset.x, canvas.offset.y)
+    }
   }
 
   private bindEvents(): void {

@@ -47,6 +47,11 @@
       @mouseup="onDrawEnd"
       @mouseleave="onDrawEnd"
     />
+    <MiniMap
+      v-if="minimap"
+      ref="minimapRef"
+      class="mini-map-overlay"
+    />
   </div>
   <ContextMenu
     :visible="contextMenuState.visible"
@@ -92,12 +97,13 @@
 </template>
 
 <script setup lang="ts">
-import { toRef, ref, watch, onUnmounted, computed } from 'vue'
+import { toRef, ref, watch, onUnmounted, computed, nextTick } from 'vue'
 import { useLocale } from '../../locale'
 import type { GraphData, NodeData, EdgeData, CanvasConfig } from '@uni-draw/shared'
 import { useCanvas } from '../../composables/useCanvas'
 import ContextMenu from '../ContextMenu/ContextMenu.vue'
 import ColorPicker from '../ColorPicker/ColorPicker.vue'
+import MiniMap from '../MiniMap/MiniMap.vue'
 
 export interface FlexibleDrawProps {
   modelValue: GraphData
@@ -178,6 +184,18 @@ const {
   selectedEdgeData,
   contextMenuState,
 } = canvas
+
+const minimapRef = ref<InstanceType<typeof MiniMap> | null>(null)
+
+watch(() => props.minimap, async (enabled) => {
+  await nextTick()
+  if (enabled && minimapRef.value?.minimapRef) {
+    canvas.enableMinimap(minimapRef.value.minimapRef)
+  }
+  else {
+    canvas.disableMinimap()
+  }
+}, { immediate: true })
 
 // ==================== 手绘覆盖层 ====================
 
@@ -590,6 +608,17 @@ defineExpose({
   border-color: var(--uni-draw-primary);
   background: var(--uni-draw-primary-bg);
   color: var(--uni-draw-primary);
+}
+
+.mini-map-overlay {
+  position: absolute;
+  right: 16px;
+  bottom: 16px;
+  z-index: 15;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  background: #fff;
 }
 </style>
 

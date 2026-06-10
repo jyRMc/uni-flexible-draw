@@ -5,7 +5,7 @@
       <button class="tr-run-btn" :disabled="running" @click="runAll">
         {{ running ? '运行中…' : '▶ 运行全部' }}
       </button>
-      <span class="tr-summary" v-if="done">
+      <span v-if="done" class="tr-summary">
         <span class="pass">✓ {{ passed }}</span> /
         <span class="fail">✗ {{ total - passed }}</span>
         共 {{ total }}
@@ -24,7 +24,7 @@
         >
           <span class="tr-icon">{{ r.status === 'pass' ? '✓' : r.status === 'fail' ? '✗' : '○' }}</span>
           <span class="tr-name">{{ r.name }}</span>
-          <span class="tr-dur" v-if="r.ms !== undefined">{{ r.ms }}ms</span>
+          <span v-if="r.ms !== undefined" class="tr-dur">{{ r.ms }}ms</span>
         </div>
       </div>
 
@@ -61,10 +61,10 @@ interface TestResult {
 
 const canvasHost = ref<HTMLElement | null>(null)
 const results = ref<TestResult[]>([])
-const running  = ref(false)
-const done     = ref(false)
-const passed   = ref(0)
-const total    = ref(0)
+const running = ref(false)
+const done = ref(false)
+const passed = ref(0)
+const total = ref(0)
 const selected = ref<TestResult | null>(null)
 
 let liveInstance: UniDraw | null = null
@@ -119,39 +119,49 @@ const TESTS: [string, TestFn][] = [
 
   ['[DOM] ud-root element is created inside container', async () => {
     await withContainer(async (container) => {
-      const root = container.querySelector('.ud-root')
-      assert(root !== null, '.ud-root should exist')
+      assert(container.querySelector('.ud-root') !== null, '.ud-root should exist')
     })
   }],
 
   ['[DOM] toolbar renders when showToolbar=true (default)', async () => {
     await withContainer(async (container) => {
-      assert(container.querySelector('.ud-toolbar') !== null, '.ud-toolbar should exist')
+      assert(container.querySelector('.toolbar-float') !== null, '.toolbar-float should exist')
     })
   }],
 
   ['[DOM] toolbar hidden when showToolbar=false', async () => {
     await withContainer(async (container) => {
-      assert(container.querySelector('.ud-toolbar') === null, '.ud-toolbar should not exist')
+      assert(container.querySelector('.toolbar-float') === null, '.toolbar-float should not exist')
     }, { showToolbar: false })
   }],
 
   ['[DOM] shape sidebar renders when showShapePanel=true (default)', async () => {
     await withContainer(async (container) => {
-      assert(container.querySelector('.ud-sidebar') !== null, '.ud-sidebar should exist')
+      assert(container.querySelector('.ud-left-panel') !== null, '.ud-left-panel should exist')
     })
   }],
 
-  ['[DOM] AI panel renders when showAiPanel=true', async () => {
+  ['[DOM] shape sidebar hidden when showShapePanel=false', async () => {
     await withContainer(async (container) => {
-      assert(container.querySelector('.ud-ai') !== null, '.ud-ai panel should exist')
-    }, { showAiPanel: true })
+      assert(container.querySelector('.ud-left-panel') === null, '.ud-left-panel should not exist')
+    }, { showShapePanel: false })
   }],
 
-  ['[DOM] AI panel absent when showAiPanel=false (default)', async () => {
-    await withContainer(async (container) => {
-      assert(container.querySelector('.ud-ai') === null, '.ud-ai should not exist by default')
-    })
+  ['[DOM] properties panel renders on selection when showPropertiesPanel=true', async () => {
+    await withContainer(async (container, ud) => {
+      ud.setData({
+        canvas: { backgroundColor: '#ffffff', grid: { size: 10, visible: true, type: 'dot' as const }, zoom: 1 },
+        nodes: [{ id: 'n1', shape: 'basic-rect', position: { x: 100, y: 100 }, size: { width: 80, height: 40 } }],
+        edges: [],
+      })
+      await sleep(50)
+      // Trigger selection through internal graph API
+      const g: any = (ud as any)._graph
+      const cell = g.getCellById('n1')
+      if (g.select && cell) g.select(cell)
+      await sleep(50)
+      assert(container.querySelector('.ud-properties-card') !== null, '.ud-properties-card should exist after selection')
+    }, { showPropertiesPanel: true })
   }],
 
   ['[DOM] X6 SVG canvas is rendered inside .ud-canvas', async () => {
@@ -170,8 +180,8 @@ const TESTS: [string, TestFn][] = [
 
   ['[DOM] shape panel is populated with library items', async () => {
     await withContainer(async (container) => {
-      const items = container.querySelectorAll('.ud-lib-item')
-      assert(items.length > 0, `should have >0 .ud-lib-item elements, got ${items.length}`)
+      const items = container.querySelectorAll('.shape-category-item')
+      assert(items.length > 0, `should have >0 .shape-category-item elements, got ${items.length}`)
     })
   }],
 
@@ -185,11 +195,15 @@ const TESTS: [string, TestFn][] = [
     })
   }],
 
-  ['[Data] setData() + getData() round-trip', async () => {
+  ['[Data] setData() + getData() round-trip preserves canvas config', async () => {
     await withContainer(async (_c, ud) => {
       const input = {
-        canvas: { backgroundColor: '#ffffff', grid: { size: 10, visible: true, type: 'dot' as const }, zoom: 1 },
-        nodes: [{ id: 'n1', shape: 'rect', position: { x: 100, y: 100 }, size: { width: 80, height: 40 }, label: 'TestNode' }],
+        canvas: {
+          backgroundColor: '#fafafa',
+          grid: { size: 20, visible: false, type: 'line' as const },
+          zoom: 1.5,
+        },
+        nodes: [{ id: 'n1', shape: 'basic-rect', position: { x: 100, y: 100 }, size: { width: 80, height: 40 }, label: 'TestNode' }],
         edges: [],
       }
       ud.setData(input)
@@ -197,6 +211,10 @@ const TESTS: [string, TestFn][] = [
       const out = ud.getData()
       assert(out.nodes.length === 1, `expected 1 node, got ${out.nodes.length}`)
       assert(out.nodes[0].id === 'n1', `expected id=n1, got ${out.nodes[0].id}`)
+      assert(out.canvas.backgroundColor === '#fafafa', `expected backgroundColor #fafafa, got ${out.canvas.backgroundColor}`)
+      assert(out.canvas.grid!.size === 20, `expected grid size 20, got ${out.canvas.grid!.size}`)
+      assert(out.canvas.grid!.type === 'line', `expected grid type line, got ${out.canvas.grid!.type}`)
+      assert(out.canvas.zoom === 1.5, `expected zoom 1.5, got ${out.canvas.zoom}`)
     })
   }],
 
@@ -204,7 +222,7 @@ const TESTS: [string, TestFn][] = [
     await withContainer(async (_c, ud) => {
       ud.setData({
         canvas: { backgroundColor: '#ffffff', grid: { size: 10, visible: true, type: 'dot' as const }, zoom: 1 },
-        nodes: [{ id: 'n1', shape: 'rect', position: { x: 100, y: 100 }, size: { width: 80, height: 40 } }],
+        nodes: [{ id: 'n1', shape: 'basic-rect', position: { x: 100, y: 100 }, size: { width: 80, height: 40 } }],
         edges: [],
       })
       await sleep(30)
@@ -215,13 +233,13 @@ const TESTS: [string, TestFn][] = [
     })
   }],
 
-  ['[Node] clicking .ud-lib-item adds a node', async () => {
+  ['[Node] clicking shape panel item adds a node', async () => {
     await withContainer(async (container, ud) => {
       const before = ud.getData().nodes.length
-      const item = container.querySelector<HTMLElement>('.ud-lib-item')
-      assert(item !== null, 'no .ud-lib-item found in sidebar')
+      const item = container.querySelector<HTMLElement>('.shape-category-item')
+      assert(item !== null, 'no .shape-category-item found in sidebar')
       item!.click()
-      await sleep(50)
+      await sleep(80)
       const after = ud.getData().nodes.length
       assert(after === before + 1, `expected ${before + 1} nodes after click, got ${after}`)
     })
@@ -229,6 +247,11 @@ const TESTS: [string, TestFn][] = [
 
   ['[Zoom] zoomIn() increases zoom level', async () => {
     await withContainer(async (_c, ud) => {
+      ud.setData({
+        canvas: { backgroundColor: '#ffffff', grid: { size: 10, visible: true, type: 'dot' as const }, zoom: 1 },
+        nodes: [], edges: [],
+      })
+      await sleep(30)
       const g: any = (ud as any)._graph
       const before = g.zoom()
       ud.zoomIn()
@@ -240,9 +263,12 @@ const TESTS: [string, TestFn][] = [
 
   ['[Zoom] zoomOut() decreases zoom level', async () => {
     await withContainer(async (_c, ud) => {
-      const g: any = (ud as any)._graph
-      ud.zoomIn(); ud.zoomIn()
+      ud.setData({
+        canvas: { backgroundColor: '#ffffff', grid: { size: 10, visible: true, type: 'dot' as const }, zoom: 1.5 },
+        nodes: [], edges: [],
+      })
       await sleep(30)
+      const g: any = (ud as any)._graph
       const before = g.zoom()
       ud.zoomOut()
       await sleep(30)
@@ -253,17 +279,18 @@ const TESTS: [string, TestFn][] = [
 
   ['[History] undo/redo: adding a node then undoing removes it', async () => {
     await withContainer(async (container, ud) => {
-      const item = container.querySelector<HTMLElement>('.ud-lib-item')
+      const item = container.querySelector<HTMLElement>('.shape-category-item')
       assert(item !== null, 'no sidebar item found')
+      const before = ud.getData().nodes.length
       item!.click()
       await sleep(80)
-      assert(ud.getData().nodes.length === 1, 'should have 1 node after add')
+      assert(ud.getData().nodes.length === before + 1, 'should have 1 more node after add')
       ud.undo()
       await sleep(80)
-      assert(ud.getData().nodes.length === 0, `undo should remove node, got ${ud.getData().nodes.length}`)
+      assert(ud.getData().nodes.length === before, `undo should remove node, got ${ud.getData().nodes.length}`)
       ud.redo()
       await sleep(80)
-      assert(ud.getData().nodes.length === 1, `redo should restore node, got ${ud.getData().nodes.length}`)
+      assert(ud.getData().nodes.length === before + 1, `redo should restore node, got ${ud.getData().nodes.length}`)
     })
   }],
 
@@ -273,6 +300,7 @@ const TESTS: [string, TestFn][] = [
       assert(typeof json === 'string' && json.length > 0, 'exportJSON should return non-empty string')
       const parsed = JSON.parse(json)
       assert(Array.isArray(parsed.nodes), 'parsed JSON has .nodes array')
+      assert(typeof parsed.canvas === 'object', 'parsed JSON has .canvas object')
     })
   }],
 
@@ -282,29 +310,6 @@ const TESTS: [string, TestFn][] = [
       assert(typeof url === 'string' && url.length > 0, 'exportPNG should return non-empty string')
       assert(url.startsWith('data:image'), `expected data: URL, got: ${url.slice(0, 30)}`)
     })
-  }],
-
-  ['[AI] applyAiResult() appends message to chat panel', async () => {
-    await withContainer(async (container, ud) => {
-      // Simulate AI loading state first
-      ;(ud as any).aiLoading = true
-      ud.applyAiResult(undefined, '测试消息 Hello', [])
-      await sleep(20)
-      const msgs = container.querySelectorAll('.ud-ai-msg')
-      assert(msgs.length > 0, 'should have at least one .ud-ai-msg')
-      const lastMsg = msgs[msgs.length - 1]
-      assert(lastMsg.textContent?.includes('测试消息'), `message text not found: "${lastMsg.textContent}"`)
-    }, { showAiPanel: true })
-  }],
-
-  ['[AI] applyAiResult() renders follow-up buttons', async () => {
-    await withContainer(async (container, ud) => {
-      ud.applyAiResult(undefined, '完成', ['追问一', '追问二'])
-      await sleep(20)
-      const btns = container.querySelectorAll('.ud-ai-follow-up-btn')
-      assert(btns.length === 2, `expected 2 follow-up buttons, got ${btns.length}`)
-      assert(btns[0].textContent === '追问一', `first btn text: "${btns[0].textContent}"`)
-    }, { showAiPanel: true })
   }],
 
   ['[Destroy] destroy() removes root from DOM', async () => {
@@ -318,22 +323,24 @@ const TESTS: [string, TestFn][] = [
     div.remove()
   }],
 
-  ['[Live] full canvas with AI panel (visual)', async () => {
+  ['[Live] full canvas with nodes and edges (visual)', async () => {
     await withContainer(async (_c, ud) => {
       ud.setData({
         canvas: { backgroundColor: '#fafafa', grid: { size: 10, visible: true, type: 'dot' as const }, zoom: 1 },
         nodes: [
-          { id: 'a', shape: 'rect', position: { x: 80, y: 120 }, size: { width: 100, height: 44 }, label: '开始' },
-          { id: 'b', shape: 'rect', position: { x: 300, y: 120 }, size: { width: 100, height: 44 }, label: '处理' },
-          { id: 'c', shape: 'rect', position: { x: 520, y: 120 }, size: { width: 100, height: 44 }, label: '结束' },
+          { id: 'a', shape: 'basic-rect', position: { x: 80, y: 120 }, size: { width: 100, height: 44 }, label: '开始' },
+          { id: 'b', shape: 'basic-rect', position: { x: 300, y: 120 }, size: { width: 100, height: 44 }, label: '处理' },
+          { id: 'c', shape: 'basic-rect', position: { x: 520, y: 120 }, size: { width: 100, height: 44 }, label: '结束' },
         ],
         edges: [
-          { id: 'e1', shape: 'edge', source: { cell: 'a' }, target: { cell: 'b' } },
-          { id: 'e2', shape: 'edge', source: { cell: 'b' }, target: { cell: 'c' } },
+          { id: 'e1', shape: 'edge-line', source: { cell: 'a' }, target: { cell: 'b' } },
+          { id: 'e2', shape: 'edge-line', source: { cell: 'b' }, target: { cell: 'c' } },
         ],
       })
-      ud.applyAiResult(undefined, '已生成示例流程图 ✓', ['如何添加判断节点？', '如何导出图片？'])
-    }, { showAiPanel: true, showToolbar: true, showShapePanel: true }, true /* keep */)
+      const data = ud.getData()
+      assert(data.nodes.length === 3, `expected 3 nodes, got ${data.nodes.length}`)
+      assert(data.edges.length === 2, `expected 2 edges, got ${data.edges.length}`)
+    }, { showToolbar: true, showShapePanel: true, showPropertiesPanel: true }, true /* keep */)
   }],
 
 ]
@@ -341,12 +348,12 @@ const TESTS: [string, TestFn][] = [
 // ─── Runner ───────────────────────────────────────────────────────────────
 
 async function runAll() {
-  running.value  = true
-  done.value     = false
-  passed.value   = 0
-  total.value    = TESTS.length
+  running.value = true
+  done.value = false
+  passed.value = 0
+  total.value = TESTS.length
   selected.value = null
-  results.value  = TESTS.map(([name]) => ({ name, status: 'pending' }))
+  results.value = TESTS.map(([name]) => ({ name, status: 'pending' }))
 
   for (let i = 0; i < TESTS.length; i++) {
     const [name, fn] = TESTS[i]
@@ -363,7 +370,7 @@ async function runAll() {
   }
 
   running.value = false
-  done.value    = true
+  done.value = true
 }
 </script>
 

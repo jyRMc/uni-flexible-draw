@@ -63,12 +63,6 @@ export class AntVRenderEngine {
               : undefined,
           }
         : undefined,
-      snapline: options.snapline !== false
-        ? { enabled: true }
-        : undefined,
-      keyboard: options.keyboard !== false
-        ? { enabled: true }
-        : undefined,
       interacting: options.readonly
         ? { nodeMovable: false, edgeMovable: false, arrowheadMovable: false }
         : ((cellView: any) => {
