@@ -110,6 +110,10 @@ export class NodeFactory {
       if (data.shape === 'basic-table' && tableData) {
         return buildTableAttrs(tableData, (data.style ?? {}) as any) as any
       }
+      if (data.shape === 'basic-group') {
+        const { fill = 'rgba(0,0,0,0.02)', stroke = '#d9d9d9', strokeWidth = 1, strokeDasharray = '4 4' } = (data.style ?? {}) as any
+        return { body: { fill, stroke, strokeWidth, strokeDasharray } } as any
+      }
       if (!data.style) return {}
       if (data.shape === 'basic-cylinder') {
         const { fill = '#ffffff', stroke = PRIMARY_COLOR, strokeWidth = 2 } = data.style as any
@@ -158,8 +162,15 @@ export class NodeFactory {
    * 从 X6 节点提取 NodeData
    */
   static toData(node: Node): NodeData {
-    const position = node.getPosition()
+    let position = node.getPosition()
     const size = node.getSize()
+
+    // 如果节点有 parent，将相对坐标转换为世界坐标，以便序列化后正确恢复
+    const parentNode = (node as any).getParent?.()
+    if (parentNode) {
+      const pPos = parentNode.getPosition()
+      position = { x: position.x + pPos.x, y: position.y + pPos.y }
+    }
 
     // 从 attrs 提取样式（圆柱体从 topCap 读取，其他从 body 读取）
     const attrs = (node as any).getAttrs?.() ?? {}
@@ -231,6 +242,9 @@ export class NodeFactory {
       }
     }
 
+    const parent = (node as any).getParent?.() ?? undefined
+    const children = (node as any).getChildren?.() ?? undefined
+
     return {
       id: node.id,
       shape: node.shape,
@@ -244,6 +258,8 @@ export class NodeFactory {
       style: Object.keys(style).length > 0 ? style : undefined,
       data: nodeData,
       ports: (node as any).get?.('ports') as NodeData['ports'],
+      parent: parent?.id ?? undefined,
+      children: children && children.length > 0 ? children.map((c: any) => c.id) : undefined,
     }
   }
 }

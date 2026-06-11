@@ -40,6 +40,10 @@ export { ShortcutManager } from './shortcut/ShortcutManager'
 export { ClipboardManager } from './clipboard/ClipboardManager'
 export type { ClipboardCell } from './clipboard/ClipboardManager'
 
+// 组合
+export { GroupManager, MAX_GROUP_DEPTH, GROUP_PADDING, GROUP_MIN_SIZE } from './group'
+export type { GroupOptions } from './group'
+
 // 草图渲染
 export { SketchRenderer, getSketchRenderer, ROUGHNESS } from './sketch/SketchRenderer'
 export type { SketchRenderOptions } from './sketch/SketchRenderer'

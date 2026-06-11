@@ -36,9 +36,27 @@ export class GraphManager {
       this.applyCanvasConfig(data.canvas)
       this.graph.clearCells()
 
+      // 第一步：创建所有节点（先不处理 parent 关系）
+      const nodeMap = new Map<string, any>()
       for (const nodeData of data.nodes) {
         const node = NodeFactory.createNode(this.graph, nodeData)
         this.graph.addNode(node)
+        nodeMap.set(nodeData.id, node)
+      }
+
+      // 第二步：建立 parent-child 关系（先创建子节点再绑定 parent）
+      for (const nodeData of data.nodes) {
+        if (nodeData.parent) {
+          const parent = nodeMap.get(nodeData.parent)
+          const child = nodeMap.get(nodeData.id)
+          if (parent && child && parent.id !== child.id) {
+            const cPos = child.getPosition()
+            const pPos = parent.getPosition()
+            // 转换为相对坐标
+            child.setPosition({ x: cPos.x - pPos.x, y: cPos.y - pPos.y })
+            parent.addChild(child)
+          }
+        }
       }
 
       for (const edgeData of data.edges) {

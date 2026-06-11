@@ -21,6 +21,10 @@ export interface NodeData {
   ports?: PortsConfig
   /** 是否锁定 */
   locked?: boolean
+  /** 所属父 Group ID */
+  parent?: string
+  /** 子节点 ID 列表 */
+  children?: string[]
 }
 
 export interface NodeStyle {

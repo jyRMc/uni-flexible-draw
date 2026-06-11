@@ -38,6 +38,7 @@ export const BASIC_SHAPES = {
   TEXT: 'basic-text',
   IMAGE: 'basic-image',
   SVG: 'basic-svg',
+  GROUP: 'basic-group',
 } as const
 
 /**

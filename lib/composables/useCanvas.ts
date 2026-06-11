@@ -16,6 +16,7 @@ import {
   ShortcutManager,
   NodeFactory,
   ClipboardManager,
+  GroupManager,
 } from '@uni-draw/core'
 import type { MiniMapOptions } from '@uni-draw/core'
 import { highlightEdge, unhighlightEdge } from '@uni-draw/core'
@@ -127,6 +128,9 @@ export interface UseCanvasReturn {
   ungroupNodes: () => void
   canGroup: Ref<boolean>
   canUngroup: Ref<boolean>
+  groupEditMode: Ref<boolean>
+  enterGroupEdit: () => void
+  exitGroupEdit: () => void
   // 创建画框
   createFrame: () => void
   // 复制为图片
@@ -168,6 +172,7 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
   const svgEditState = ref<{ nodeId: string; content: string } | null>(null)
   const canGroup = ref(false)
   const canUngroup = ref(false)
+  const groupEditMode = ref(false)
   const contextMenuState = ref<ContextMenuState>({
     visible: false,
     x: 0,
@@ -191,6 +196,7 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
   let shortcutManager: ShortcutManager | null = null
   let clipboardManager: ClipboardManager | null = null
   let miniMapTool: MiniMapTool | null = null
+  let groupManager: GroupManager | null = null
   let unwatchModelValue: (() => void) | null = null
   let isEmittingUpdate = false
   const autoVertexEdgeMap = new Map<string, Array<{ x: number; y: number }>>()
@@ -426,6 +432,7 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
     shortcutManager.registerAction('ungroup', () => ungroupNodes())
     shortcutManager.bind()
     clipboardManager = new ClipboardManager(graph)
+    groupManager = new GroupManager(graph)
 
     // 监听历史变化（x6-plugin-history 事件）
     graph.on('history:change', () => {
@@ -567,11 +574,32 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
       graph.getConnectedEdges(node).forEach((edge: any) => syncAutoVertex(edge))
     })
 
-    // SVG 节点双击 → 打开 SVG 代码编辑器
-    graph.on('node:dblclick', ({ node }: any) => {
+    // 双击 group 节点进入编辑模式；双击 SVG 节点打开 SVG 代码编辑器
+    graph.on('node:dblclick', ({ node, e }: any) => {
+      if (node.shape === 'basic-group') {
+        e.stopPropagation()
+        enterGroupEdit()
+        return
+      }
       if (node.shape !== 'basic-svg') return
       const data = node.getData() ?? {}
       svgEditState.value = { nodeId: node.id, content: (data.svgContent as string) ?? '' }
+    })
+
+    // 双击空白区域：若处于 group 编辑模式则退出
+    graph.on('blank:dblclick', () => {
+      if (groupEditMode.value) {
+        exitGroupEdit()
+      }
+    })
+
+    // 拖拽入组：节点被拖入父容器时自动成为子节点
+    graph.on('node:embedded', ({ node: embeddedNode, currentParent }: any) => {
+      if (!groupManager || !currentParent) return
+      if (currentParent.shape === 'basic-group') {
+        // X6 已经处理了 addChild，这里只需要调整 group 大小
+        groupManager.fitGroupSize(currentParent)
+      }
     })
 
     // 草图模式事件监听（始终注册，内部通过 sketchElementIds 过滤）
@@ -619,8 +647,15 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
     const nodeSelectionCount = selected.filter((cell: any) => cell.isNode?.()).length
     const edgeSelectionCount = selected.filter((cell: any) => cell.isEdge?.()).length
     const allSelectedLocked = selected.length > 0 && selected.every((cell: any) => cell.getData?.()?.locked === true)
+    // canGroup: 至少 2 个节点，且都不是 group 本身，且都不在其他 group 内
     const nextCanGroup = nodeSelectionCount >= 2
-    const nextCanUngroup = selected.some((cell: any) => cell.isNode?.() && (cell.getChildren?.() ?? []).length > 0)
+      && selected.filter((c: any) => c.isNode?.()).every((n: any) => {
+        if (n.shape === 'basic-group') return false
+        const parent = n.getParent?.()
+        return !parent
+      })
+    // canUngroup: 选中的是 group 节点
+    const nextCanUngroup = selected.some((cell: any) => cell.isNode?.() && cell.shape === 'basic-group')
     canGroup.value = nextCanGroup
     canUngroup.value = nextCanUngroup
     contextMenuState.value = {
@@ -1209,92 +1244,46 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
 
   function groupNodes(): void {
     const graph = getGraph()
-    if (!graph) return
+    if (!graph || !groupManager) return
     const cells = getSelectedCells()
     const nodes = cells.filter((c: any) => c.isNode?.())
     if (nodes.length < 2) return
 
-    let minX = Infinity
-    let minY = Infinity
-    let maxX = -Infinity
-    let maxY = -Infinity
-    nodes.forEach((n: any) => {
-      const pos = n.getPosition()
-      const size = n.getSize()
-      minX = Math.min(minX, pos.x)
-      minY = Math.min(minY, pos.y)
-      maxX = Math.max(maxX, pos.x + size.width)
-      maxY = Math.max(maxY, pos.y + size.height)
-    })
-
-    const padding = 10
-    const groupX = minX - padding
-    const groupY = minY - padding
-    const groupW = maxX - minX + padding * 2
-    const groupH = maxY - minY + padding * 2
-
-    const minZIndex = Math.min(...nodes.map((n: any) => n.getZIndex?.() ?? 0))
-    const group = graph.addNode({
-      id: shortId('group'),
-      shape: 'rect',
-      x: groupX,
-      y: groupY,
-      width: groupW,
-      height: groupH,
-      zIndex: minZIndex - 1,
-      attrs: {
-        body: {
-          fill: 'transparent',
-          stroke: PRIMARY_COLOR,
-          strokeWidth: 1,
-          strokeDasharray: '4 2',
-        },
-      },
-      data: { isGroup: true },
-    })
-
-    nodes.forEach((n: any) => {
-      const pos = n.getPosition()
-      n.setPosition({ x: pos.x - groupX, y: pos.y - groupY })
-      group.addChild(n)
-    })
-
-    if (typeof (graph as any).cleanSelection === 'function') {
-      ;(graph as any).cleanSelection()
-    }
-    if (typeof (graph as any).select === 'function') {
-      ;(graph as any).select(group)
+    const group = groupManager.createGroup(nodes)
+    if (group) {
+      if (typeof (graph as any).cleanSelection === 'function') {
+        ;(graph as any).cleanSelection()
+      }
+      if (typeof (graph as any).select === 'function') {
+        ;(graph as any).select(group)
+      }
     }
   }
 
   function ungroupNodes(): void {
     const graph = getGraph()
-    if (!graph) return
+    if (!graph || !groupManager) return
     const cells = getSelectedCells()
-    const groups = cells.filter((c: any) => c.isNode?.() && (c.getChildren?.() ?? []).length > 0)
+    const groups = cells.filter((c: any) => c.isNode?.() && c.shape === 'basic-group')
     if (groups.length === 0) return
 
-    const toSelect: any[] = []
-    groups.forEach((group: any) => {
-      const children = group.getChildren() ?? []
-      const gPos = group.getPosition()
-      children.forEach((child: any) => {
-        const cPos = child.getPosition()
-        child.setPosition({ x: cPos.x + gPos.x, y: cPos.y + gPos.y })
-        group.removeChild(child)
-        toSelect.push(child)
-      })
-      group.remove()
-    })
+    groupManager.ungroup(groups.map((g: any) => g.id))
+  }
 
-    if (toSelect.length > 0) {
-      if (typeof (graph as any).cleanSelection === 'function') {
-        ;(graph as any).cleanSelection()
-      }
-      if (typeof (graph as any).select === 'function') {
-        ;(graph as any).select(toSelect)
-      }
+  function enterGroupEdit(): void {
+    if (!groupManager) return
+    const cells = getSelectedCells()
+    const group = cells.find((c: any) => c.isNode?.() && c.shape === 'basic-group')
+    if (group) {
+      groupManager.enterEditMode(group.id)
+      groupEditMode.value = true
     }
+  }
+
+  function exitGroupEdit(): void {
+    if (!groupManager) return
+    groupManager.exitEditMode()
+    groupEditMode.value = false
   }
 
   // ==================== 创建画框 ====================
@@ -1523,6 +1512,9 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
     ungroupNodes,
     canGroup,
     canUngroup,
+    groupEditMode,
+    enterGroupEdit,
+    exitGroupEdit,
     createFrame,
     copyAsPng,
     copyAsSvg,

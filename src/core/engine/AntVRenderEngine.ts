@@ -93,6 +93,26 @@ export class AntVRenderEngine {
               magnetConnectable: !isLocked,
             }
           }),
+      embedding: {
+        enabled: true,
+        findParent({ node }) {
+          const bbox = node.getBBox()
+          const graph = (node as any).model?.graph
+          if (!graph) {
+            return []
+          }
+          return graph.getNodes().filter((n: any) => {
+            if (n.id === node.id) {
+              return false
+            }
+            if (n.shape !== 'basic-group') {
+              return false
+            }
+            const parentBBox = n.getBBox()
+            return bbox.intersectsWithRect(parentBBox) || parentBBox.containsRect(bbox)
+          })
+        },
+      },
       connecting: {
         allowBlank: true,
         allowMulti: true,
