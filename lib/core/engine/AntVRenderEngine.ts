@@ -2,6 +2,7 @@ import { Graph } from '@antv/x6'
 import { History } from '@antv/x6-plugin-history'
 import { Selection } from '@antv/x6-plugin-selection'
 import { Transform } from '@antv/x6-plugin-transform'
+import { Export } from '@antv/x6-plugin-export'
 import type { CanvasConfig } from '@uni-draw/shared'
 import { PRIMARY_COLOR } from '@uni-draw/shared'
 import { highlightEdge, unhighlightEdge } from '../graph/highlight'
@@ -45,11 +46,11 @@ export class AntVRenderEngine {
       height: container.clientHeight || 600,
       autoResize: true,
       panning: {
-        enabled: true,
+        enabled: !options.readonly,
         eventTypes: ['rightMouseDown', 'mouseWheelDown'],
       },
       mousewheel: {
-        enabled: true,
+        enabled: !options.readonly,
         modifiers: ['ctrl', 'meta'],
       },
       background: canvasConfig.backgroundColor
@@ -131,32 +132,37 @@ export class AntVRenderEngine {
     // 安装 Selection 插件（点击/框选节点和边）
     this.graph.use(
       new Selection({
-        enabled: true,
+        enabled: !options.readonly,
         multiple: true,
-        rubberband: true,
-        movable: true,
-        showNodeSelectionBox: true,
+        rubberband: !options.readonly,
+        movable: !options.readonly,
+        showNodeSelectionBox: !options.readonly,
         showEdgeSelectionBox: false,
-        selectEdgeOnMoved: true,
+        selectEdgeOnMoved: !options.readonly,
       }),
     )
 
     // 安装 History 插件（撤销/重做）
     this.graph.use(new History({ enabled: true }))
 
-    // 安装 Transform 插件（缩放/旋转）
-    this.graph.use(
-      new Transform({
-        resizing: {
-          enabled: (node) => node.getData()?.locked !== true,
-          orthogonal: false,
-          preserveAspectRatio: false,
-        },
-        rotating: {
-          enabled: (node) => node.getData()?.locked !== true,
-        },
-      }),
-    )
+    // 安装 Export 插件（导出 PNG/SVG）
+    this.graph.use(new Export())
+
+    // 安装 Transform 插件（缩放/旋转），只读模式下不安装
+    if (!options.readonly) {
+      this.graph.use(
+        new Transform({
+          resizing: {
+            enabled: (node) => node.getData()?.locked !== true,
+            orthogonal: false,
+            preserveAspectRatio: false,
+          },
+          rotating: {
+            enabled: (node) => node.getData()?.locked !== true,
+          },
+        }),
+      )
+    }
 
     // 注入旋转控制柄自定义图标
     this.injectRotateHandleStyle(options.rotateHandlePath)

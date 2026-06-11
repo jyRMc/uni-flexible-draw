@@ -36,6 +36,9 @@ importers:
       '@antfu/eslint-config':
         specifier: ^2.21.0
         version: 2.27.3(@typescript-eslint/utils@8.59.3(eslint@9.39.4)(typescript@5.9.3))(@vue/compiler-sfc@3.5.34)(eslint-plugin-format@2.0.1(eslint@9.39.4))(eslint@9.39.4)(typescript@5.9.3)(vitest@2.1.9(@types/node@20.19.41)(happy-dom@20.10.2)(jsdom@29.1.1))
+      '@antv/x6-plugin-export':
+        specifier: ^2.1.6
+        version: 2.1.6(@antv/x6@2.19.2)
       '@antv/x6-plugin-minimap':
         specifier: ^2.0.7
         version: 2.0.7(@antv/x6@2.19.2)
@@ -303,6 +306,11 @@ packages:
 
   '@antv/x6-geometry@2.0.5':
     resolution: {integrity: sha512-MId6riEQkxphBpVeTcL4ZNXL4lScyvDEPLyIafvWMcWNTGK0jgkK7N20XSzqt8ltJb0mGUso5s56mrk8ysHu2A==}
+
+  '@antv/x6-plugin-export@2.1.6':
+    resolution: {integrity: sha512-m0ukMmZhrFE5n7uCR43DVQBdiUfpjGN+vm1mc+6RTZdHK8pa6Mxr0RZztaxPy34YA4tli+bGY3ePslsNPfh6PQ==}
+    peerDependencies:
+      '@antv/x6': ^2.x
 
   '@antv/x6-plugin-history@2.2.4':
     resolution: {integrity: sha512-9gHHvEW4Fla+1hxUV49zNgJyIMoV9CjVM52MrFgAJcvyRn1Kvxz4MfxiKlG+DEZUs+/zvfjl9pS6gJOd8laRkg==}
@@ -2769,6 +2777,10 @@ snapshots:
       utility-types: 3.11.0
 
   '@antv/x6-geometry@2.0.5': {}
+
+  '@antv/x6-plugin-export@2.1.6(@antv/x6@2.19.2)':
+    dependencies:
+      '@antv/x6': 2.19.2
 
   '@antv/x6-plugin-history@2.2.4(@antv/x6@2.19.2)':
     dependencies:

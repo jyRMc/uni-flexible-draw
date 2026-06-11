@@ -35,6 +35,7 @@
   },
   "devDependencies": {
     "@antfu/eslint-config": "^2.21.0",
+    "@antv/x6-plugin-export": "^2.1.6",
     "@antv/x6-plugin-minimap": "^2.0.7",
     "@types/node": "^20.14.0",
     "@vitejs/plugin-vue": "^5.0.0",

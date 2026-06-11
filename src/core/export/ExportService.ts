@@ -16,6 +16,10 @@ export interface ExportImageOptions {
   }
 }
 
+function getExportPlugin(graph: Graph): any {
+  return (graph as any).getPlugin?.('export')
+}
+
 /**
  * 导出服务
  * 支持 JSON / PNG / SVG 导出与导入
@@ -42,13 +46,25 @@ export class ExportService {
    * 导出为 PNG 图片（base64）
    */
   async toPNG(options: ExportImageOptions = {}): Promise<string> {
-    return (this.graph as any).toPNG({
-      backgroundColor: options.backgroundColor ?? '#ffffff',
-      padding: options.padding ?? 10,
-      quality: options.quality ?? 1,
-      width: options.width,
-      height: options.height,
-      viewBox: options.viewBox,
+    const exportPlugin = getExportPlugin(this.graph)
+    if (!exportPlugin || !exportPlugin.toPNG) {
+      throw new Error('Export plugin not registered. Please ensure @antv/x6-plugin-export is installed and registered.')
+    }
+    return new Promise((resolve, reject) => {
+      try {
+        exportPlugin.toPNG((dataUri: string) => {
+          resolve(dataUri)
+        }, {
+          backgroundColor: options.backgroundColor ?? '#ffffff',
+          padding: options.padding ?? 10,
+          quality: options.quality ?? 1,
+          width: options.width,
+          height: options.height,
+          viewBox: options.viewBox,
+        })
+      } catch (e) {
+        reject(e)
+      }
     })
   }
 
@@ -56,15 +72,27 @@ export class ExportService {
    * 导出为 SVG 字符串
    */
   async toSVG(options: ExportImageOptions = {}): Promise<string> {
-    return (this.graph as any).toSVG({
-      viewBox: options.viewBox ?? (options.padding
-        ? {
-            x: -options.padding,
-            y: -options.padding,
-            width: this.graph.options.width + options.padding * 2,
-            height: this.graph.options.height + options.padding * 2,
-          }
-        : undefined),
+    const exportPlugin = getExportPlugin(this.graph)
+    if (!exportPlugin || !exportPlugin.toSVG) {
+      throw new Error('Export plugin not registered. Please ensure @antv/x6-plugin-export is installed and registered.')
+    }
+    return new Promise((resolve, reject) => {
+      try {
+        exportPlugin.toSVG((svg: string) => {
+          resolve(svg)
+        }, {
+          viewBox: options.viewBox ?? (options.padding
+            ? {
+                x: -options.padding,
+                y: -options.padding,
+                width: this.graph.options.width + options.padding * 2,
+                height: this.graph.options.height + options.padding * 2,
+              }
+            : undefined),
+        })
+      } catch (e) {
+        reject(e)
+      }
     })
   }
 }

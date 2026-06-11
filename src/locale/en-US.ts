@@ -206,6 +206,9 @@ const enUS: UniDrawLocale = {
       untitled: 'Untitled Diagram',
       copiedJson: 'JSON copied to clipboard',
       exitConfirm: 'Are you sure you want to exit?',
+      previewTitle: 'Canvas Preview',
+      downloadJson: 'Download JSON',
+      close: 'Close',
     },
     topBar: {
       exit: 'Exit',
@@ -214,6 +217,7 @@ const enUS: UniDrawLocale = {
       share: 'Share',
       templates: 'Templates',
       edit: 'Edit',
+      preview: 'Preview',
       search: 'Search',
       help: 'Help',
       aiDraw: 'AI Draw',

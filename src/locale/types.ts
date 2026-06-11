@@ -204,6 +204,9 @@ export interface UniDrawLocale {
       untitled: string
       copiedJson: string
       exitConfirm: string
+      previewTitle: string
+      downloadJson: string
+      close: string
     }
     topBar: {
       exit: string
@@ -212,6 +215,7 @@ export interface UniDrawLocale {
       share: string
       templates: string
       edit: string
+      preview: string
       search: string
       help: string
       aiDraw: string

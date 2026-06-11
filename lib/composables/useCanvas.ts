@@ -17,9 +17,10 @@ import {
   NodeFactory,
   ClipboardManager,
   GroupManager,
+  highlightEdge,
+  unhighlightEdge,
 } from '@uni-draw/core'
-import type { MiniMapOptions } from '@uni-draw/core'
-import { highlightEdge, unhighlightEdge } from '@uni-draw/core'
+import type { MiniMapOptions, ExportImageOptions } from '@uni-draw/core'
 
 export interface UseCanvasOptions {
   modelValue: Ref<GraphData>
@@ -70,12 +71,13 @@ export interface UseCanvasReturn {
   setData: (data: GraphData) => void
   toJSON: () => string
   fromJSON: (json: string) => void
-  toPNG: () => Promise<string>
+  toPNG: (opts?: ExportImageOptions) => Promise<string>
+  exportPreviewImage: () => Promise<string>
   toSVG: () => Promise<string>
   zoomIn: () => void
   zoomOut: () => void
   zoomTo: (factor: number) => void
-  zoomToFit: () => void
+  zoomToFit: (options?: { padding?: number; maxScale?: number }) => void
   undo: () => void
   redo: () => void
   addNode: (data: NodeData) => void
@@ -705,8 +707,31 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
     if (data) setData(data)
   }
 
-  async function toPNG(): Promise<string> {
-    return exportService?.toPNG() ?? ''
+  async function toPNG(opts?: ExportImageOptions): Promise<string> {
+    return exportService?.toPNG(opts) ?? ''
+  }
+
+  async function exportPreviewImage(): Promise<string> {
+    const graph = getGraph()
+    if (!graph || !exportService) return ''
+    const cells = [...graph.getNodes(), ...graph.getEdges()]
+    if (cells.length === 0) {
+      return exportService.toPNG({ backgroundColor: '#ffffff' })
+    }
+    const bbox = (graph as any).getCellsBBox?.(cells)
+    if (!bbox) {
+      return exportService.toPNG({ backgroundColor: '#ffffff' })
+    }
+    const padding = 24
+    return exportService.toPNG({
+      backgroundColor: '#ffffff',
+      viewBox: {
+        x: bbox.x - padding,
+        y: bbox.y - padding,
+        width: bbox.width + padding * 2,
+        height: bbox.height + padding * 2,
+      },
+    })
   }
 
   async function toSVG(): Promise<string> {
@@ -725,8 +750,8 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
     zoomTool?.zoomTo(factor)
   }
 
-  function zoomToFit(): void {
-    zoomTool?.zoomToFit()
+  function zoomToFit(options?: { padding?: number; maxScale?: number }): void {
+    zoomTool?.zoomToFit(options)
   }
 
   function undo(): void {
@@ -1461,6 +1486,7 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
     toJSON,
     fromJSON,
     toPNG,
+    exportPreviewImage,
     toSVG,
     zoomIn,
     zoomOut,

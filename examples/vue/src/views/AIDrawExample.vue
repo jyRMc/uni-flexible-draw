@@ -10,10 +10,22 @@
       @toggle-edit="readonly = !readonly"
       @toggle-language="toggleLanguage"
       @templates="openTemplates"
+      @preview="openPreview"
       @ai-draw="toggleAiPanel"
       @new-chat="clearAiChat"
       @share="onShare"
       @exit="onExit"
+    />
+
+    <PreviewModal
+      v-model:visible="previewVisible"
+      :data="graphData"
+      :title="exampleText.common.previewTitle"
+      :copy-title="exampleText.common.copyJson"
+      :download-title="exampleText.common.downloadJson"
+      :close-title="exampleText.common.close"
+      @copy="onPreviewCopy"
+      @download="onPreviewDownload"
     />
 
     <div class="workspace-shell">
@@ -58,6 +70,7 @@ import { generateGraph, diagnoseAiConnection, type AIConnectionConfig } from '..
 import { SCENARIO_TEMPLATES } from '../mocks/templates'
 import AIPanel from './AIPanel.vue'
 import TopBar from './TopBar.vue'
+import PreviewModal from '../components/PreviewModal.vue'
 
 interface Message {
   role: 'user' | 'assistant'
@@ -88,6 +101,7 @@ const assetsPaginated = ref(false)
 const drawRef = ref<InstanceType<typeof UniDraw> | null>(null)
 const readonly = ref(false)
 const zoomPercent = ref(100)
+const previewVisible = ref(false)
 const aiPanelOpen = ref(false)
 const aiLoading = ref(false)
 const aiMessages = ref<Message[]>([])
@@ -218,6 +232,26 @@ function onShare() {
   if (json) {
     navigator.clipboard.writeText(json).then(() => alert(exampleText.value.common.copiedJson))
   }
+}
+
+function openPreview() {
+  previewVisible.value = true
+}
+
+function onPreviewCopy(data: GraphData) {
+  const json = JSON.stringify(data, null, 2)
+  navigator.clipboard.writeText(json).then(() => alert(exampleText.value.common.copiedJson))
+}
+
+function onPreviewDownload(data: GraphData) {
+  const json = JSON.stringify(data, null, 2)
+  const blob = new Blob([json], { type: 'application/json' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `${data.meta?.title ?? 'diagram'}.json`
+  a.click()
+  URL.revokeObjectURL(url)
 }
 
 function onExit() {

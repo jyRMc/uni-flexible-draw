@@ -448,6 +448,7 @@ defineExpose({
   toJSON: canvas.toJSON,
   fromJSON: canvas.fromJSON,
   toPNG: canvas.toPNG,
+  exportPreviewImage: canvas.exportPreviewImage,
   toSVG: canvas.toSVG,
   zoomIn: canvas.zoomIn,
   zoomOut: canvas.zoomOut,
