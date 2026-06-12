@@ -1,19 +1,19 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { beforeEach, describe, expect, it } from 'vitest'
 import { Graph } from '@antv/x6'
 import { registerAllShapes } from '../shapes/register'
-import { NodeRegistry, EdgeRegistry } from '../core'
+import { EdgeRegistry, NodeRegistry } from '../core'
 import {
   BASIC_SHAPES,
-  EDGE_SHAPES,
-  FLOWCHART_SHAPES,
-  UML_SHAPES,
-  SEQUENCE_SHAPES,
-  ER_SHAPES,
   DFD_SHAPES,
-  SWIMLANE_SHAPES,
-  STATE_SHAPES,
+  EDGE_SHAPES,
+  ER_SHAPES,
+  FLOWCHART_SHAPES,
   RX_SUPPORTED_SHAPES,
   RX_UNSUPPORTED_SHAPES,
+  SEQUENCE_SHAPES,
+  STATE_SHAPES,
+  SWIMLANE_SHAPES,
+  UML_SHAPES,
   isShapeRxSupported,
 } from '../shared/constants/shapes'
 
@@ -71,7 +71,10 @@ describe('shape registration', () => {
     const graph = new Graph({ container, width: 800, height: 600 })
     const node = graph.addNode({
       shape: BASIC_SHAPES.RECT,
-      x: 10, y: 10, width: 100, height: 60,
+      x: 10,
+      y: 10,
+      width: 100,
+      height: 60,
     })
     expect(node).toBeDefined()
     expect(node.shape).toBe(BASIC_SHAPES.RECT)

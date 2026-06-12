@@ -71,9 +71,12 @@ function getSystemPrompt(model: string): string {
 }
 
 function assertConfig(config: AIConnectionConfig): asserts config is AIConnectionConfig {
-  if (!config.model.trim()) throw new Error('请先填写模型名称')
-  if (!config.apiUrl.trim()) throw new Error('请先填写 RestAPI 调用地址')
-  if (!config.apiKey.trim()) throw new Error('请先填写 API Key')
+  if (!config.model.trim())
+    throw new Error('请先填写模型名称')
+  if (!config.apiUrl.trim())
+    throw new Error('请先填写 RestAPI 调用地址')
+  if (!config.apiKey.trim())
+    throw new Error('请先填写 API Key')
 }
 
 function extractJson(text: string): GraphData {
@@ -99,9 +102,10 @@ export async function diagnoseAiConnection(config: AIConnectionConfig): Promise<
       },
       body: JSON.stringify(config),
     })
-    const payload = await response.json().catch(() => null) as { message?: string; status?: number } | null
+    const payload = await response.json().catch(() => null) as { message?: string, status?: number } | null
     return `[${payload?.status ?? response.status}] ${payload?.message ?? response.statusText}`
-  } catch (error) {
+  }
+  catch (error) {
     return error instanceof Error ? error.message : String(error)
   }
 }
@@ -138,21 +142,25 @@ export async function generateGraph(
   }
 
   const reader = response.body?.getReader()
-  if (!reader) throw new Error('No response body')
+  if (!reader)
+    throw new Error('No response body')
 
   const decoder = new TextDecoder()
   let fullContent = ''
 
   while (true) {
     const { done, value } = await reader.read()
-    if (done) break
+    if (done)
+      break
 
     const chunk = decoder.decode(value, { stream: true })
     for (const line of chunk.split('\n')) {
       const trimmed = line.trim()
-      if (!trimmed.startsWith('data:')) continue
+      if (!trimmed.startsWith('data:'))
+        continue
       const data = trimmed.slice(5).trim()
-      if (data === '[DONE]') continue
+      if (data === '[DONE]')
+        continue
       try {
         const parsed = JSON.parse(data)
         const token: string = parsed.choices?.[0]?.delta?.content ?? ''
@@ -160,10 +168,12 @@ export async function generateGraph(
           fullContent += token
           onToken?.(token, fullContent)
         }
-      } catch {}
+      }
+      catch {}
     }
   }
 
-  if (!fullContent) throw new Error('Empty response from API')
+  if (!fullContent)
+    throw new Error('Empty response from API')
   return extractJson(fullContent)
 }

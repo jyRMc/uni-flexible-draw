@@ -30,18 +30,22 @@ export class GroupManager {
    * 创建组合
    */
   createGroup(nodes: Node[], options: GroupOptions = {}): Node | null {
-    if (nodes.length < 2) return null
+    if (nodes.length < 2)
+      return null
 
     const validNodes = nodes.filter((n) => {
       // 排除已经是 group 的节点（如果选中了 group 自身）
-      if (n.shape === 'basic-group') return false
+      if (n.shape === 'basic-group')
+        return false
       // 排除已有父节点的节点（避免嵌套冲突，由调用方处理）
       const parent = (n as any).getParent?.()
-      if (parent) return false
+      if (parent)
+        return false
       return true
     })
 
-    if (validNodes.length < 2) return null
+    if (validNodes.length < 2)
+      return null
 
     const padding = options.padding ?? GROUP_PADDING
 
@@ -64,7 +68,7 @@ export class GroupManager {
     const groupW = Math.max(maxX - minX + padding * 2, GROUP_MIN_SIZE)
     const groupH = Math.max(maxY - minY + padding * 2, GROUP_MIN_SIZE)
 
-    const minZIndex = Math.min(...validNodes.map((n) => (n as any).getZIndex?.() ?? 0))
+    const minZIndex = Math.min(...validNodes.map(n => (n as any).getZIndex?.() ?? 0))
 
     const groupData: NodeData = {
       id: `group-${Date.now()}`,
@@ -99,8 +103,10 @@ export class GroupManager {
 
     ids.forEach((id) => {
       const group = this.graph.getCellById(id)
-      if (!group || !group.isNode?.()) return
-      if ((group as Node).shape !== 'basic-group') return
+      if (!group || !group.isNode?.())
+        return
+      if ((group as Node).shape !== 'basic-group')
+        return
 
       const children = (group as any).getChildren?.() ?? []
       const gPos = group.getPosition()
@@ -133,8 +139,10 @@ export class GroupManager {
    */
   enterEditMode(groupId: string): boolean {
     const group = this.graph.getCellById(groupId)
-    if (!group || !group.isNode?.() || (group as Node).shape !== 'basic-group') return false
-    if (this.editingGroupId) this.exitEditMode()
+    if (!group || !group.isNode?.() || (group as Node).shape !== 'basic-group')
+      return false
+    if (this.editingGroupId)
+      this.exitEditMode()
 
     this.editingGroupId = groupId
     this.originalZIndexMap.set(groupId, (group as any).getZIndex?.() ?? 0)
@@ -156,7 +164,8 @@ export class GroupManager {
    * 退出编辑模式
    */
   exitEditMode(): boolean {
-    if (!this.editingGroupId) return false
+    if (!this.editingGroupId)
+      return false
     const group = this.graph.getCellById(this.editingGroupId)
     if (group) {
       // 恢复原始样式
@@ -166,7 +175,8 @@ export class GroupManager {
 
       // 恢复 zIndex
       const originalZ = this.originalZIndexMap.get(this.editingGroupId)
-      if (originalZ !== undefined) group.setZIndex(originalZ)
+      if (originalZ !== undefined)
+        group.setZIndex(originalZ)
 
       // 重新计算包围盒
       this.fitGroupSize(group)
@@ -197,11 +207,14 @@ export class GroupManager {
   addChild(groupId: string, nodeId: string): boolean {
     const group = this.graph.getCellById(groupId)
     const node = this.graph.getCellById(nodeId)
-    if (!group || !node || !group.isNode?.() || !node.isNode?.()) return false
-    if ((group as Node).shape !== 'basic-group') return false
+    if (!group || !node || !group.isNode?.() || !node.isNode?.())
+      return false
+    if ((group as Node).shape !== 'basic-group')
+      return false
 
     // 检测循环引用
-    if (this.isDescendant(nodeId, groupId)) return false
+    if (this.isDescendant(nodeId, groupId))
+      return false
 
     const gPos = group.getPosition()
     const nPos = node.getPosition()
@@ -219,8 +232,10 @@ export class GroupManager {
   removeChild(groupId: string, nodeId: string): boolean {
     const group = this.graph.getCellById(groupId)
     const node = this.graph.getCellById(nodeId)
-    if (!group || !node || !group.isNode?.() || !node.isNode?.()) return false
-    if ((group as Node).shape !== 'basic-group') return false
+    if (!group || !node || !group.isNode?.() || !node.isNode?.())
+      return false
+    if ((group as Node).shape !== 'basic-group')
+      return false
 
     const gPos = group.getPosition()
     const nPos = node.getPosition()
@@ -237,14 +252,18 @@ export class GroupManager {
    */
   isDescendant(parentId: string, childId: string): boolean {
     let current = this.graph.getCellById(childId)
-    if (!current) return false
+    if (!current)
+      return false
 
     const visited = new Set<string>()
     while (current) {
       const parent = (current as any).getParent?.()
-      if (!parent) return false
-      if (parent.id === parentId) return true
-      if (visited.has(parent.id)) return false // 防止死循环
+      if (!parent)
+        return false
+      if (parent.id === parentId)
+        return true
+      if (visited.has(parent.id))
+        return false // 防止死循环
       visited.add(parent.id)
       current = parent
     }
@@ -256,7 +275,8 @@ export class GroupManager {
    */
   getGroupDepth(groupId: string): number {
     const group = this.graph.getCellById(groupId)
-    if (!group || !group.isNode?.() || (group as Node).shape !== 'basic-group') return -1
+    if (!group || !group.isNode?.() || (group as Node).shape !== 'basic-group')
+      return -1
 
     let depth = 0
     let current = group as any
@@ -272,7 +292,8 @@ export class GroupManager {
    */
   getDescendants(groupId: string): Node[] {
     const group = this.graph.getCellById(groupId)
-    if (!group || !group.isNode?.()) return []
+    if (!group || !group.isNode?.())
+      return []
 
     const result: Node[] = []
     const children = (group as any).getChildren?.() ?? []
@@ -290,7 +311,8 @@ export class GroupManager {
    */
   fitGroupSize(group: Node): void {
     const children = (group as any).getChildren?.() ?? []
-    if (children.length === 0) return
+    if (children.length === 0)
+      return
 
     let minX = Infinity
     let minY = Infinity
@@ -318,7 +340,8 @@ export class GroupManager {
    */
   hasParent(nodeId: string): boolean {
     const node = this.graph.getCellById(nodeId)
-    if (!node) return false
+    if (!node)
+      return false
     return !!(node as any).getParent?.()
   }
 
@@ -327,7 +350,8 @@ export class GroupManager {
    */
   getParentGroup(nodeId: string): Node | null {
     const node = this.graph.getCellById(nodeId)
-    if (!node) return null
+    if (!node)
+      return null
     const parent = (node as any).getParent?.()
     return parent && parent.isNode?.() ? parent : null
   }

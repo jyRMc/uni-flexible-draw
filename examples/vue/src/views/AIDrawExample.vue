@@ -1,76 +1,11 @@
-﻿<template>
-  <div class="app-shell">
-    <!-- 顶部业务栏 -->
-    <TopBar
-      :title="graphData.meta?.title || exampleText.common.untitled"
-      :zoom-percent="zoomPercent"
-      :editing="!readonly"
-      :lang="currentLanguage"
-      :texts="exampleText.topBar"
-      @toggle-edit="readonly = !readonly"
-      @toggle-language="toggleLanguage"
-      @templates="openTemplates"
-      @preview="openPreview"
-      @ai-draw="toggleAiPanel"
-      @new-chat="clearAiChat"
-      @share="onShare"
-      @exit="onExit"
-    />
-
-    <PreviewModal
-      v-model:visible="previewVisible"
-      :data="graphData"
-      :title="exampleText.common.previewTitle"
-      :copy-title="exampleText.common.copyJson"
-      :download-title="exampleText.common.downloadJson"
-      :close-title="exampleText.common.close"
-      @copy="onPreviewCopy"
-      @download="onPreviewDownload"
-    />
-
-    <div class="workspace-shell">
-      <UniDraw
-        ref="drawRef"
-        v-model="graphData"
-        class="draw-shell"
-        :assets="assets"
-        :asset-page="assetPage"
-        :asset-total-pages="assetTotalPages"
-        :asset-page-loading="assetsLoading"
-        :can-prev-assets="assetPage > 1"
-        :can-next-assets="assetPage < assetTotalPages"
-        :templates="templates"
-        :readonly="readonly"
-        :locale="currentLocale"
-        @assets:prev-page="goToPreviousAssetPage"
-        @assets:next-page="goToNextAssetPage"
-        @ready="onReady"
-        @update:model-value="onDataChange"
-      />
-
-      <AIPanel
-        v-if="aiPanelOpen"
-        :messages="aiMessages"
-        :is-loading="aiLoading"
-        :follow-up-questions="followUpQuestions"
-        :config="aiConfig"
-        class="ai-shell"
-        @update:config="onAiConfigChange"
-        @send="onAiGenerate"
-      />
-    </div>
-  </div>
-</template>
-
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
-import { UniDraw, zhCN, enUS, type UniDrawLocale } from '@uni-draw/draw'
-import type { AssetItem, GraphData, TemplateItem } from '@uni-draw/draw'
-import { generateGraph, diagnoseAiConnection, type AIConnectionConfig } from '../mocks/aiService'
+import { AssetItem, GraphData, TemplateItem, UniDraw, UniDrawLocale, enUS, zhCN } from '@uni-draw/draw'
+import { type AIConnectionConfig, diagnoseAiConnection, generateGraph } from '../mocks/aiService'
 import { SCENARIO_TEMPLATES } from '../mocks/templates'
+import PreviewModal from '../components/PreviewModal.vue'
 import AIPanel from './AIPanel.vue'
 import TopBar from './TopBar.vue'
-import PreviewModal from '../components/PreviewModal.vue'
 
 interface Message {
   role: 'user' | 'assistant'
@@ -173,13 +108,15 @@ async function loadAssets(page = assetPage.value) {
     assetPage.value = normalized.page
     assetTotalPages.value = normalized.totalPages
     assetsPaginated.value = normalized.paginated
-  } catch (error) {
+  }
+  catch (error) {
     console.error('[AIDrawExample] Failed to load SVG assets', error)
     assets.value = []
     assetPage.value = 1
     assetTotalPages.value = 1
     assetsPaginated.value = false
-  } finally {
+  }
+  finally {
     assetsLoading.value = false
   }
 }
@@ -189,12 +126,14 @@ onMounted(() => {
 })
 
 function goToPreviousAssetPage() {
-  if (assetsLoading.value || !assetsPaginated.value || assetPage.value <= 1) return
+  if (assetsLoading.value || !assetsPaginated.value || assetPage.value <= 1)
+    return
   void loadAssets(assetPage.value - 1)
 }
 
 function goToNextAssetPage() {
-  if (assetsLoading.value || !assetsPaginated.value || assetPage.value >= assetTotalPages.value) return
+  if (assetsLoading.value || !assetsPaginated.value || assetPage.value >= assetTotalPages.value)
+    return
   void loadAssets(assetPage.value + 1)
 }
 
@@ -272,13 +211,16 @@ async function onReady() {
   const diag = await diagnoseAiConnection(aiConfig.value)
   aiMessages.value = [{ role: 'assistant', content: `🔌 API 连通诊断: ${diag}` }]
   followUpQuestions.value = [
-    '如何绘制流程图？', '如何绘制 UML 类图？', '如何绘制实体关系图？',
+    '如何绘制流程图？',
+    '如何绘制 UML 类图？',
+    '如何绘制实体关系图？',
   ]
 }
 
 async function onAiGenerate(prompt: string) {
   const normalizedPrompt = prompt.trim()
-  if (!normalizedPrompt || aiLoading.value) return
+  if (!normalizedPrompt || aiLoading.value)
+    return
   aiPanelOpen.value = true
   aiMessages.value = [...aiMessages.value, { role: 'user', content: normalizedPrompt }]
   aiLoading.value = true
@@ -295,13 +237,79 @@ async function onAiGenerate(prompt: string) {
     drawRef.value?.setData?.(data)
     appendAssistantMessage(summary)
     followUpQuestions.value = followUp
-  } catch (err) {
+  }
+  catch (err) {
     appendAssistantMessage(`生成失败：${err instanceof Error ? err.message : '未知错误'}`)
-  } finally {
+  }
+  finally {
     aiLoading.value = false
   }
 }
 </script>
+
+<template>
+  <div class="app-shell">
+    <!-- 顶部业务栏 -->
+    <TopBar
+      :title="graphData.meta?.title || exampleText.common.untitled"
+      :zoom-percent="zoomPercent"
+      :editing="!readonly"
+      :lang="currentLanguage"
+      :texts="exampleText.topBar"
+      @toggle-edit="readonly = !readonly"
+      @toggle-language="toggleLanguage"
+      @templates="openTemplates"
+      @preview="openPreview"
+      @ai-draw="toggleAiPanel"
+      @new-chat="clearAiChat"
+      @share="onShare"
+      @exit="onExit"
+    />
+
+    <PreviewModal
+      v-model:visible="previewVisible"
+      :data="graphData"
+      :title="exampleText.common.previewTitle"
+      :copy-title="exampleText.common.copyJson"
+      :download-title="exampleText.common.downloadJson"
+      :close-title="exampleText.common.close"
+      @copy="onPreviewCopy"
+      @download="onPreviewDownload"
+    />
+
+    <div class="workspace-shell">
+      <UniDraw
+        ref="drawRef"
+        v-model="graphData"
+        class="draw-shell"
+        :assets="assets"
+        :asset-page="assetPage"
+        :asset-total-pages="assetTotalPages"
+        :asset-page-loading="assetsLoading"
+        :can-prev-assets="assetPage > 1"
+        :can-next-assets="assetPage < assetTotalPages"
+        :templates="templates"
+        :readonly="readonly"
+        :locale="currentLocale"
+        @assets:prev-page="goToPreviousAssetPage"
+        @assets:next-page="goToNextAssetPage"
+        @ready="onReady"
+        @update:model-value="onDataChange"
+      />
+
+      <AIPanel
+        v-if="aiPanelOpen"
+        :messages="aiMessages"
+        :is-loading="aiLoading"
+        :follow-up-questions="followUpQuestions"
+        :config="aiConfig"
+        class="ai-shell"
+        @update:config="onAiConfigChange"
+        @send="onAiGenerate"
+      />
+    </div>
+  </div>
+</template>
 
 <style scoped>
 .app-shell {

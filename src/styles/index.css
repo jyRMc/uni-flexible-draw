@@ -13,7 +13,11 @@
   background: var(--uni-draw-canvas-bg, #ffffff);
   box-sizing: border-box;
 }
-.uni-draw *, .uni-draw *::before, .uni-draw *::after { box-sizing: border-box; }
+.uni-draw *,
+.uni-draw *::before,
+.uni-draw *::after {
+  box-sizing: border-box;
+}
 
 .ud-body {
   display: flex;
@@ -36,7 +40,9 @@
   background: var(--uni-draw-panel-bg, #fff);
   border: none;
   border-radius: 10px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1), 0 1px 4px rgba(0, 0, 0, 0.06);
+  box-shadow:
+    0 4px 16px rgba(0, 0, 0, 0.1),
+    0 1px 4px rgba(0, 0, 0, 0.06);
   overflow: hidden;
 }
 
@@ -75,7 +81,7 @@
   border: none;
   border-radius: 8px;
   cursor: pointer;
-  transition: all .15s;
+  transition: all 0.15s;
 }
 
 .ud-tab:hover {
@@ -84,7 +90,7 @@
 }
 
 .ud-tab.active {
-  color: var(--uni-draw-primary, #7166F0);
+  color: var(--uni-draw-primary, #7166f0);
   background: var(--uni-draw-primary-bg-light, #f4f3fe);
 }
 

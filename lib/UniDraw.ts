@@ -7,13 +7,13 @@ import { ZoomTool } from './core/tool/ZoomTool'
 import { ShortcutManager } from './core/shortcut/ShortcutManager'
 import { registerAllShapes } from './shapes/register'
 import { getAllLibraries } from './materials'
-import type { GraphData, NodeData, EdgeData, MaterialItem } from './shared/types'
-import type { AssetItem, TemplateItem } from './shared/types'
+import type { AssetItem, EdgeData, GraphData, MaterialItem, NodeData, TemplateItem } from './shared/types'
+
 import zhCN from './locale/zh-CN'
 import type { UniDrawLocale } from './locale'
 import { PRIMARY_COLOR } from './shared/constants/theme'
 import { getEdgeLineConfig, getEdgeLineType, getEdgeLineTypeOptions, getEdgeLineVertices } from './shared'
-import { createNativeColorPicker, type NativeColorPickerInstance } from './components/ColorPicker/native'
+import { type NativeColorPickerInstance, createNativeColorPicker } from './components/ColorPicker/native'
 
 // ─── Public types ──────────────────────────────────────────────────────────
 
@@ -72,17 +72,17 @@ function svg(path: string, size = 16): string {
 }
 
 const ICONS = {
-  undo:     svg('<path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/>'),
-  redo:     svg('<path d="M21 7v6h-6"/><path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3l3 2.7"/>'),
-  zoomIn:   svg('<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/>'),
-  zoomOut:  svg('<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="8" y1="11" x2="14" y2="11"/>'),
-  zoomFit:  svg('<path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>'),
+  undo: svg('<path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/>'),
+  redo: svg('<path d="M21 7v6h-6"/><path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3l3 2.7"/>'),
+  zoomIn: svg('<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/>'),
+  zoomOut: svg('<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="8" y1="11" x2="14" y2="11"/>'),
+  zoomFit: svg('<path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>'),
   panelLeftClose: svg('<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/><path d="m16 9-3 3 3 3"/>'),
   panelLeftOpen: svg('<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/><path d="m14 9 3 3-3 3"/>'),
-  trash:    svg('<polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>'),
+  trash: svg('<polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>'),
   download: svg('<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>'),
-  json:     svg('<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>'),
-  close:    svg('<path d="M18 6 6 18"/><path d="m6 6 12 12"/>', 14),
+  json: svg('<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>'),
+  close: svg('<path d="M18 6 6 18"/><path d="m6 6 12 12"/>', 14),
 }
 
 // ─── DOM helpers ────────────────────────────────────────────────────────────
@@ -93,8 +93,10 @@ function el<K extends keyof HTMLElementTagNameMap>(
   html = '',
 ): HTMLElementTagNameMap[K] {
   const e = document.createElement(tag)
-  if (cls) e.className = cls
-  if (html) e.innerHTML = html
+  if (cls)
+    e.className = cls
+  if (html)
+    e.innerHTML = html
   return e
 }
 
@@ -107,14 +109,22 @@ function btn(cls: string, title: string, icon: string, onClick: () => void): HTM
 
 function materialPreviewSvg(shape: string): string {
   const palette = (() => {
-    if (shape.startsWith('flowchart-')) return { fill: '#fff7e6', stroke: '#fa8c16' }
-    if (shape.startsWith('edge-')) return { fill: '#f5f5f5', stroke: '#7166F0' }
-    if (shape.startsWith('uml-')) return { fill: '#f9f0ff', stroke: '#722ed1' }
-    if (shape.startsWith('er-')) return { fill: '#fff1f0', stroke: '#f5222d' }
-    if (shape.startsWith('state-')) return { fill: '#f6ffed', stroke: '#52c41a' }
-    if (shape.startsWith('dfd-')) return { fill: '#e6fffb', stroke: '#13c2c2' }
-    if (shape.startsWith('swimlane-')) return { fill: '#f0f5ff', stroke: '#2f54eb' }
-    if (shape.startsWith('sequence-')) return { fill: '#fffbe6', stroke: '#faad14' }
+    if (shape.startsWith('flowchart-'))
+      return { fill: '#fff7e6', stroke: '#fa8c16' }
+    if (shape.startsWith('edge-'))
+      return { fill: '#f5f5f5', stroke: '#7166F0' }
+    if (shape.startsWith('uml-'))
+      return { fill: '#f9f0ff', stroke: '#722ed1' }
+    if (shape.startsWith('er-'))
+      return { fill: '#fff1f0', stroke: '#f5222d' }
+    if (shape.startsWith('state-'))
+      return { fill: '#f6ffed', stroke: '#52c41a' }
+    if (shape.startsWith('dfd-'))
+      return { fill: '#e6fffb', stroke: '#13c2c2' }
+    if (shape.startsWith('swimlane-'))
+      return { fill: '#f0f5ff', stroke: '#2f54eb' }
+    if (shape.startsWith('sequence-'))
+      return { fill: '#fffbe6', stroke: '#faad14' }
     return { fill: '#eef1f8', stroke: '#5b6b88' }
   })()
 
@@ -251,7 +261,7 @@ export class UniDraw {
   private sidebarPanels = new Map<'shapes' | 'assets' | 'templates', HTMLDivElement>()
   private activeSidebarTab: 'shapes' | 'assets' | 'templates' | null = null
   private sidebarVisible = true
- 
+
   // Properties panel state
   private propertiesBody!: HTMLDivElement
   private propertiesPanelEl: HTMLDivElement | null = null
@@ -292,7 +302,8 @@ export class UniDraw {
     const showProperties = this.opts.showPropertiesPanel !== false
 
     const body = el('div', 'ud-body')
-    if (showSidebar) body.appendChild(this.buildSidebar())
+    if (showSidebar)
+      body.appendChild(this.buildSidebar())
 
     const canvasWrap = el('div', 'ud-canvas-area') as HTMLDivElement
     const canvasDom = el('div', 'ud-canvas')
@@ -304,8 +315,10 @@ export class UniDraw {
     })
     ;(this as any)._canvasEl = canvasDom
 
-    if (showProperties) canvasWrap.appendChild(this.buildPropertiesPanel())
-    if (showToolbar) canvasWrap.appendChild(this.buildToolbar())
+    if (showProperties)
+      canvasWrap.appendChild(this.buildPropertiesPanel())
+    if (showToolbar)
+      canvasWrap.appendChild(this.buildToolbar())
 
     body.appendChild(canvasWrap)
 
@@ -371,8 +384,10 @@ export class UniDraw {
     }
 
     addTab('shapes', t.panel.shapes)
-    if (showAssetsTab) addTab('assets', t.panel.assets)
-    if (this.opts.showTemplates !== false) addPanel('templates')
+    if (showAssetsTab)
+      addTab('assets', t.panel.assets)
+    if (this.opts.showTemplates !== false)
+      addPanel('templates')
 
     const closeBtn = btn('qac-close', t.panel.close, ICONS.close, () => this.closeLeftPanel())
     closeBtn.type = 'button'
@@ -380,14 +395,16 @@ export class UniDraw {
     aside.append(header, panels)
 
     const firstTab = this.sidebarTabs.keys().next().value as 'shapes' | 'assets' | 'templates' | undefined
-    if (firstTab) this.setSidebarTab(firstTab)
+    if (firstTab)
+      this.setSidebarTab(firstTab)
 
     return aside
   }
 
   private buildShapePanel(): void {
     const scroll = this.sidebarPanels.get('shapes')
-    if (!scroll) return
+    if (!scroll)
+      return
     const t = this.t
 
     scroll.innerHTML = ''
@@ -408,11 +425,11 @@ export class UniDraw {
       const normalized = query.trim().toLowerCase()
       const filteredLibraries = normalized
         ? libs
-          .map((lib) => ({
-            ...lib,
-            items: lib.items.filter((item) => item.name.toLowerCase().includes(normalized) || item.shape.toLowerCase().includes(normalized)),
-          }))
-          .filter((lib) => lib.items.length > 0)
+            .map(lib => ({
+              ...lib,
+              items: lib.items.filter(item => item.name.toLowerCase().includes(normalized) || item.shape.toLowerCase().includes(normalized)),
+            }))
+            .filter(lib => lib.items.length > 0)
         : libs
 
       if (filteredLibraries.length === 0) {
@@ -464,7 +481,8 @@ export class UniDraw {
 
   private buildAssetsPanel(): void {
     const panel = this.sidebarPanels.get('assets')
-    if (!panel) return
+    if (!panel)
+      return
     const t = this.t
 
     panel.innerHTML = ''
@@ -484,7 +502,8 @@ export class UniDraw {
 
     if (assets.length === 0) {
       grid.appendChild(el('div', 'ud-assets-empty', t.panel.noAssets))
-    } else {
+    }
+    else {
       for (const asset of assets) {
         const material = this.createAssetMaterial(asset)
         const cell = el('div', 'ud-asset-cell') as HTMLDivElement
@@ -498,7 +517,8 @@ export class UniDraw {
           img.src = asset.content
           img.alt = asset.name
           cell.appendChild(img)
-        } else {
+        }
+        else {
           const wrap = el('div', 'ud-asset-icon-wrap') as HTMLDivElement
           wrap.innerHTML = asset.content
           cell.appendChild(wrap)
@@ -508,7 +528,8 @@ export class UniDraw {
       }
     }
 
-    if (!showPagination) return
+    if (!showPagination)
+      return
 
     const pagination = el('div', 'ud-assets-pagination')
     const prevBtn = el('button', 'ud-assets-page-btn', t.panel.previousPage) as HTMLButtonElement
@@ -526,7 +547,8 @@ export class UniDraw {
 
   private buildTemplatesPanel(): void {
     const panel = this.sidebarPanels.get('templates')
-    if (!panel) return
+    if (!panel)
+      return
     const t = this.t
 
     panel.innerHTML = ''
@@ -547,7 +569,8 @@ export class UniDraw {
         img.src = template.thumbnail
         img.alt = template.name
         preview.appendChild(img)
-      } else {
+      }
+      else {
         preview.textContent = `${template.data.nodes.length} ${t.templatePanel.nodes} / ${template.data.edges.length} ${t.templatePanel.edges}`
       }
 
@@ -600,7 +623,8 @@ export class UniDraw {
   }
 
   private setSidebarTab(tab: 'shapes' | 'assets' | 'templates'): void {
-    if (this.activeSidebarTab === tab) return
+    if (this.activeSidebarTab === tab)
+      return
 
     this.activeSidebarTab = tab
 
@@ -640,7 +664,8 @@ export class UniDraw {
   }
 
   private updatePropertiesPanelVisibility(): void {
-    if (!this.propertiesPanelEl) return
+    if (!this.propertiesPanelEl)
+      return
     const visible = this.opts.showPropertiesPanel !== false
       && !this.propertiesHidden
       && !!(this.selectedNodeId || this.selectedEdgeId)
@@ -658,11 +683,10 @@ export class UniDraw {
     })
     ;(this as any)._graph = graph
 
-    this.graphManager  = new GraphManager(graph, this.eventBus)
+    this.graphManager = new GraphManager(graph, this.eventBus)
     this.exportService = new ExportService(graph)
-    this.zoomTool      = new ZoomTool(graph)
-    this.shortcutMgr   = new ShortcutManager(graph)
-
+    this.zoomTool = new ZoomTool(graph)
+    this.shortcutMgr = new ShortcutManager(graph)
 
     this.shortcutMgr.bind()
   }
@@ -671,25 +695,29 @@ export class UniDraw {
 
   private wireEvents(): void {
     const graph = (this as any)._graph
-    if (!graph) return
+    if (!graph)
+      return
 
     // Undo / redo button state
     graph.on('history:change', () => {
       const canUndo = graph.canUndo?.() ?? false
       const canRedo = graph.canRedo?.() ?? false
-      if (this.undoBtn) this.undoBtn.disabled = !canUndo
-      if (this.redoBtn) this.redoBtn.disabled = !canRedo
+      if (this.undoBtn)
+        this.undoBtn.disabled = !canUndo
+      if (this.redoBtn)
+        this.redoBtn.disabled = !canRedo
     })
 
     // Zoom label
     graph.on('scale', ({ sx }: { sx: number }) => {
-      if (this.zoomLabel) this.zoomLabel.textContent = `${Math.round(sx * 100)}%`
+      if (this.zoomLabel)
+        this.zoomLabel.textContent = `${Math.round(sx * 100)}%`
     })
 
     // Selection
     graph.on('selection:changed', ({ selected }: { selected: any[] }) => {
       const nodes = selected.filter((c: any) => c.isNode?.()).map((c: any) => {
-        const pos  = c.getPosition()
+        const pos = c.getPosition()
         const size = c.getSize()
         return {
           id: c.id,
@@ -708,7 +736,8 @@ export class UniDraw {
       } as EdgeData))
       this.selectedNodeId = nodes[0]?.id ?? null
       this.selectedEdgeId = this.selectedNodeId ? null : (edges[0]?.id ?? null)
-      if (this.selectedNodeId || this.selectedEdgeId) this.propertiesHidden = false
+      if (this.selectedNodeId || this.selectedEdgeId)
+        this.propertiesHidden = false
       this.updatePropertiesPanel()
       this.updatePropertiesPanelVisibility()
       this.opts.onSelectionChange?.(nodes, edges)
@@ -726,11 +755,12 @@ export class UniDraw {
     return item.shape.startsWith('edge-')
   }
 
-  private getCanvasCenterPosition(): { x: number; y: number } {
+  private getCanvasCenterPosition(): { x: number, y: number } {
     const graph = (this as any)._graph
     const canvasEl: HTMLElement = (this as any)._canvasEl
-    if (!graph) return { x: (canvasEl?.clientWidth ?? 800) / 2, y: (canvasEl?.clientHeight ?? 600) / 2 }
-    const cx = (canvasEl?.clientWidth  ?? 800) / 2
+    if (!graph)
+      return { x: (canvasEl?.clientWidth ?? 800) / 2, y: (canvasEl?.clientHeight ?? 600) / 2 }
+    const cx = (canvasEl?.clientWidth ?? 800) / 2
     const cy = (canvasEl?.clientHeight ?? 600) / 2
     const local = (typeof (graph as any).clientToLocal === 'function')
       ? (graph as any).clientToLocal({ x: cx, y: cy })
@@ -738,9 +768,10 @@ export class UniDraw {
     return { x: local.x, y: local.y }
   }
 
-  private screenToCanvasPosition(clientX: number, clientY: number): { x: number; y: number } {
+  private screenToCanvasPosition(clientX: number, clientY: number): { x: number, y: number } {
     const graph = (this as any)._graph
-    if (!graph) return { x: clientX, y: clientY }
+    if (!graph)
+      return { x: clientX, y: clientY }
     const local = (typeof (graph as any).clientToLocal === 'function')
       ? (graph as any).clientToLocal({ x: clientX, y: clientY })
       : { x: clientX, y: clientY }
@@ -748,7 +779,8 @@ export class UniDraw {
   }
 
   private handleMaterialDragStart(item: MaterialItem, event: DragEvent): void {
-    if (!event.dataTransfer) return
+    if (!event.dataTransfer)
+      return
     event.dataTransfer.effectAllowed = 'copy'
     const payload = JSON.stringify(item)
     event.dataTransfer.setData('application/json', payload)
@@ -773,17 +805,19 @@ export class UniDraw {
 
   private handleExternalDrop(event: DragEvent): void {
     const data = event.dataTransfer?.getData('application/json') || event.dataTransfer?.getData('text/plain')
-    if (!data) return
+    if (!data)
+      return
     try {
       const item = JSON.parse(data) as MaterialItem
       const position = this.screenToCanvasPosition(event.clientX, event.clientY)
       this.addElementFromMaterial(item, position)
-    } catch {
-      return
+    }
+    catch {
+
     }
   }
 
-  private addElementFromMaterial(item: MaterialItem, position?: { x: number; y: number }): void {
+  private addElementFromMaterial(item: MaterialItem, position?: { x: number, y: number }): void {
     if (this.isEdgeMaterial(item)) {
       this.addEdgeFromMaterial(item, position)
       return
@@ -791,11 +825,12 @@ export class UniDraw {
     this.addNodeFromMaterial(item, position)
   }
 
-  private addNodeFromMaterial(item: MaterialItem, position?: { x: number; y: number }): void {
+  private addNodeFromMaterial(item: MaterialItem, position?: { x: number, y: number }): void {
     const graph = (this as any)._graph
-    if (!graph) return
+    if (!graph)
+      return
     const center = position ?? this.getCanvasCenterPosition()
-    const x = center.x - item.defaultSize.width  / 2 + (position ? 0 : (Math.random() * 40 - 20))
+    const x = center.x - item.defaultSize.width / 2 + (position ? 0 : (Math.random() * 40 - 20))
     const y = center.y - item.defaultSize.height / 2 + (position ? 0 : (Math.random() * 40 - 20))
     const imageHref = typeof item.data?.imageHref === 'string' ? item.data.imageHref : ''
     graph.addNode({
@@ -807,14 +842,14 @@ export class UniDraw {
       label: item.defaultLabel ?? item.name,
       attrs: {
         ...(imageHref
-          ? { image: { 'xlink:href': imageHref, refWidth: '100%', refHeight: '100%', x: 0, y: 0 } }
+          ? { image: { 'xlink:href': imageHref, 'refWidth': '100%', 'refHeight': '100%', 'x': 0, 'y': 0 } }
           : {
-            body: {
-              fill:        item.defaultStyle?.fill        ?? '#fff',
-              stroke:      item.defaultStyle?.stroke      ?? PRIMARY_COLOR,
-              strokeWidth: item.defaultStyle?.strokeWidth ?? 1.5,
-            },
-          }),
+              body: {
+                fill: item.defaultStyle?.fill ?? '#fff',
+                stroke: item.defaultStyle?.stroke ?? PRIMARY_COLOR,
+                strokeWidth: item.defaultStyle?.strokeWidth ?? 1.5,
+              },
+            }),
         label: { fill: '#333', fontSize: 12 },
       },
       ports: item.defaultPorts,
@@ -823,9 +858,10 @@ export class UniDraw {
     this.opts.onDataChange?.(this.getData())
   }
 
-  private addEdgeFromMaterial(item: MaterialItem, position?: { x: number; y: number }): void {
+  private addEdgeFromMaterial(item: MaterialItem, position?: { x: number, y: number }): void {
     const graph = (this as any)._graph
-    if (!graph) return
+    if (!graph)
+      return
     const center = position ?? this.getCanvasCenterPosition()
     const halfWidth = Math.max((item.defaultSize?.width ?? 100) / 2, 40)
     graph.addEdge({
@@ -848,7 +884,8 @@ export class UniDraw {
   }
 
   private updatePropertiesPanel(): void {
-    if (!this.propertiesBody) return
+    if (!this.propertiesBody)
+      return
     const t = this.t
 
     for (const picker of this.propertyColorPickers) picker.destroy()
@@ -857,7 +894,8 @@ export class UniDraw {
     this.propertiesBody.innerHTML = ''
     const graph = (this as any)._graph
     if (!graph || (!this.selectedNodeId && !this.selectedEdgeId)) {
-      if (this.propertiesTitleEl) this.propertiesTitleEl.textContent = t.properties.title
+      if (this.propertiesTitleEl)
+        this.propertiesTitleEl.textContent = t.properties.title
       this.propertiesBody.appendChild(el('div', 'ud-empty-state', t.properties.noSelection))
       return
     }
@@ -900,7 +938,7 @@ export class UniDraw {
     const appendSelectInput = (
       labelText: string,
       value: string,
-      options: Array<{ label: string; value: string }>,
+      options: Array<{ label: string, value: string }>,
       onChange: (next: string) => void,
     ): void => {
       const select = document.createElement('select')
@@ -919,7 +957,7 @@ export class UniDraw {
     const appendIconButtonGroup = (
       labelText: string,
       value: string,
-      options: Array<{ value: string; title: string; svg: string }>,
+      options: Array<{ value: string, title: string, svg: string }>,
       onChange: (next: string) => void,
     ): void => {
       const group = el('div', 'ud-property-icon-group') as HTMLDivElement
@@ -940,7 +978,8 @@ export class UniDraw {
       input.type = 'file'
       input.accept = accept
       input.addEventListener('change', () => {
-        if (input.files?.[0]) onChange(input.files[0])
+        if (input.files?.[0])
+          onChange(input.files[0])
       })
       this.propertiesBody.appendChild(createRow(labelText, input))
     }
@@ -948,12 +987,14 @@ export class UniDraw {
     if (this.selectedNodeId) {
       const node = graph.getCellById(this.selectedNodeId)
       if (!node || !node.isNode?.()) {
-        if (this.propertiesTitleEl) this.propertiesTitleEl.textContent = t.properties.title
+        if (this.propertiesTitleEl)
+          this.propertiesTitleEl.textContent = t.properties.title
         this.propertiesBody.appendChild(el('div', 'ud-empty-state', t.properties.nodeMissing))
         return
       }
 
-      if (this.propertiesTitleEl) this.propertiesTitleEl.textContent = t.properties.nodeTitle
+      if (this.propertiesTitleEl)
+        this.propertiesTitleEl.textContent = t.properties.nodeTitle
       const size = node.getSize?.() ?? { width: 80, height: 80 }
       const attrs = node.getAttrs?.() ?? {}
       const body = attrs.body ?? {}
@@ -991,7 +1032,8 @@ export class UniDraw {
           let url: string
           if (this.opts.uploadApi) {
             url = await this.opts.uploadApi(file)
-          } else {
+          }
+          else {
             url = await new Promise<string>((resolve) => {
               const reader = new FileReader()
               reader.onload = () => resolve(reader.result as string)
@@ -1068,12 +1110,14 @@ export class UniDraw {
 
     const edge = graph.getCellById(this.selectedEdgeId)
     if (!edge || !edge.isEdge?.()) {
-      if (this.propertiesTitleEl) this.propertiesTitleEl.textContent = t.properties.title
+      if (this.propertiesTitleEl)
+        this.propertiesTitleEl.textContent = t.properties.title
       this.propertiesBody.appendChild(el('div', 'ud-empty-state', t.properties.edgeMissing))
       return
     }
 
-    if (this.propertiesTitleEl) this.propertiesTitleEl.textContent = t.properties.edgeTitle
+    if (this.propertiesTitleEl)
+      this.propertiesTitleEl.textContent = t.properties.edgeTitle
     const line = edge.getAttrs?.()?.line ?? {}
     const labels = edge.getLabels?.() ?? []
     const label = labels[0]?.attrs?.label?.text ?? ''
@@ -1085,7 +1129,8 @@ export class UniDraw {
 
     this.propertiesBody.appendChild(el('div', 'ud-properties-section-title', t.properties.edgeTitle))
     appendTextInput(t.properties.label, label, (next) => {
-      if (next) edge.setLabels?.([{ attrs: { label: { text: next } } }])
+      if (next)
+        edge.setLabels?.([{ attrs: { label: { text: next } } }])
       else edge.setLabels?.([])
       this.opts.onDataChange?.(this.getData())
     })
@@ -1151,7 +1196,8 @@ export class UniDraw {
 
   private async exportPNGToFile(): Promise<void> {
     const dataUrl = await this.exportService?.toPNG({ padding: 20 })
-    if (!dataUrl) return
+    if (!dataUrl)
+      return
     const a = document.createElement('a')
     a.href = dataUrl
     a.download = 'diagram.png'
@@ -1161,9 +1207,9 @@ export class UniDraw {
   private exportJSONToFile(): void {
     const data = this.getData()
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
-    const url  = URL.createObjectURL(blob)
-    const a    = document.createElement('a')
-    a.href     = url
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
     a.download = 'diagram.json'
     a.click()
     URL.revokeObjectURL(url)
@@ -1221,31 +1267,39 @@ export class UniDraw {
   }
 
   openTemplatePanel(): void {
-    if (this.opts.showTemplates === false) return
+    if (this.opts.showTemplates === false)
+      return
     this.openLeftPanel()
-    if (this.sidebarPanels.has('templates')) this.setSidebarTab('templates')
+    if (this.sidebarPanels.has('templates'))
+      this.setSidebarTab('templates')
   }
 
   undo(): void {
     const g = (this as any)._graph
-    if (g) (g as any).undo?.()
+    if (g)
+      (g as any).undo?.()
   }
+
   redo(): void {
     const g = (this as any)._graph
-    if (g) (g as any).redo?.()
+    if (g)
+      (g as any).redo?.()
   }
-  zoomIn(): void  { this.zoomTool?.zoomIn() }
+
+  zoomIn(): void { this.zoomTool?.zoomIn() }
   zoomOut(): void { this.zoomTool?.zoomOut() }
   zoomFit(): void { this.zoomTool?.zoomToFit({ padding: 24 }) }
 
   selectAll(): void {
     const g = (this as any)._graph
-    if (g) g.select?.(g.getCells())
+    if (g)
+      g.select?.(g.getCells())
   }
 
   deleteSelection(): void {
     const g = (this as any)._graph
-    if (g) g.removeCells?.(g.getSelectedCells?.() ?? [])
+    if (g)
+      g.removeCells?.(g.getSelectedCells?.() ?? [])
   }
 
   /** Clean up the instance and remove the DOM. */

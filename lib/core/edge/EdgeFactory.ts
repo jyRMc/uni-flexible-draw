@@ -1,4 +1,4 @@
-import type { Graph, Edge } from '@antv/x6'
+import type { Edge, Graph } from '@antv/x6'
 import type { EdgeData } from '@uni-draw/shared'
 import { getEdgeLineConfig, getEdgeLineVertices, getEdgeShapeLineType } from '@uni-draw/shared'
 
@@ -10,7 +10,7 @@ const SKETCH_ROUGHNESS = 1
  * 根据 EdgeData 创建 X6 边实例
  */
 export class EdgeFactory {
-  private static isPointEndpoint(endpoint: EdgeData['source'] | EdgeData['target']): endpoint is { x: number; y: number } {
+  private static isPointEndpoint(endpoint: EdgeData['source'] | EdgeData['target']): endpoint is { x: number, y: number } {
     return typeof endpoint === 'object' && endpoint !== null && 'x' in endpoint && 'y' in endpoint
   }
 

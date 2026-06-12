@@ -4,9 +4,9 @@ export interface NodeData {
   /** 图形类型标识 */
   shape: string
   /** 位置 */
-  position: { x: number; y: number }
+  position: { x: number, y: number }
   /** 尺寸 */
-  size: { width: number; height: number }
+  size: { width: number, height: number }
   /** 角度（旋转） */
   angle?: number
   /** Z 层级 */
@@ -69,7 +69,7 @@ export interface PortsConfig {
 }
 
 export interface PortGroup {
-  position: string | { name: string; args?: Record<string, unknown> }
+  position: string | { name: string, args?: Record<string, unknown> }
   attrs?: Record<string, unknown>
 }
 

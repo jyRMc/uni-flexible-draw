@@ -4,8 +4,8 @@ export { LabelConfig }
 
 export type EdgeEndpoint =
   | string
-  | { cell: string; port?: string }
-  | { x: number; y: number }
+  | { cell: string, port?: string }
+  | { x: number, y: number }
 
 export interface EdgeData {
   /** 全局唯一 ID */
@@ -23,11 +23,11 @@ export interface EdgeData {
   /** 业务数据 */
   data?: Record<string, unknown>
   /** 顶点（折线点） */
-  vertices?: Array<{ x: number; y: number }>
+  vertices?: Array<{ x: number, y: number }>
   /** 路由方式 */
-  router?: string | { name: string; args?: Record<string, unknown> }
+  router?: string | { name: string, args?: Record<string, unknown> }
   /** 连接器 */
-  connector?: string | { name: string; args?: Record<string, unknown> }
+  connector?: string | { name: string, args?: Record<string, unknown> }
 }
 
 export interface EdgeStyle {

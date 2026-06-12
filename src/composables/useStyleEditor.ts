@@ -23,11 +23,16 @@ export function useStyleEditor(
     const router = edge.getRouter?.()
     const connector = edge.getConnector?.()
     let lineType = 'straight'
-    if (connector?.name === 'smooth') lineType = 'curve'
-    else if (connector?.name === 'rounded') lineType = 'rounded'
-    else if (connector?.name === 'jumpover') lineType = 'jumpover'
-    else if (router?.name === 'orth') lineType = 'orthogonal'
-    else if (router?.name === 'manhattan') lineType = 'manhattan'
+    if (connector?.name === 'smooth')
+      lineType = 'curve'
+    else if (connector?.name === 'rounded')
+      lineType = 'rounded'
+    else if (connector?.name === 'jumpover')
+      lineType = 'jumpover'
+    else if (router?.name === 'orth')
+      lineType = 'orthogonal'
+    else if (router?.name === 'manhattan')
+      lineType = 'manhattan'
     const labels = edge.getLabels?.() ?? []
     const label = labels[0]?.attrs?.label?.text ?? ''
     const sourceMarker = line.sourceMarker?.name ?? 'none'
@@ -47,36 +52,43 @@ export function useStyleEditor(
 
   function updateNodeStyle(id: string, style: Record<string, unknown>): void {
     const graph = getGraph()
-    if (!graph) return
+    if (!graph)
+      return
     const cell = graph.getCellById(id)
-    if (!cell || !cell.isNode()) return
+    if (!cell || !cell.isNode())
+      return
     const node = cell as any
 
     const bodyKeys = ['fill', 'stroke', 'strokeWidth', 'strokeDasharray', 'rx', 'ry', 'opacity']
     const bodyAttrs: Record<string, any> = {}
     for (const k of bodyKeys) {
-      if (k in style) bodyAttrs[k] = style[k]
+      if (k in style)
+        bodyAttrs[k] = style[k]
     }
     if (Object.keys(bodyAttrs).length > 0) {
       if (node.shape === 'basic-cylinder') {
         const { fill, stroke, strokeWidth } = bodyAttrs as any
         const cylAttrs: Record<string, any> = {}
         if (fill !== undefined) {
-          cylAttrs.bodyFill  = { fill }
-          cylAttrs.topCap    = { fill }
+          cylAttrs.bodyFill = { fill }
+          cylAttrs.topCap = { fill }
           cylAttrs.bottomCap = { fill }
         }
         if (stroke !== undefined || strokeWidth !== undefined) {
           const sv: any = {}
-          if (stroke !== undefined)      sv.stroke = stroke
-          if (strokeWidth !== undefined) sv.strokeWidth = strokeWidth
-          cylAttrs.topCap    = { ...(cylAttrs.topCap    ?? {}), ...sv }
+          if (stroke !== undefined)
+            sv.stroke = stroke
+          if (strokeWidth !== undefined)
+            sv.strokeWidth = strokeWidth
+          cylAttrs.topCap = { ...(cylAttrs.topCap ?? {}), ...sv }
           cylAttrs.bottomCap = { ...(cylAttrs.bottomCap ?? {}), ...sv }
-          cylAttrs.leftLine  = sv
+          cylAttrs.leftLine = sv
           cylAttrs.rightLine = sv
         }
-        if (Object.keys(cylAttrs).length > 0) node.setAttrs(cylAttrs)
-      } else if (node.shape === 'basic-table') {
+        if (Object.keys(cylAttrs).length > 0)
+          node.setAttrs(cylAttrs)
+      }
+      else if (node.shape === 'basic-table') {
         const table = normalizeTableData((node.getData?.() ?? {}).table)
         const currentBody = node.getAttrs?.()?.body ?? {}
         node.setAttrs(buildTableAttrs(table, {
@@ -86,7 +98,8 @@ export function useStyleEditor(
           strokeDasharray: bodyAttrs.strokeDasharray ?? currentBody.strokeDasharray,
           opacity: bodyAttrs.opacity ?? currentBody.opacity,
         }) as any, { overwrite: true })
-      } else {
+      }
+      else {
         if ('opacity' in bodyAttrs && (node.shape === 'basic-image' || node.shape === 'basic-svg')) {
           node.attr('image/opacity', bodyAttrs.opacity)
           delete bodyAttrs.opacity
@@ -128,15 +141,29 @@ export function useStyleEditor(
 
     if ('labelPosition' in style) {
       const pos = style.labelPosition as string
-      const textAnchor = pos === 'left' ? 'end' : pos === 'right' ? 'start' : 'middle'
-      const yAttr = pos === 'top' ? '0.2' : pos === 'bottom' ? '0.8' : '0.5'
-      node.setAttrs({
-        label: {
-          textAnchor,
-          textVerticalAnchor: pos === 'top' ? 'top' : pos === 'bottom' ? 'bottom' : 'middle',
-          refY: yAttr,
-        },
-      })
+      const labelAttrs: Record<string, any> = {
+        textAnchor: 'middle',
+        textVerticalAnchor: 'middle',
+        refX: 0.5,
+        refY: 0.5,
+      }
+      if (pos === 'top') {
+        labelAttrs.textVerticalAnchor = 'top'
+        labelAttrs.refY = 0
+      }
+      else if (pos === 'bottom') {
+        labelAttrs.textVerticalAnchor = 'bottom'
+        labelAttrs.refY = 1
+      }
+      else if (pos === 'left') {
+        labelAttrs.textAnchor = 'start'
+        labelAttrs.refX = 0
+      }
+      else if (pos === 'right') {
+        labelAttrs.textAnchor = 'end'
+        labelAttrs.refX = 1
+      }
+      node.setAttrs({ label: labelAttrs })
     }
 
     if ('imageHref' in style) {
@@ -157,14 +184,19 @@ export function useStyleEditor(
 
   function updateEdgeStyle(id: string, style: Record<string, unknown>): void {
     const graph = getGraph()
-    if (!graph) return
+    if (!graph)
+      return
     const cell = graph.getCellById(id)
-    if (!cell || !cell.isEdge?.()) return
+    if (!cell || !cell.isEdge?.())
+      return
     const edge = cell as any
     const lineAttrs: Record<string, any> = {}
-    if ('stroke' in style) lineAttrs.stroke = style.stroke
-    if ('strokeWidth' in style) lineAttrs.strokeWidth = style.strokeWidth
-    if ('strokeDasharray' in style) lineAttrs.strokeDasharray = style.strokeDasharray
+    if ('stroke' in style)
+      lineAttrs.stroke = style.stroke
+    if ('strokeWidth' in style)
+      lineAttrs.strokeWidth = style.strokeWidth
+    if ('strokeDasharray' in style)
+      lineAttrs.strokeDasharray = style.strokeDasharray
     if ('sourceMarker' in style) {
       lineAttrs.sourceMarker = style.sourceMarker === 'none' ? null : { name: style.sourceMarker }
     }
@@ -178,7 +210,8 @@ export function useStyleEditor(
       const txt = style.label as string
       if (txt) {
         edge.setLabels([{ attrs: { label: { text: txt } } }])
-      } else {
+      }
+      else {
         edge.setLabels([])
       }
     }
@@ -189,11 +222,14 @@ export function useStyleEditor(
 
   function changeEdgeType(id: string, lineType: string): void {
     const graph = getGraph()
-    if (!graph) return
+    if (!graph)
+      return
     const cell = graph.getCellById(id)
-    if (!cell || !cell.isEdge?.()) return
+    if (!cell || !cell.isEdge?.())
+      return
     const edge = cell as any
-    if (edge.shape === 'edge-sketch') return
+    if (edge.shape === 'edge-sketch')
+      return
     switch (lineType) {
       case 'rounded':
         edge.setRouter({ name: 'orth' })

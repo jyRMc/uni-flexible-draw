@@ -1,6 +1,6 @@
 import { PRIMARY_COLOR } from '@uni-draw/shared'
 
-const edgeHighlightStore = new WeakMap<any, { stroke: any; strokeWidth: any }>()
+const edgeHighlightStore = new WeakMap<any, { stroke: any, strokeWidth: any }>()
 
 export function highlightEdge(edge: any): void {
   if (!edgeHighlightStore.has(edge)) {
@@ -18,7 +18,8 @@ export function highlightEdge(edge: any): void {
 
 export function unhighlightEdge(edge: any): void {
   const original = edgeHighlightStore.get(edge)
-  if (!original) return
+  if (!original)
+    return
   edge.attr('line/stroke', original.stroke)
   edge.attr('line/strokeWidth', original.strokeWidth)
   edgeHighlightStore.delete(edge)

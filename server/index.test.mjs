@@ -1,7 +1,7 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { createServer } from 'node:http'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 

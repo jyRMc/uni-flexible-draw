@@ -1,8 +1,8 @@
-import { useRef, useEffect, useImperativeHandle, forwardRef } from 'react'
+import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react'
 import type { CSSProperties } from 'react'
 import { UniDraw as UniDrawCore } from '../UniDraw'
 import type { UniDrawOptions } from '../UniDraw'
-import type { GraphData, NodeData, EdgeData } from '../shared/types'
+import type { EdgeData, GraphData, NodeData } from '../shared/types'
 
 // ─── Public props / ref types ──────────────────────────────────────────────
 
@@ -16,42 +16,47 @@ export interface UniDrawProps extends Omit<UniDrawOptions, 'initialData' | 'onRe
 }
 
 export interface UniDrawRef {
-  getData(): GraphData | undefined
-  setData(data: GraphData): void
-  clear(): void
-  exportPNG(): Promise<string | undefined>
-  exportSVG(): Promise<string | undefined>
-  exportJSON(): string | undefined
-  openTemplatePanel(): void
-  undo(): void
-  redo(): void
-  zoomIn(): void
-  zoomOut(): void
-  zoomFit(): void
-  selectAll(): void
-  deleteSelection(): void
+  getData: () => GraphData | undefined
+  setData: (data: GraphData) => void
+  clear: () => void
+  exportPNG: () => Promise<string | undefined>
+  exportSVG: () => Promise<string | undefined>
+  exportJSON: () => string | undefined
+  openTemplatePanel: () => void
+  undo: () => void
+  redo: () => void
+  zoomIn: () => void
+  zoomOut: () => void
+  zoomFit: () => void
+  selectAll: () => void
+  deleteSelection: () => void
 }
 
 // ─── Component ─────────────────────────────────────────────────────────────
 
-const UniDraw = forwardRef<UniDrawRef, UniDrawProps>(function UniDraw(props, ref) {
+const UniDraw = forwardRef<UniDrawRef, UniDrawProps>((props, ref) => {
   const {
-    value, onReady, onSelectionChange, onChange,
-    style, className,
+    value,
+    onReady,
+    onSelectionChange,
+    onChange,
+    style,
+    className,
     ...opts
   } = props
 
   const containerRef = useRef<HTMLDivElement>(null)
-  const instanceRef  = useRef<UniDrawCore | null>(null)
+  const instanceRef = useRef<UniDrawCore | null>(null)
 
   useEffect(() => {
-    if (!containerRef.current) return
+    if (!containerRef.current)
+      return
     const inst = new UniDrawCore(containerRef.current, {
       ...opts,
-      initialData:      value,
+      initialData: value,
       onReady,
       onSelectionChange,
-      onDataChange:     onChange,
+      onDataChange: onChange,
     })
     instanceRef.current = inst
     return () => { inst.destroy(); instanceRef.current = null }
@@ -60,11 +65,13 @@ const UniDraw = forwardRef<UniDrawRef, UniDrawProps>(function UniDraw(props, ref
 
   // Sync external value changes
   useEffect(() => {
-    if (value && instanceRef.current) instanceRef.current.setData(value)
+    if (value && instanceRef.current)
+      instanceRef.current.setData(value)
   }, [value])
 
   useEffect(() => {
-    if (instanceRef.current && props.assets) instanceRef.current.setAssets(props.assets)
+    if (instanceRef.current && props.assets)
+      instanceRef.current.setAssets(props.assets)
   }, [props.assets])
 
   useEffect(() => {
@@ -88,24 +95,25 @@ const UniDraw = forwardRef<UniDrawRef, UniDrawProps>(function UniDraw(props, ref
   ])
 
   useEffect(() => {
-    if (instanceRef.current && props.templates) instanceRef.current.setTemplates(props.templates)
+    if (instanceRef.current && props.templates)
+      instanceRef.current.setTemplates(props.templates)
   }, [props.templates])
 
   useImperativeHandle(ref, () => ({
-    getData:         () => instanceRef.current?.getData(),
-    setData:         (d)          => instanceRef.current?.setData(d),
-    clear:           ()           => instanceRef.current?.clear(),
-    exportPNG:       ()           => instanceRef.current?.exportPNG() ?? Promise.resolve(undefined),
-    exportSVG:       ()           => instanceRef.current?.exportSVG() ?? Promise.resolve(undefined),
-    exportJSON:      ()           => instanceRef.current?.exportJSON(),
-    openTemplatePanel: ()         => instanceRef.current?.openTemplatePanel(),
-    undo:            ()           => instanceRef.current?.undo(),
-    redo:            ()           => instanceRef.current?.redo(),
-    zoomIn:          ()           => instanceRef.current?.zoomIn(),
-    zoomOut:         ()           => instanceRef.current?.zoomOut(),
-    zoomFit:         ()           => instanceRef.current?.zoomFit(),
-    selectAll:       ()           => instanceRef.current?.selectAll(),
-    deleteSelection: ()           => instanceRef.current?.deleteSelection(),
+    getData: () => instanceRef.current?.getData(),
+    setData: d => instanceRef.current?.setData(d),
+    clear: () => instanceRef.current?.clear(),
+    exportPNG: () => instanceRef.current?.exportPNG() ?? Promise.resolve(undefined),
+    exportSVG: () => instanceRef.current?.exportSVG() ?? Promise.resolve(undefined),
+    exportJSON: () => instanceRef.current?.exportJSON(),
+    openTemplatePanel: () => instanceRef.current?.openTemplatePanel(),
+    undo: () => instanceRef.current?.undo(),
+    redo: () => instanceRef.current?.redo(),
+    zoomIn: () => instanceRef.current?.zoomIn(),
+    zoomOut: () => instanceRef.current?.zoomOut(),
+    zoomFit: () => instanceRef.current?.zoomFit(),
+    selectAll: () => instanceRef.current?.selectAll(),
+    deleteSelection: () => instanceRef.current?.deleteSelection(),
   }))
 
   return (

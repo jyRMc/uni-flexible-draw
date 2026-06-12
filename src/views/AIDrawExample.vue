@@ -1,32 +1,12 @@
-﻿<template>
-  <div class="app-shell">
-    <UniDraw
-      ref="drawRef"
-      v-model="graphData"
-      class="draw-shell"
-      @ready="onReady"
-    />
-    <AIPanel
-      :messages="messages"
-      :is-loading="aiLoading"
-      :follow-up-questions="followUpQuestions"
-      :config="aiConfig"
-      class="ai-shell"
-      @update:config="onAiConfigChange"
-      @send="onAiGenerate"
-    />
-  </div>
-</template>
-
 <script setup lang="ts">
 import { ref } from 'vue'
 import { UniDraw } from '../index'
 import type { GraphData } from '../index'
-import { generateGraph, diagnoseAiConnection, type AIConnectionConfig } from '../mocks/aiService'
+import { type AIConnectionConfig, diagnoseAiConnection, generateGraph } from '../mocks/aiService'
 import AIPanel from './AIPanel.vue'
 
 const drawRef = ref<InstanceType<typeof UniDraw> | null>(null)
-const messages = ref<Array<{ role: 'user' | 'assistant'; content: string }>>([])
+const messages = ref<Array<{ role: 'user' | 'assistant', content: string }>>([])
 const aiLoading = ref(false)
 const followUpQuestions = ref<string[]>([])
 const aiConfig = ref<AIConnectionConfig>({
@@ -59,13 +39,16 @@ async function onReady() {
   const diag = await diagnoseAiConnection(aiConfig.value)
   messages.value = [{ role: 'assistant', content: `🔌 API 连通诊断: ${diag}` }]
   followUpQuestions.value = [
-    '如何绘制流程图？', '如何绘制 UML 类图？', '如何绘制实体关系图？',
+    '如何绘制流程图？',
+    '如何绘制 UML 类图？',
+    '如何绘制实体关系图？',
   ]
 }
 
 async function onAiGenerate(prompt: string) {
   const normalizedPrompt = prompt.trim()
-  if (!normalizedPrompt || aiLoading.value) return
+  if (!normalizedPrompt || aiLoading.value)
+    return
   messages.value = [...messages.value, { role: 'user', content: normalizedPrompt }]
   aiLoading.value = true
   followUpQuestions.value = []
@@ -81,13 +64,35 @@ async function onAiGenerate(prompt: string) {
     drawRef.value?.setData?.(data)
     appendAssistantMessage(summary)
     followUpQuestions.value = followUp
-  } catch (err) {
+  }
+  catch (err) {
     appendAssistantMessage(`生成失败：${err instanceof Error ? err.message : '未知错误'}`)
-  } finally {
+  }
+  finally {
     aiLoading.value = false
   }
 }
 </script>
+
+<template>
+  <div class="app-shell">
+    <UniDraw
+      ref="drawRef"
+      v-model="graphData"
+      class="draw-shell"
+      @ready="onReady"
+    />
+    <AIPanel
+      :messages="messages"
+      :is-loading="aiLoading"
+      :follow-up-questions="followUpQuestions"
+      :config="aiConfig"
+      class="ai-shell"
+      @update:config="onAiConfigChange"
+      @send="onAiGenerate"
+    />
+  </div>
+</template>
 
 <style scoped>
 .app-shell {

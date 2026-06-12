@@ -1,5 +1,5 @@
 import rough from 'roughjs'
-import type { Drawable, Options as RoughOptions, OpSet } from 'roughjs/bin/core'
+import type { Drawable, OpSet, Options as RoughOptions } from 'roughjs/bin/core'
 
 /**
  * 草图粗糙度档位（参考 Excalidraw）
@@ -31,14 +31,16 @@ export interface SketchRenderOptions {
 function adjustRoughness(width: number, height: number, roughness: number): number {
   const maxSize = Math.max(width, height)
   const minSize = Math.min(width, height)
-  if ((minSize >= 20 && maxSize >= 50) || minSize >= 15) return roughness
+  if ((minSize >= 20 && maxSize >= 50) || minSize >= 15)
+    return roughness
   return Math.min(roughness / (maxSize < 10 ? 3 : 2), 2.5)
 }
 
 /** 将 roughjs ops 转为 SVG path d 字符串 */
 function opsToD(opSet: OpSet): string {
   const ops = opSet.ops
-  if (!ops || ops.length === 0) return ''
+  if (!ops || ops.length === 0)
+    return ''
   let d = ''
   for (const op of ops) {
     switch (op.op) {
@@ -61,7 +63,8 @@ function drawableToD(drawable: Drawable): string {
   const parts: string[] = []
   for (const opSet of drawable.sets || []) {
     const d = opsToD(opSet)
-    if (d) parts.push(d)
+    if (d)
+      parts.push(d)
   }
   return parts.join(' ')
 }
@@ -109,7 +112,8 @@ export class SketchRenderer {
       const r = Math.min(rx, width / 2, height / 2)
       const d = `M ${r} 0 L ${width - r} 0 Q ${width} 0, ${width} ${r} L ${width} ${height - r} Q ${width} ${height}, ${width - r} ${height} L ${r} ${height} Q 0 ${height}, 0 ${height - r} L 0 ${r} Q 0 0, ${r} 0`
       drawable = this.generator.path(d, { ...options, preserveVertices: true })
-    } else {
+    }
+    else {
       drawable = this.generator.rectangle(0, 0, width, height, options)
     }
     return drawableToD(drawable)
@@ -139,8 +143,9 @@ export class SketchRenderer {
   /**
    * 折线 → 手绘路径 d（边/连接线）
    */
-  linearPath(points: { x: number; y: number }[], opts: SketchRenderOptions = {}): string {
-    if (points.length < 2) return ''
+  linearPath(points: { x: number, y: number }[], opts: SketchRenderOptions = {}): string {
+    if (points.length < 2)
+      return ''
     const pts = points.map(p => [p.x, p.y] as [number, number])
     const xs = pts.map(p => p[0])
     const ys = pts.map(p => p[1])
@@ -154,8 +159,9 @@ export class SketchRenderer {
   /**
    * 曲线 → 手绘路径 d
    */
-  curve(points: { x: number; y: number }[], opts: SketchRenderOptions = {}): string {
-    if (points.length < 2) return ''
+  curve(points: { x: number, y: number }[], opts: SketchRenderOptions = {}): string {
+    if (points.length < 2)
+      return ''
     const pts = points.map(p => [p.x, p.y] as [number, number])
     const xs = pts.map(p => p[0])
     const ys = pts.map(p => p[1])

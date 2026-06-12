@@ -18,7 +18,7 @@ export class ZoomTool {
     this.graph.zoomTo(factor)
   }
 
-  zoomToFit(options?: { padding?: number; maxScale?: number }): void {
+  zoomToFit(options?: { padding?: number, maxScale?: number }): void {
     this.graph.zoomToFit(options)
   }
 

@@ -1,7 +1,7 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { GraphEventBus } from '../core/event/GraphEventBus'
 
-describe('GraphEventBus', () => {
+describe('graphEventBus', () => {
   it('should subscribe and emit events', () => {
     const bus = new GraphEventBus()
     const cb = vi.fn()

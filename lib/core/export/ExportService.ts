@@ -62,7 +62,8 @@ export class ExportService {
           height: options.height,
           viewBox: options.viewBox,
         })
-      } catch (e) {
+      }
+      catch (e) {
         reject(e)
       }
     })
@@ -90,7 +91,8 @@ export class ExportService {
               }
             : undefined),
         })
-      } catch (e) {
+      }
+      catch (e) {
         reject(e)
       }
     })

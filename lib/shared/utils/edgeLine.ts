@@ -64,8 +64,10 @@ function getMidpointVertex(source: EdgeVertexPoint, target: EdgeVertexPoint): Ed
 }
 
 export function getEdgeShapeLineType(shape: string): EdgeLineType | null {
-  if (shape === EDGE_SHAPES.CURVE) return 'curve'
-  if (shape === EDGE_SHAPES.ORTHOGONAL) return 'orthogonal'
+  if (shape === EDGE_SHAPES.CURVE)
+    return 'curve'
+  if (shape === EDGE_SHAPES.ORTHOGONAL)
+    return 'orthogonal'
   return null
 }
 
@@ -78,17 +80,22 @@ export function getEdgeLineType(
   if (typeof stored === 'string') {
     return stored as EdgeLineType
   }
-  if (connector?.name === 'smooth') return 'curve'
-  if (connector?.name === 'rounded') return 'rounded'
-  if (connector?.name === 'jumpover') return 'jumpover'
-  if (router?.name === 'orth') return 'orthogonal'
-  if (router?.name === 'manhattan') return 'manhattan'
+  if (connector?.name === 'smooth')
+    return 'curve'
+  if (connector?.name === 'rounded')
+    return 'rounded'
+  if (connector?.name === 'jumpover')
+    return 'jumpover'
+  if (router?.name === 'orth')
+    return 'orthogonal'
+  if (router?.name === 'manhattan')
+    return 'manhattan'
   return 'straight'
 }
 
 export function getEdgeLineConfig(lineType: string): {
-  router: { name: string; args?: Record<string, unknown> } | null
-  connector: { name: string; args?: Record<string, unknown> } | null
+  router: { name: string, args?: Record<string, unknown> } | null
+  connector: { name: string, args?: Record<string, unknown> } | null
 } {
   switch (lineType) {
     case 'rounded':
@@ -130,7 +137,8 @@ export function getEdgeLineVertices(
   source?: EdgeVertexPoint | null,
   target?: EdgeVertexPoint | null,
 ): EdgeVertexPoint[] {
-  if (!source || !target) return []
+  if (!source || !target)
+    return []
 
   const dx = target.x - source.x
   const dy = target.y - source.y
@@ -139,7 +147,8 @@ export function getEdgeLineVertices(
 
   switch (lineType) {
     case 'curve': {
-      if (absDx < 1 && absDy < 1) return []
+      if (absDx < 1 && absDy < 1)
+        return []
 
       if (absDx >= absDy) {
         const offset = clamp(Math.max(absDx * 0.12, absDy * 0.6, 36), 36, 96)
@@ -174,7 +183,8 @@ export function isSameEdgeVertices(
   expected: EdgeVertexPoint[],
   tolerance = 4,
 ): boolean {
-  if (current.length !== expected.length) return false
+  if (current.length !== expected.length)
+    return false
   return current.every((point, index) => {
     const target = expected[index]
     return Math.abs(point.x - target.x) <= tolerance && Math.abs(point.y - target.y) <= tolerance

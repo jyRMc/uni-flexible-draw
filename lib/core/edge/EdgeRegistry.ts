@@ -12,12 +12,15 @@ export class EdgeRegistry {
    * 注册边图形
    */
   static register(name: string, config: Edge.Config): void {
-    if (EdgeRegistry.configs.has(name)) return
+    if (EdgeRegistry.configs.has(name))
+      return
     EdgeRegistry.configs.set(name, config)
     try {
       Graph.registerEdge(name, config)
-    } catch (e: any) {
-      if (e?.message?.includes('already registered')) return
+    }
+    catch (e: any) {
+      if (e?.message?.includes('already registered'))
+        return
       throw e
     }
   }

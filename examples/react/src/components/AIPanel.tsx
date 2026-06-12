@@ -248,7 +248,8 @@ export default function AIPanel({
   }
 
   const sendInput = () => {
-    if (!inputValue.trim() || isLoading) return
+    if (!inputValue.trim() || isLoading)
+      return
     const nextPrompt = inputValue.trim()
     setInputValue('')
     setActiveTab('chat')
@@ -265,7 +266,7 @@ export default function AIPanel({
   return (
     <div style={{ ...styles.panel, ...style }}>
       <div style={styles.tabs}>
-        {tabs.map((tab) => (
+        {tabs.map(tab => (
           <button
             key={tab.key}
             type="button"
@@ -282,7 +283,7 @@ export default function AIPanel({
           <div style={styles.prompts}>
             <div style={styles.promptsTitle}>试试这样说</div>
             <div style={styles.promptsList}>
-              {suggestions.map((prompt) => (
+              {suggestions.map(prompt => (
                 <button key={prompt} type="button" style={styles.promptBtn} onClick={() => sendPrompt(prompt)}>
                   {prompt}
                 </button>
@@ -318,7 +319,7 @@ export default function AIPanel({
           {followUpQuestions.length > 0 && !isLoading && (
             <div style={styles.followUps}>
               <div style={styles.followUpsTitle}>你可能还想问</div>
-              {followUpQuestions.map((question) => (
+              {followUpQuestions.map(question => (
                 <button key={question} type="button" style={styles.followUpBtn} onClick={() => sendPrompt(question)}>
                   {question}
                 </button>
@@ -344,9 +345,10 @@ export default function AIPanel({
             type="text"
             placeholder="描述你想绘制的图表..."
             style={styles.input}
-            onChange={(event) => setInputValue(event.target.value)}
+            onChange={event => setInputValue(event.target.value)}
             onKeyUp={(event) => {
-              if (event.key === 'Enter') sendInput()
+              if (event.key === 'Enter')
+                sendInput()
             }}
           />
           <button
@@ -368,21 +370,21 @@ export default function AIPanel({
               type="text"
               placeholder="模型名称，例如 deepseek-ai/DeepSeek-V3"
               style={styles.configInput}
-              onChange={(event) => updateConfig({ model: event.target.value })}
+              onChange={event => updateConfig({ model: event.target.value })}
             />
             <input
               value={config.apiUrl}
               type="text"
               placeholder="RestAPI 调用地址，例如 https://api.example.com/v1/chat/completions"
               style={styles.configInput}
-              onChange={(event) => updateConfig({ apiUrl: event.target.value })}
+              onChange={event => updateConfig({ apiUrl: event.target.value })}
             />
             <input
               value={config.apiKey}
               type="password"
               placeholder="API Key"
               style={styles.configInput}
-              onChange={(event) => updateConfig({ apiKey: event.target.value })}
+              onChange={event => updateConfig({ apiKey: event.target.value })}
             />
           </div>
           <span style={styles.modelLabel}>{config.model || '未配置模型'}</span>

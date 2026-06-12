@@ -1,5 +1,5 @@
 import { createServer } from 'node:http'
-import { readdir, readFile } from 'node:fs/promises'
+import { readFile, readdir } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -65,7 +65,8 @@ async function loadAssets() {
 
   items.sort((a, b) => {
     const categoryCompare = a.category.localeCompare(b.category)
-    if (categoryCompare !== 0) return categoryCompare
+    if (categoryCompare !== 0)
+      return categoryCompare
     return a.name.localeCompare(b.name)
   })
 
@@ -86,7 +87,8 @@ async function getAssets(forceReload = false) {
 
 function toPositiveInt(value, fallback) {
   const num = Number.parseInt(value ?? '', 10)
-  if (!Number.isFinite(num) || num <= 0) return fallback
+  if (!Number.isFinite(num) || num <= 0)
+    return fallback
   return num
 }
 
@@ -172,7 +174,8 @@ const server = createServer(async (req, res) => {
     }
 
     sendJson(res, 404, { message: 'Not found' })
-  } catch (error) {
+  }
+  catch (error) {
     sendJson(res, 500, {
       message: 'Failed to read SVG assets',
       error: error instanceof Error ? error.message : String(error),

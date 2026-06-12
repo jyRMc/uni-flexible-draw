@@ -1,7 +1,8 @@
 export function useAlignment(getSelectedCells: () => any[]) {
   function alignNodes(direction: string): void {
     const nodes = getSelectedCells().filter((c: any) => c.isNode?.())
-    if (nodes.length < 2) return
+    if (nodes.length < 2)
+      return
 
     switch (direction) {
       case 'left': {

@@ -1,60 +1,5 @@
-﻿<template>
-  <Teleport to="body">
-    <Transition name="modal-fade">
-      <div v-if="visible" class="tpl-overlay" @click.self="$emit('close')">
-        <div class="tpl-modal">
-          <!-- Modal header -->
-          <div class="tpl-header">
-            <span class="tpl-title">{{ t.templatePanel.title }}</span>
-            <span class="tpl-hint">{{ t.templatePanel.hint }}</span>
-            <button class="tpl-close" @click="$emit('close')">
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-            </button>
-          </div>
-
-          <!-- Template grid -->
-          <div v-if="templates.length === 0" class="tpl-empty">
-            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#ddd" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 9h6M9 12h6M9 15h4"/></svg>
-            <p>{{ t.templatePanel.empty }}</p>
-          </div>
-          <div v-else class="tpl-grid" ref="gridRef">
-            <div
-              v-for="tpl in templates"
-              :key="tpl.id"
-              class="tpl-card"
-              :ref="(el) => registerCard(el, tpl.id)"
-            >
-              <!-- Diagram preview -->
-              <div class="tpl-preview">
-                <div class="tpl-diagram" v-html="visibleIds.has(tpl.id) ? getMiniDiagramLarge(tpl.id) : ''" />
-              </div>
-              <!-- Hover bar slides up from card bottom -->
-              <div class="tpl-hover-layer">
-                <button class="btn-use" @click="apply(tpl)">{{ t.templatePanel.use }}</button>
-              </div>
-              <!-- Card info -->
-              <div class="tpl-info">
-                <div class="tpl-name">{{ tpl.name }}</div>
-                <div class="tpl-desc">{{ tpl.description || t.templatePanel.defaultDescription }}</div>
-                <div class="tpl-tags">
-                  <span v-for="tag in tpl.tags" :key="tag" class="tpl-tag">{{ tag }}</span>
-                </div>
-                <div class="tpl-stats">
-                  <span>{{ tpl.data.nodes.length }} {{ t.templatePanel.nodes }}</span>
-                  <span class="dot">·</span>
-                  <span>{{ tpl.data.edges.length }} {{ t.templatePanel.edges }}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </Transition>
-  </Teleport>
-</template>
-
 <script setup lang="ts">
-import { ref, watch, computed } from 'vue'
+import { computed, ref, watch } from 'vue'
 import type { TemplateItem } from '../../shared'
 import { useLocale } from '../../locale'
 
@@ -80,7 +25,7 @@ watch(gridRef, (el) => {
     observer = new IntersectionObserver(
       (entries) => {
         const next = new Set(visibleIds.value)
-        entries.forEach(entry => {
+        entries.forEach((entry) => {
           if (entry.isIntersecting) {
             const id = (entry.target as HTMLElement).dataset.tplId
             if (id) { next.add(id); observer?.unobserve(entry.target) }
@@ -88,24 +33,28 @@ watch(gridRef, (el) => {
         })
         visibleIds.value = next
       },
-      { root: el, rootMargin: '120px', threshold: 0 }
+      { root: el, rootMargin: '120px', threshold: 0 },
     )
     pendingEls.forEach((id, cardEl) => {
       cardEl.dataset.tplId = id
       observer!.observe(cardEl)
     })
     pendingEls.clear()
-  } else {
+  }
+  else {
     observer?.disconnect()
     observer = null
   }
 }, { flush: 'post' })
 
 function registerCard(el: unknown, id: string) {
-  if (!(el instanceof HTMLElement)) return
-  if (visibleIds.value.has(id)) return
+  if (!(el instanceof HTMLElement))
+    return
+  if (visibleIds.value.has(id))
+    return
   el.dataset.tplId = id
-  if (observer) observer.observe(el)
+  if (observer)
+    observer.observe(el)
   else pendingEls.set(el, id)
 }
 
@@ -116,7 +65,8 @@ function apply(tpl: TemplateItem) {
 
 function getMiniDiagramLarge(id: string): string {
   const base = miniDiagrams[id]
-  if (!base) return ''
+  if (!base)
+    return ''
   return base.replace(/style="[^"]*"/g, 'style="width:100%;height:100%"')
 }
 
@@ -433,8 +383,68 @@ const miniDiagrams: Record<string, string> = {
       <rect x="52"   y="51" width="16" height="9" rx="2" fill="#fffbe6" stroke="#faad14" stroke-width="0.8"/>
     </svg>`,
 }
-
 </script>
+
+<template>
+  <Teleport to="body">
+    <Transition name="modal-fade">
+      <div v-if="visible" class="tpl-overlay" @click.self="$emit('close')">
+        <div class="tpl-modal">
+          <!-- Modal header -->
+          <div class="tpl-header">
+            <span class="tpl-title">{{ t.templatePanel.title }}</span>
+            <span class="tpl-hint">{{ t.templatePanel.hint }}</span>
+            <button class="tpl-close" @click="$emit('close')">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" /></svg>
+            </button>
+          </div>
+
+          <!-- Template grid -->
+          <div v-if="templates.length === 0" class="tpl-empty">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#ddd" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2" /><path d="M9 9h6M9 12h6M9 15h4" /></svg>
+            <p>{{ t.templatePanel.empty }}</p>
+          </div>
+          <div v-else ref="gridRef" class="tpl-grid">
+            <div
+              v-for="tpl in templates"
+              :key="tpl.id"
+              :ref="(el) => registerCard(el, tpl.id)"
+              class="tpl-card"
+            >
+              <!-- Diagram preview -->
+              <div class="tpl-preview">
+                <div class="tpl-diagram" v-html="visibleIds.has(tpl.id) ? getMiniDiagramLarge(tpl.id) : ''" />
+              </div>
+              <!-- Hover bar slides up from card bottom -->
+              <div class="tpl-hover-layer">
+                <button class="btn-use" @click="apply(tpl)">
+                  {{ t.templatePanel.use }}
+                </button>
+              </div>
+              <!-- Card info -->
+              <div class="tpl-info">
+                <div class="tpl-name">
+                  {{ tpl.name }}
+                </div>
+                <div class="tpl-desc">
+                  {{ tpl.description || t.templatePanel.defaultDescription }}
+                </div>
+                <div class="tpl-tags">
+                  <span v-for="tag in tpl.tags" :key="tag" class="tpl-tag">{{ tag }}</span>
+                </div>
+                <div class="tpl-stats">
+                  <span>{{ tpl.data.nodes.length }} {{ t.templatePanel.nodes }}</span>
+                  <span class="dot">·</span>
+                  <span>{{ tpl.data.edges.length }} {{ t.templatePanel.edges }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Transition>
+  </Teleport>
+</template>
 
 <style scoped>
 /* ── Overlay ── */
@@ -492,11 +502,14 @@ const miniDiagrams: Record<string, string> = {
   border-radius: 6px;
   display: flex;
   align-items: center;
-  transition: color 0.15s, background 0.15s;
+  transition:
+    color 0.15s,
+   background 0.15s;
 }
-.tpl-close:hover { color: #333; background: #f5f5f5; }
-
-
+.tpl-close:hover {
+  color: #333;
+  background: #f5f5f5;
+}
 /* ── Grid ── */
 .tpl-grid {
   flex: 1;
@@ -517,12 +530,15 @@ const miniDiagrams: Record<string, string> = {
   border-radius: 10px;
   overflow: hidden;
   background: #fff;
-  transition: border-color 0.18s, box-shadow 0.18s, transform 0.18s;
+  transition:
+    border-color 0.18s,
+    box-shadow 0.18s,
+   transform 0.18s;
   cursor: pointer;
 }
 .tpl-card:hover {
   border-color: var(--primary);
-  box-shadow: 0 4px 16px rgba(113,102,240, 0.18);
+  box-shadow: 0 4px 16px rgba(113,1 102, 40, 0.18);
   transform: translateY(-2px);
 }
 
@@ -536,8 +552,7 @@ const miniDiagrams: Record<string, string> = {
   position: relative;
 }
 
-
-.tpl-diagram {
+tpl-diagram {
   width: 100%;
   height: 100%;
   display: flex;
@@ -545,9 +560,13 @@ const miniDiagrams: Record<string, string> = {
   justify-content: center;
   transition: transform 0.3s ease;
 }
-.tpl-diagram :deep(svg) { max-width: 85%; max-height: 85%; }
-.tpl-card:hover .tpl-diagram { transform: scale(1.05) translateY(-4px); }
-
+.tpl-diagram :deep(svg) {
+  max-width: 85%;
+  max-height: 85%;
+}
+.tpl-card:hover .tpl-diagram {
+  transform: scale(1.05) translateY(-4px);
+}
 /* ── Hover bar that slides up from card bottom ── */
 .tpl-hover-layer {
   position: absolute;
@@ -565,8 +584,9 @@ const miniDiagrams: Record<string, string> = {
   transform: translateY(calc(100% + 4px));
   transition: transform 0.26s cubic-bezier(0.34, 1.15, 0.64, 1);
 }
-.tpl-card:hover .tpl-hover-layer { transform: translateY(0); }
-
+.tpl-card:hover .tpl-hover-layer {
+  transform: translateY(0);
+}
 .btn-use {
   padding: 7px 22px;
   border-radius: 20px;
@@ -576,11 +596,15 @@ const miniDiagrams: Record<string, string> = {
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  box-shadow: 0 2px 8px rgba(113,102,240, 0.4);
-  transition: background 0.15s, transform 0.12s;
+  box-shadow: 0 2px 8px rgba(113,1 102, 40, 0.4);
+  transition:
+    background 0.15s,
+   transform 0.12s;
 }
-.btn-use:hover { background: #3d6fd6; transform: scale(1.05); }
-
+.btn-use:hover {
+  background: #3d6fd6;
+  transform: scale(1.05);
+}
 /* ── Card info ── */
 .tpl-info {
   padding: 10px 12px 12px;
@@ -631,15 +655,27 @@ const miniDiagrams: Record<string, string> = {
   font-size: 10px;
   color: #bbb;
 }
-.dot { color: #e0e0e0; }
-
+.dot {
+  color: #e0e0e0;
+}
 /* ── Transition ── */
 .modal-fade-enter-active,
-.modal-fade-leave-active { transition: opacity 0.22s ease; }
+.modal-fade-leave-active {
+  transition: opacity 0.22s ease;
+}
 .modal-fade-enter-active .tpl-modal,
-.modal-fade-leave-active .tpl-modal { transition: transform 0.22s ease, opacity 0.22s ease; }
+.modal-fade-leave-active .tpl-modal {
+  transition:
+    transform 0.22s ease,
+    opacity 0.22s ease;
+}
 .modal-fade-enter-from,
-.modal-fade-leave-to { opacity: 0; }
+.modal-fade-leave-to {
+  opacity: 0;
+}
 .modal-fade-enter-from .tpl-modal,
-.modal-fade-leave-to .tpl-modal { transform: scale(0.95) translateY(8px); opacity: 0; }
+.modal-fade-leave-to .tpl-modal {
+  transform: scale(0.95) translateY(8px);
+  opacity: 0;
+}
 </style>

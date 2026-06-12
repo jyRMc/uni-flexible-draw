@@ -1,15 +1,15 @@
 import { Graph } from '@antv/x6'
-import { NodeRegistry, EdgeRegistry } from '@uni-draw/core'
+import { EdgeRegistry, NodeRegistry } from '@uni-draw/core'
 import {
   BASIC_SHAPES,
-  FLOWCHART_SHAPES,
-  EDGE_SHAPES,
-  UML_SHAPES,
-  SEQUENCE_SHAPES,
-  ER_SHAPES,
   DFD_SHAPES,
-  SWIMLANE_SHAPES,
+  EDGE_SHAPES,
+  ER_SHAPES,
+  FLOWCHART_SHAPES,
+  SEQUENCE_SHAPES,
   STATE_SHAPES,
+  SWIMLANE_SHAPES,
+  UML_SHAPES,
 } from '@uni-draw/shared'
 import * as basic from './basic'
 import * as flowchart from './flowchart'

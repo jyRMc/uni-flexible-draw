@@ -1,29 +1,29 @@
 {
   "compilerOptions": {
     "target": "ES2020",
-    "useDefineForClassFields": true,
-    "module": "ESNext",
-    "lib": ["ES2020", "DOM", "DOM.Iterable"],
-    "skipLibCheck": true,
-    "moduleResolution": "bundler",
-    "allowImportingTsExtensions": true,
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "noEmit": true,
     "jsx": "react-jsx",
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "useDefineForClassFields": true,
+    "baseUrl": ".",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "paths": {
+      "@uni-draw/shared": ["../../lib/shared/index.ts"],
+      "@uni-draw/core": ["../../lib/core/index.ts"],
+      "@uni-draw/shapes": ["../../lib/shapes/index.ts"],
+      "@uni-draw/materials": ["../../lib/materials/index.ts"],
+      "@uni-draw/draw": ["../../lib/index.ts"],
+      "@uni-draw/draw/react": ["../../lib/react/index.ts"],
+      "@/*": ["./src/*"]
+    },
+    "resolveJsonModule": true,
+    "allowImportingTsExtensions": true,
     "strict": true,
     "noUnusedLocals": false,
     "noUnusedParameters": false,
-    "baseUrl": ".",
-    "paths": {
-      "@uni-draw/shared":    ["../../lib/shared/index.ts"],
-      "@uni-draw/core":      ["../../lib/core/index.ts"],
-      "@uni-draw/shapes":    ["../../lib/shapes/index.ts"],
-      "@uni-draw/materials": ["../../lib/materials/index.ts"],
-      "@uni-draw/draw":       ["../../lib/index.ts"],
-      "@uni-draw/draw/react": ["../../lib/react/index.ts"],
-      "@/*":                 ["./src/*"]
-    }
+    "noEmit": true,
+    "isolatedModules": true,
+    "skipLibCheck": true
   },
   "include": ["src/**/*", "../../lib/shared/**/*", "../../lib/core/**/*", "../../lib/shapes/**/*", "../../lib/materials/**/*", "../../lib/react/**/*", "../../lib/UniDraw.ts", "../../lib/styles", "vite.config.ts"]
 }

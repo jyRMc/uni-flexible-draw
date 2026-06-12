@@ -1,5 +1,5 @@
-﻿import { PRIMARY_COLOR } from '../theme'
 import type { Edge } from '@antv/x6'
+import { PRIMARY_COLOR } from '../theme'
 
 export const edgeDashed: Edge.Config = {
   inherit: 'edge',

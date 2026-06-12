@@ -1,8 +1,8 @@
-import type { Graph, Node, Edge } from '@antv/x6'
-import type { GraphData, NodeData, EdgeData, CanvasConfig } from '@uni-draw/shared'
+import type { Edge, Graph, Node } from '@antv/x6'
+import type { CanvasConfig, EdgeData, GraphData, NodeData } from '@uni-draw/shared'
 import { NodeFactory } from '../node/NodeFactory'
 import { EdgeFactory } from '../edge/EdgeFactory'
-import { GraphEventBus } from '../event/GraphEventBus'
+import type { GraphEventBus } from '../event/GraphEventBus'
 
 /**
  * 图生命周期与数据管理
@@ -63,7 +63,8 @@ export class GraphManager {
         const edge = EdgeFactory.createEdge(this.graph, edgeData)
         this.graph.addEdge(edge)
       }
-    } finally {
+    }
+    finally {
       ;(this.graph as any).enableHistory?.()
       // 清空由 disableHistory 前残留的历史，确保加载后 canUndo=false
       ;(this.graph as any).cleanHistory?.()
@@ -117,7 +118,8 @@ export class GraphManager {
    */
   removeNode(id: string): void {
     const node = this.graph.getCellById(id)
-    if (node) this.graph.removeCell(node)
+    if (node)
+      this.graph.removeCell(node)
   }
 
   /**
@@ -125,7 +127,8 @@ export class GraphManager {
    */
   removeEdge(id: string): void {
     const edge = this.graph.getCellById(id)
-    if (edge) this.graph.removeCell(edge)
+    if (edge)
+      this.graph.removeCell(edge)
   }
 
   /**
@@ -144,7 +147,8 @@ export class GraphManager {
     // 背景色
     if (canvas.backgroundColor) {
       ;(this.graph as any).drawBackground?.({ color: canvas.backgroundColor })
-    } else {
+    }
+    else {
       ;(this.graph as any).clearBackground?.()
     }
 
@@ -159,7 +163,8 @@ export class GraphManager {
         gridCfg.args = { color: canvas.grid.color }
       }
       ;(this.graph as any).drawGrid?.(gridCfg)
-    } else {
+    }
+    else {
       ;(this.graph as any).clearGrid?.()
     }
 
@@ -184,7 +189,8 @@ export class GraphManager {
   }
 
   private notifyChange(): void {
-    if (this.isUpdating) return
+    if (this.isUpdating)
+      return
     this.eventBus.emit('data:changed', this.exportData())
   }
 }

@@ -1,9 +1,9 @@
-import { describe, it, expect } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import {
+  buildTableAttrs,
+  buildTableMarkup,
   createDefaultTableData,
   normalizeTableData,
-  buildTableMarkup,
-  buildTableAttrs,
 } from '../shapes/basic/table'
 
 describe('table shape helpers', () => {

@@ -1,4 +1,4 @@
-import type { Graph, Edge } from '@antv/x6'
+import type { Edge, Graph } from '@antv/x6'
 import type { EdgeData } from '../../shared'
 
 const SKETCH_CONNECTOR_NAME = 'uni-draw-sketch-straight'

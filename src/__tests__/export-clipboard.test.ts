@@ -1,9 +1,9 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { Graph } from '@antv/x6'
 import { ExportService } from '../core/export/ExportService'
 import { DataMigration } from '../core/export/DataMigration'
 import { ClipboardManager } from '../core/clipboard/ClipboardManager'
-import { NodeRegistry, EdgeRegistry } from '../core'
+import { EdgeRegistry, NodeRegistry } from '../core'
 import { registerAllShapes } from '../shapes/register'
 
 function makeContainer(): HTMLDivElement {
@@ -14,11 +14,12 @@ function makeContainer(): HTMLDivElement {
   return div
 }
 
-describe('DataMigration', () => {
+describe('dataMigration', () => {
   it('should keep current version data unchanged', () => {
     const data = {
       canvas: { backgroundColor: '#fff', grid: { size: 10, visible: true, type: 'dot' as const } },
-      nodes: [], edges: [],
+      nodes: [],
+      edges: [],
       meta: { version: '0.0.1' },
     }
     const migrated = DataMigration.migrate(data)
@@ -28,7 +29,8 @@ describe('DataMigration', () => {
   it('should migrate old version to 0.0.1', () => {
     const data = {
       canvas: { backgroundColor: '#fff', grid: { size: 10, visible: true, type: 'dot' as const } },
-      nodes: [], edges: [],
+      nodes: [],
+      edges: [],
       meta: { version: '0.0.0' },
     }
     const migrated = DataMigration.migrate(data)
@@ -38,14 +40,15 @@ describe('DataMigration', () => {
   it('should add meta.version when missing', () => {
     const data = {
       canvas: { backgroundColor: '#fff', grid: { size: 10, visible: true, type: 'dot' as const } },
-      nodes: [], edges: [],
+      nodes: [],
+      edges: [],
     }
     const migrated = DataMigration.migrate(data)
     expect(migrated.meta?.version).toBe('0.0.1')
   })
 })
 
-describe('ExportService', () => {
+describe('exportService', () => {
   let graph: Graph
   let service: ExportService
   let container: HTMLDivElement
@@ -81,7 +84,7 @@ describe('ExportService', () => {
   })
 })
 
-describe('ClipboardManager', () => {
+describe('clipboardManager', () => {
   let graph: Graph
   let clipboard: ClipboardManager
   let container: HTMLDivElement

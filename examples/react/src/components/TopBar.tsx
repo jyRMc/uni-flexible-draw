@@ -192,7 +192,11 @@ export default function TopBar({
         <button type="button" style={{ ...styles.btn, ...styles.textOnly }} onClick={onExit}>{texts.exit}</button>
         <span style={styles.divider}>|</span>
         <span style={styles.title}>{title}</span>
-        <span style={styles.autosave}>{texts.autosave} {autosaveTime}</span>
+        <span style={styles.autosave}>
+          {texts.autosave}
+          {' '}
+          {autosaveTime}
+        </span>
       </div>
 
       <div style={styles.center}>
@@ -215,34 +219,62 @@ export default function TopBar({
 
       <div style={styles.right}>
         <button type="button" style={styles.btn} title={texts.languageSwitch} onClick={onToggleLanguage}>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 8h14"/><path d="M5 16h14"/><path d="M9 4c0 7.2 2.4 12.2 3 13.5C12.6 16.2 15 11.2 15 4"/><path d="M9 20h6"/></svg>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M5 8h14" />
+            <path d="M5 16h14" />
+            <path d="M9 4c0 7.2 2.4 12.2 3 13.5C12.6 16.2 15 11.2 15 4" />
+            <path d="M9 20h6" />
+          </svg>
           {lang === 'zh-CN' ? 'EN' : 'ZH'}
         </button>
         <button type="button" style={styles.btn} onClick={onShare}>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" /><polyline points="16 6 12 2 8 6" /><line x1="12" y1="2" x2="12" y2="15" /></svg>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />
+            <polyline points="16 6 12 2 8 6" />
+            <line x1="12" y1="2" x2="12" y2="15" />
+          </svg>
           {texts.share}
         </button>
         <button type="button" style={styles.btn} onClick={onTemplates}>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="4" y="4" width="16" height="16" rx="2" /><path d="M8 8h8M8 12h8M8 16h5" /></svg>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <rect x="4" y="4" width="16" height="16" rx="2" />
+            <path d="M8 8h8M8 12h8M8 16h5" />
+          </svg>
           {texts.templates}
         </button>
         <button type="button" style={editing ? { ...styles.btn, ...styles.active } : styles.btn} onClick={onToggleEdit}>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+          </svg>
           {texts.edit}
         </button>
         <button type="button" style={{ ...styles.btn, ...styles.iconOnly }} title={texts.search}>
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <circle cx="11" cy="11" r="8" />
+            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+          </svg>
         </button>
         <button type="button" style={{ ...styles.btn, ...styles.iconOnly }} title={texts.help}>
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" /><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" /><line x1="12" y1="17" x2="12.01" y2="17" /></svg>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <circle cx="12" cy="12" r="10" />
+            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+            <line x1="12" y1="17" x2="12.01" y2="17" />
+          </svg>
         </button>
-        <span style={styles.zoom}>{zoomPercent}%</span>
+        <span style={styles.zoom}>
+          {zoomPercent}
+          %
+        </span>
         <button type="button" style={{ ...styles.btn, ...styles.primary }} onClick={onAiDraw}>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" /></svg>
           {texts.aiDraw}
         </button>
         <button type="button" style={{ ...styles.btn, ...styles.primaryOutline }} onClick={onNewChat}>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <line x1="12" y1="5" x2="12" y2="19" />
+            <line x1="5" y1="12" x2="19" y2="12" />
+          </svg>
           {texts.newChat}
         </button>
       </div>

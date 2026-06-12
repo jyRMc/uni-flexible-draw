@@ -1,8 +1,8 @@
 {
   "name": "uni-draw-example-react",
+  "type": "module",
   "version": "0.0.1",
   "private": true,
-  "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",

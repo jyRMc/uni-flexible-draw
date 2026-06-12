@@ -1,7 +1,3 @@
-<template>
-  <div ref="minimapRef" class="mini-map" />
-</template>
-
 <script setup lang="ts">
 import { ref } from 'vue'
 
@@ -11,6 +7,10 @@ defineExpose({
   minimapRef,
 })
 </script>
+
+<template>
+  <div ref="minimapRef" class="mini-map" />
+</template>
 
 <style scoped>
 .mini-map {

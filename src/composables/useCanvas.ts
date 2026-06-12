@@ -1,26 +1,26 @@
-import { ref, watch, nextTick, onMounted, onUnmounted, type Ref } from 'vue'
-import { useAlignment } from './useAlignment'
-import { useStyleEditor, type EdgeViewData } from './useStyleEditor'
-import { useSketch } from './useSketch'
-import type { GraphData, NodeData, EdgeData, MaterialItem, NodeStyle } from '../shared'
-import { PRIMARY_COLOR, DEFAULT_PORTS, EDGE_SHAPES, shortId } from '../shared'
+import { type Ref, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
+import type { EdgeData, GraphData, MaterialItem, NodeData, NodeStyle } from '../shared'
+import { DEFAULT_PORTS, EDGE_SHAPES, PRIMARY_COLOR, shortId } from '../shared'
 import { buildTableAttrs, buildTableMarkup, createDefaultTableData, normalizeTableData } from '../shapes/basic/table'
 import {
   AntVRenderEngine,
-  GraphManager,
+  ClipboardManager,
   ExportService,
   GraphEventBus,
-  ZoomTool,
-  PanTool,
-  MiniMapTool,
-  ShortcutManager,
-  NodeFactory,
-  ClipboardManager,
+  GraphManager,
   GroupManager,
+  MiniMapTool,
+  NodeFactory,
+  PanTool,
+  ShortcutManager,
+  ZoomTool,
 } from '../core'
 import type { MiniMapOptions } from '../core/tool/MiniMapTool'
 import type { ExportImageOptions } from '../core/export/ExportService'
 import { highlightEdge, unhighlightEdge } from '../core/graph/highlight'
+import { useSketch } from './useSketch'
+import { type EdgeViewData, useStyleEditor } from './useStyleEditor'
+import { useAlignment } from './useAlignment'
 
 export interface UseCanvasOptions {
   modelValue: Ref<GraphData>
@@ -77,17 +77,17 @@ export interface UseCanvasReturn {
   zoomIn: () => void
   zoomOut: () => void
   zoomTo: (factor: number) => void
-  zoomToFit: (options?: { padding?: number; maxScale?: number }) => void,
-  undo: () => void,
+  zoomToFit: (options?: { padding?: number, maxScale?: number }) => void
+  undo: () => void
   redo: () => void
   addNode: (data: NodeData) => void
   addEdge: (data: EdgeData) => void
   removeNode: (id: string) => void
   removeEdge: (id: string) => void
   togglePanMode: () => boolean
-  createNodeFromMaterial: (material: MaterialItem, position?: { x: number; y: number }) => NodeData
-  createElementFromMaterial: (material: MaterialItem, position?: { x: number; y: number }) => NodeData | EdgeData
-  screenToCanvas: (clientX: number, clientY: number) => { x: number; y: number }
+  createNodeFromMaterial: (material: MaterialItem, position?: { x: number, y: number }) => NodeData
+  createElementFromMaterial: (material: MaterialItem, position?: { x: number, y: number }) => NodeData | EdgeData
+  screenToCanvas: (clientX: number, clientY: number) => { x: number, y: number }
   updateNodeStyle: (id: string, style: Record<string, unknown>) => void
   updateEdgeStyle: (id: string, style: Record<string, unknown>) => void
   changeEdgeType: (id: string, lineType: string) => void
@@ -139,9 +139,9 @@ export interface UseCanvasReturn {
   copyAsPng: () => Promise<void>
   copyAsSvg: () => Promise<void>
   // 外部文件投放
-  svgEditState: Ref<{ nodeId: string; content: string } | null>
-  addExternalImage: (dataUrl: string, pos: { x: number; y: number }, width: number, height: number) => void
-  addExternalSvg: (svgContent: string, pos: { x: number; y: number }, width: number, height: number) => void
+  svgEditState: Ref<{ nodeId: string, content: string } | null>
+  addExternalImage: (dataUrl: string, pos: { x: number, y: number }, width: number, height: number) => void
+  addExternalSvg: (svgContent: string, pos: { x: number, y: number }, width: number, height: number) => void
   commitSvgEdit: (newContent: string) => void
   closeSvgEditor: () => void
   // 添加链接
@@ -171,7 +171,7 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
     opacity: 1,
   })
   const selectionCount = ref(0)
-  const svgEditState = ref<{ nodeId: string; content: string } | null>(null)
+  const svgEditState = ref<{ nodeId: string, content: string } | null>(null)
   const canGroup = ref(false)
   const canUngroup = ref(false)
   const groupEditMode = ref(false)
@@ -212,33 +212,40 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
     return edge?.shape === EDGE_SHAPES.SKETCH
   }
 
-  function getAutoVertex(edge: any): { x: number; y: number } | null {
-    if (isSketchStraightEdge(edge)) return null
+  function getAutoVertex(edge: any): { x: number, y: number } | null {
+    if (isSketchStraightEdge(edge))
+      return null
     const src = edge.getSourcePoint?.()
     const tgt = edge.getTargetPoint?.()
-    if (!src || !tgt) return null
+    if (!src || !tgt)
+      return null
     return { x: (src.x + tgt.x) / 2, y: (src.y + tgt.y) / 2 }
   }
 
-  function isNearPoint(a: { x: number; y: number }, b: { x: number; y: number }): boolean {
+  function isNearPoint(a: { x: number, y: number }, b: { x: number, y: number }): boolean {
     return Math.abs(a.x - b.x) <= autoVertexTolerance && Math.abs(a.y - b.y) <= autoVertexTolerance
   }
 
   function ensureAutoVertex(edge: any): void {
     const vertices = edge.getVertices?.() ?? []
-    if (vertices.length > 0) return
+    if (vertices.length > 0)
+      return
     const vertex = getAutoVertex(edge)
-    if (!vertex) return
+    if (!vertex)
+      return
     autoVertexEdgeIds.add(edge.id)
     edge.setVertices([vertex], { silent: true })
   }
 
   function syncAutoVertex(edge: any): void {
-    if (!autoVertexEdgeIds.has(edge.id)) return
+    if (!autoVertexEdgeIds.has(edge.id))
+      return
     const vertex = getAutoVertex(edge)
-    if (!vertex) return
+    if (!vertex)
+      return
     const vertices = edge.getVertices?.() ?? []
-    if (vertices.length === 1 && isNearPoint(vertices[0], vertex)) return
+    if (vertices.length === 1 && isNearPoint(vertices[0], vertex))
+      return
     edge.setVertices([vertex], { silent: true })
   }
 
@@ -252,7 +259,8 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
   }
 
   function refreshAutoVertexState(edge: any): void {
-    if (!autoVertexEdgeIds.has(edge.id)) return
+    if (!autoVertexEdgeIds.has(edge.id))
+      return
     const vertices = edge.getVertices?.() ?? []
     const vertex = getAutoVertex(edge)
     if (!(vertices.length === 1 && vertex && isNearPoint(vertices[0], vertex))) {
@@ -285,7 +293,8 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
 
   function getSelectedCells(): any[] {
     const graph = getGraph()
-    if (!graph) return []
+    if (!graph)
+      return []
     // 优先使用 graph.getSelectedCells()（Selection 插件注册后可用）
     if (typeof graph.getSelectedCells === 'function') {
       return graph.getSelectedCells()
@@ -297,7 +306,8 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
 
   function selectContextCell(cell: any): void {
     const graph = getGraph()
-    if (!graph || !cell) return
+    if (!graph || !cell)
+      return
     if (graph.isSelected?.(cell)) {
       updateContextMenuState()
       return
@@ -312,7 +322,8 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
 
   function clearContextSelection(): void {
     const graph = getGraph()
-    if (!graph) return
+    if (!graph)
+      return
     if (typeof (graph as any).cleanSelection === 'function') {
       ;(graph as any).cleanSelection()
     }
@@ -323,7 +334,8 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
   }
 
   onMounted(() => {
-    if (!containerRef.value) return
+    if (!containerRef.value)
+      return
 
     eventBus = new GraphEventBus()
     engine = new AntVRenderEngine()
@@ -397,7 +409,8 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
       if (cell.isNode?.()) {
         selectedNodeData.value = NodeFactory.toData(cell)
         selectedEdgeData.value = null
-      } else if (cell.isEdge?.()) {
+      }
+      else if (cell.isEdge?.()) {
         selectedEdgeData.value = extractEdgeData(cell)
         selectedNodeData.value = null
         ensureAutoVertex(cell)
@@ -411,16 +424,16 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
                   threshold: 12,
                   snapRadius: 10,
                   attrs: {
-                    fill: PRIMARY_COLOR,
-                    stroke: '#fff',
+                    'fill': PRIMARY_COLOR,
+                    'stroke': '#fff',
                     'stroke-width': 2,
-                    width: 20,
-                    height: 8,
-                    x: -10,
-                    y: -4,
-                    rx: 4,
-                    ry: 4,
-                    cursor: 'move',
+                    'width': 20,
+                    'height': 8,
+                    'x': -10,
+                    'y': -4,
+                    'rx': 4,
+                    'ry': 4,
+                    'cursor': 'move',
                   },
                 },
               },
@@ -432,7 +445,8 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
             ;(view as any).renderTools?.()
           }
         }
-      } else {
+      }
+      else {
         selectedNodeData.value = null
         selectedEdgeData.value = null
       }
@@ -454,7 +468,8 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
         // 卸载边工具
         const view = graph.findViewByCell(cell)
         if (view) {
-          try { view.removeTools() } catch {}
+          try { view.removeTools() }
+          catch {}
         }
       }
       selectedNodeData.value = null
@@ -532,7 +547,8 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
         enterGroupEdit()
         return
       }
-      if (node.shape !== 'basic-svg') return
+      if (node.shape !== 'basic-svg')
+        return
       const data = node.getData() ?? {}
       svgEditState.value = { nodeId: node.id, content: (data.svgContent as string) ?? '' }
     })
@@ -546,7 +562,8 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
 
     // 拖拽入组：节点被拖入父容器时自动成为子节点
     graph.on('node:embedded', ({ node: embeddedNode, currentParent }: any) => {
-      if (!groupManager || !currentParent) return
+      if (!groupManager || !currentParent)
+        return
       if (currentParent.shape === 'basic-group') {
         // X6 已经处理了 addChild，这里只需要调整 group 大小
         groupManager.fitGroupSize(currentParent)
@@ -563,9 +580,11 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
     graph.on('edge:change:target', onSketchEdgeChange)
     // 节点移动时，orth 路由路径会改变，需重绘关联的草图边
     graph.on('node:change:position', ({ node }: any) => {
-      if (sketchElementIds.value.size === 0) return
+      if (sketchElementIds.value.size === 0)
+        return
       graph.getConnectedEdges(node).forEach((e: any) => {
-        if (sketchElementIds.value.has(e.id)) onSketchEdgeChange({ edge: e })
+        if (sketchElementIds.value.has(e.id))
+          onSketchEdgeChange({ edge: e })
       })
     })
 
@@ -576,7 +595,8 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
     unwatchModelValue = watch(
       () => options.modelValue.value,
       (newData: GraphData) => {
-        if (isEmittingUpdate) return
+        if (isEmittingUpdate)
+          return
         if (graphManager) {
           graphManager.loadData(newData)
         }
@@ -601,7 +621,8 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
     // canGroup: 至少 2 个节点，且都不是 group 本身，且都不在其他 group 内
     const nextCanGroup = nodeSelectionCount >= 2
       && selected.filter((c: any) => c.isNode?.()).every((n: any) => {
-        if (n.shape === 'basic-group') return false
+        if (n.shape === 'basic-group')
+          return false
         const parent = n.getParent?.()
         return !parent
       })
@@ -622,13 +643,16 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
     }
   }
 
-  function getSelectionViewBox(padding = 10): { x: number; y: number; width: number; height: number } | undefined {
+  function getSelectionViewBox(padding = 10): { x: number, y: number, width: number, height: number } | undefined {
     const graph = getGraph()
-    if (!graph) return undefined
+    if (!graph)
+      return undefined
     const selected = getSelectedCells()
-    if (selected.length === 0) return undefined
+    if (selected.length === 0)
+      return undefined
     const bbox = (graph as any).getCellsBBox?.(selected)
-    if (!bbox) return undefined
+    if (!bbox)
+      return undefined
     return {
       x: bbox.x - padding,
       y: bbox.y - padding,
@@ -653,7 +677,8 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
 
   function fromJSON(json: string): void {
     const data = exportService?.fromJSON(json)
-    if (data) setData(data)
+    if (data)
+      setData(data)
   }
 
   async function toPNG(opts?: ExportImageOptions): Promise<string> {
@@ -662,7 +687,8 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
 
   async function exportPreviewImage(): Promise<string> {
     const graph = getGraph()
-    if (!graph || !exportService) return ''
+    if (!graph || !exportService)
+      return ''
     const cells = [...graph.getNodes(), ...graph.getEdges()]
     if (cells.length === 0) {
       return exportService.toPNG({ backgroundColor: '#ffffff' })
@@ -699,18 +725,20 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
     zoomTool?.zoomTo(factor)
   }
 
-  function zoomToFit(options?: { padding?: number; maxScale?: number }): void {
+  function zoomToFit(options?: { padding?: number, maxScale?: number }): void {
     zoomTool?.zoomToFit(options)
   }
 
   function undo(): void {
     const graph = getGraph()
-    if (graph) (graph as any).undo?.()
+    if (graph)
+      (graph as any).undo?.()
   }
 
   function redo(): void {
     const graph = getGraph()
-    if (graph) (graph as any).redo?.()
+    if (graph)
+      (graph as any).redo?.()
   }
 
   function addNode(data: NodeData): void {
@@ -747,7 +775,7 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
 
   function applyTableNodeData(node: any, table: unknown): void {
     const normalized = normalizeTableData(table)
-    const style = ((NodeFactory.toData(node).style ?? {}) as Record<string, unknown>)
+    const style = (NodeFactory.toData(node).style ?? {}) as Record<string, unknown>
     node.setMarkup(buildTableMarkup(normalized))
     node.setAttrs(buildTableAttrs(normalized, style as any), { overwrite: true })
     node.setData({ table: normalized }, { overwrite: false })
@@ -763,16 +791,18 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
 
   function withSelectedTableNode(id: string, fn: (node: any, table: ReturnType<typeof normalizeTableData>) => void): void {
     const graph = getGraph()
-    if (!graph) return
+    if (!graph)
+      return
     const cell = graph.getCellById(id)
-    if (!cell || !cell.isNode?.() || cell.shape !== 'basic-table') return
+    if (!cell || !cell.isNode?.() || cell.shape !== 'basic-table')
+      return
     const table = normalizeTableData((cell.getData?.() ?? {}).table)
     fn(cell, table)
   }
 
   function createNodeFromMaterial(
     material: MaterialItem,
-    position?: { x: number; y: number },
+    position?: { x: number, y: number },
   ): NodeData {
     let materialData = material.data ? { ...material.data } : undefined
     if (material.shape === 'basic-table') {
@@ -795,7 +825,7 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
 
   function createEdgeFromMaterial(
     material: MaterialItem,
-    position?: { x: number; y: number },
+    position?: { x: number, y: number },
   ): EdgeData {
     const center = position ?? { x: 100, y: 100 }
     const halfWidth = Math.max((material.defaultSize?.width ?? 100) / 2, 40)
@@ -813,16 +843,17 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
 
   function createElementFromMaterial(
     material: MaterialItem,
-    position?: { x: number; y: number },
+    position?: { x: number, y: number },
   ): NodeData | EdgeData {
     return isEdgeMaterial(material)
       ? createEdgeFromMaterial(material, position)
       : createNodeFromMaterial(material, position)
   }
 
-  function screenToCanvas(clientX: number, clientY: number): { x: number; y: number } {
+  function screenToCanvas(clientX: number, clientY: number): { x: number, y: number } {
     const graph = getGraph()
-    if (!graph) return { x: clientX, y: clientY }
+    if (!graph)
+      return { x: clientX, y: clientY }
     const local = graph.clientToLocal({ x: clientX, y: clientY })
     return { x: local.x, y: local.y }
   }
@@ -831,7 +862,8 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
 
   function clearCanvas(): void {
     const graph = getGraph()
-    if (!graph) return
+    if (!graph)
+      return
     graph.clearCells()
   }
 
@@ -840,12 +872,14 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
   function toggleDrawMode(): boolean {
     drawMode.value = !drawMode.value
     const graph = getGraph()
-    if (!graph) return drawMode.value
+    if (!graph)
+      return drawMode.value
     // 手绘模式开启时禁用 X6 交互，关闭时恢复
     if (drawMode.value) {
       graph.disableSelection()
       graph.disableRubberband()
-    } else {
+    }
+    else {
       graph.enableSelection()
     }
     return drawMode.value
@@ -860,15 +894,15 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
 
   // ==================== 外部文件投放 ====================
 
-
   function addExternalImage(
     dataUrl: string,
-    pos: { x: number; y: number },
+    pos: { x: number, y: number },
     width: number,
     height: number,
   ): void {
     const graph = getGraph()
-    if (!graph) return
+    if (!graph)
+      return
     graph.addNode({
       id: `img-${Date.now()}`,
       shape: 'basic-image',
@@ -877,7 +911,7 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
       width,
       height,
       attrs: {
-        image: { 'xlink:href': dataUrl, refWidth: '100%', refHeight: '100%', x: 0, y: 0 },
+        image: { 'xlink:href': dataUrl, 'refWidth': '100%', 'refHeight': '100%', 'x': 0, 'y': 0 },
       },
       data: { imageHref: dataUrl },
       ports: DEFAULT_PORTS as any,
@@ -886,12 +920,13 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
 
   function addExternalSvg(
     svgContent: string,
-    pos: { x: number; y: number },
+    pos: { x: number, y: number },
     width: number,
     height: number,
   ): void {
     const graph = getGraph()
-    if (!graph) return
+    if (!graph)
+      return
     const href = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgContent)}`
     graph.addNode({
       id: `svg-${Date.now()}`,
@@ -901,7 +936,7 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
       width,
       height,
       attrs: {
-        image: { 'xlink:href': href, refWidth: '100%', refHeight: '100%', x: 0, y: 0 },
+        image: { 'xlink:href': href, 'refWidth': '100%', 'refHeight': '100%', 'x': 0, 'y': 0 },
       },
       data: { imageHref: href, svgContent },
       ports: DEFAULT_PORTS as any,
@@ -909,11 +944,14 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
   }
 
   function commitSvgEdit(newContent: string): void {
-    if (!svgEditState.value) return
+    if (!svgEditState.value)
+      return
     const graph = getGraph()
-    if (!graph) return
+    if (!graph)
+      return
     const node = graph.getCellById(svgEditState.value.nodeId)
-    if (!node || !(node as any).isNode?.()) return
+    if (!node || !(node as any).isNode?.())
+      return
     const href = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(newContent)}`
     ;(node as any).setAttrByPath('image/xlink:href', href)
     ;(node as any).setData({ imageHref: href, svgContent: newContent }, { overwrite: false })
@@ -926,7 +964,8 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
 
   function addPathNode(x: number, y: number, width: number, height: number, d: string): void {
     const graph = getGraph()
-    if (!graph) return
+    if (!graph)
+      return
     const id = `freehand-${Date.now()}`
     const brush = drawBrushStyle.value
     graph.addNode({
@@ -953,19 +992,20 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
 
   function selectAll(): void {
     const graph = getGraph()
-    if (!graph) return
+    if (!graph)
+      return
     const cells = [...graph.getNodes(), ...graph.getEdges()]
     if (cells.length > 0 && typeof (graph as any).select === 'function') {
       ;(graph as any).select(cells)
     }
   }
 
-
   // ==================== 剪贴板操作 ====================
 
   function resizeNode(id: string, width: number, height: number): void {
     const graph = getGraph()
-    if (!graph) return
+    if (!graph)
+      return
     const cell = graph.getCellById(id)
     if (cell && cell.isNode()) {
       cell.resize(width, height)
@@ -996,7 +1036,8 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
 
   function deleteTableRow(id: string): void {
     withSelectedTableNode(id, (node, table) => {
-      if (table.rows <= 1) return
+      if (table.rows <= 1)
+        return
       applyTableNodeData(node, {
         rows: table.rows - 1,
         cols: table.cols,
@@ -1007,7 +1048,8 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
 
   function deleteTableColumn(id: string): void {
     withSelectedTableNode(id, (node, table) => {
-      if (table.cols <= 1) return
+      if (table.cols <= 1)
+        return
       const nextCols = table.cols - 1
       const nextCells = table.cells.map((row, rowIndex) => {
         const trimmed = row.slice(0, nextCols)
@@ -1026,7 +1068,8 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
 
   function updateTableCell(id: string, row: number, col: number, value: string): void {
     withSelectedTableNode(id, (node, table) => {
-      if (row < 0 || col < 0 || row >= table.rows || col >= table.cols) return
+      if (row < 0 || col < 0 || row >= table.rows || col >= table.cols)
+        return
       const nextCells = table.cells.map((cellRow, rowIndex) => (
         rowIndex === row
           ? cellRow.map((cellValue, colIndex) => (colIndex === col ? value : cellValue))
@@ -1092,7 +1135,8 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
 
   function deleteSelected(): void {
     const graph = getGraph()
-    if (!graph) return
+    if (!graph)
+      return
     const cells = getSelectedCells().filter((c: any) => c.getData?.()?.locked !== true)
     if (cells.length > 0) {
       graph.removeCells(cells)
@@ -1103,9 +1147,11 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
 
   function moveUp(): void {
     const graph = getGraph()
-    if (!graph) return
+    if (!graph)
+      return
     const selected = getSelectedCells()
-    if (selected.length === 0) return
+    if (selected.length === 0)
+      return
     const selectedIds = new Set(selected.map((c: any) => c.id))
     const allCells: any[] = [...graph.getNodes(), ...graph.getEdges()]
     // 从 z 最高的选中元素开始处理，避免多选时相互干扰
@@ -1117,16 +1163,19 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
       const aboveZs = allCells
         .filter((c: any) => !selectedIds.has(c.id) && (c.getZIndex?.() ?? 0) > curZ)
         .map((c: any) => c.getZIndex?.() ?? 0)
-      if (aboveZs.length === 0) continue
+      if (aboveZs.length === 0)
+        continue
       cell.setZIndex(Math.min(...aboveZs) + 1)
     }
   }
 
   function moveDown(): void {
     const graph = getGraph()
-    if (!graph) return
+    if (!graph)
+      return
     const selected = getSelectedCells()
-    if (selected.length === 0) return
+    if (selected.length === 0)
+      return
     const selectedIds = new Set(selected.map((c: any) => c.id))
     const allCells: any[] = [...graph.getNodes(), ...graph.getEdges()]
     // 从 z 最低的选中元素开始处理
@@ -1138,37 +1187,44 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
       const belowZs = allCells
         .filter((c: any) => !selectedIds.has(c.id) && (c.getZIndex?.() ?? 0) < curZ)
         .map((c: any) => c.getZIndex?.() ?? 0)
-      if (belowZs.length === 0) continue
+      if (belowZs.length === 0)
+        continue
       cell.setZIndex(Math.max(...belowZs) - 1)
     }
   }
 
   function toFront(): void {
     const graph = getGraph()
-    if (!graph) return
+    if (!graph)
+      return
     const selected = getSelectedCells()
-    if (selected.length === 0) return
+    if (selected.length === 0)
+      return
     const selectedIds = new Set(selected.map((c: any) => c.id))
     const allCells: any[] = [...graph.getNodes(), ...graph.getEdges()]
     const unselectedZs = allCells
       .filter((c: any) => !selectedIds.has(c.id))
       .map((c: any) => c.getZIndex?.() ?? 0)
-    if (unselectedZs.length === 0) return
+    if (unselectedZs.length === 0)
+      return
     const maxZ = Math.max(...unselectedZs)
     selected.forEach((cell: any, i: number) => cell.setZIndex(maxZ + 1 + i))
   }
 
   function toBack(): void {
     const graph = getGraph()
-    if (!graph) return
+    if (!graph)
+      return
     const selected = getSelectedCells()
-    if (selected.length === 0) return
+    if (selected.length === 0)
+      return
     const selectedIds = new Set(selected.map((c: any) => c.id))
     const allCells: any[] = [...graph.getNodes(), ...graph.getEdges()]
     const unselectedZs = allCells
       .filter((c: any) => !selectedIds.has(c.id))
       .map((c: any) => c.getZIndex?.() ?? 0)
-    if (unselectedZs.length === 0) return
+    if (unselectedZs.length === 0)
+      return
     const minZ = Math.min(...unselectedZs)
     selected.forEach((cell: any, i: number) =>
       cell.setZIndex(minZ - selected.length + i),
@@ -1218,10 +1274,12 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
 
   function groupNodes(): void {
     const graph = getGraph()
-    if (!graph || !groupManager) return
+    if (!graph || !groupManager)
+      return
     const cells = getSelectedCells()
     const nodes = cells.filter((c: any) => c.isNode?.())
-    if (nodes.length < 2) return
+    if (nodes.length < 2)
+      return
 
     const group = groupManager.createGroup(nodes)
     if (group) {
@@ -1236,16 +1294,19 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
 
   function ungroupNodes(): void {
     const graph = getGraph()
-    if (!graph || !groupManager) return
+    if (!graph || !groupManager)
+      return
     const cells = getSelectedCells()
     const groups = cells.filter((c: any) => c.isNode?.() && c.shape === 'basic-group')
-    if (groups.length === 0) return
+    if (groups.length === 0)
+      return
 
     groupManager.ungroup(groups.map((g: any) => g.id))
   }
 
   function enterGroupEdit(): void {
-    if (!groupManager) return
+    if (!groupManager)
+      return
     const cells = getSelectedCells()
     const group = cells.find((c: any) => c.isNode?.() && c.shape === 'basic-group')
     if (group) {
@@ -1255,7 +1316,8 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
   }
 
   function exitGroupEdit(): void {
-    if (!groupManager) return
+    if (!groupManager)
+      return
     groupManager.exitEditMode()
     groupEditMode.value = false
   }
@@ -1265,10 +1327,12 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
   function createFrame(): void {
     const graph = getGraph()
     const cells = getSelectedCells()
-    if (!graph || cells.length === 0) return
+    if (!graph || cells.length === 0)
+      return
 
-    const nodes = cells.filter((c) => c.isNode())
-    if (nodes.length === 0) return
+    const nodes = cells.filter(c => c.isNode())
+    if (nodes.length === 0)
+      return
 
     let minX = Infinity; let minY = Infinity
     let maxX = -Infinity; let maxY = -Infinity
@@ -1297,23 +1361,27 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
 
   async function copyAsPng(): Promise<void> {
     const graph = getGraph()
-    if (!graph) return
+    if (!graph)
+      return
     const selectionViewBox = getSelectionViewBox()
     try {
       const dataUrl = await exportService?.toPNG(selectionViewBox
         ? { backgroundColor: '#ffffff', viewBox: selectionViewBox }
         : { backgroundColor: '#ffffff', padding: 10 })
-      if (!dataUrl) return
+      if (!dataUrl)
+        return
       const response = await fetch(dataUrl)
       const blob = await response.blob()
       await navigator.clipboard.write([
         new ClipboardItem({ 'image/png': blob }),
       ])
-    } catch {
+    }
+    catch {
       const dataUrl = await exportService?.toPNG(selectionViewBox
         ? { backgroundColor: '#ffffff', viewBox: selectionViewBox }
         : { backgroundColor: '#ffffff', padding: 10 })
-      if (!dataUrl) return
+      if (!dataUrl)
+        return
       const img = new Image()
       img.src = dataUrl
       img.onload = () => {
@@ -1328,7 +1396,8 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
               await navigator.clipboard.write([
                 new ClipboardItem({ 'image/png': blob }),
               ])
-            } catch { /* 忽略 */ }
+            }
+            catch { /* 忽略 */ }
           }
         })
       }
@@ -1341,17 +1410,20 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
       const svgText = await exportService?.toSVG(selectionViewBox
         ? { viewBox: selectionViewBox }
         : { padding: 10 })
-      if (!svgText) return
+      if (!svgText)
+        return
       await navigator.clipboard.writeText(svgText)
-    } catch { /* 忽略 */ }
+    }
+    catch { /* 忽略 */ }
   }
 
   // ==================== 添加链接 ====================
 
   function addLink(): void {
     const cells = getSelectedCells()
-    const nodes = cells.filter((c) => c.isNode())
-    if (nodes.length < 2) return
+    const nodes = cells.filter(c => c.isNode())
+    if (nodes.length < 2)
+      return
 
     // 在选中的前两个节点之间创建一条边
     const sourceId = nodes[0].id

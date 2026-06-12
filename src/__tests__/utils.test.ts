@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest'
-import { uuid, shortId, deepClone } from '../shared/utils'
+import { describe, expect, it } from 'vitest'
+import { deepClone, shortId, uuid } from '../shared/utils'
 
 describe('shared utils', () => {
   describe('uuid', () => {

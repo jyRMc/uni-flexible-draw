@@ -31,12 +31,12 @@ export const erWeakEntity: Node.Config = {
   width: 120,
   height: 50,
   markup: [
-    { tagName: 'rect', selector: 'body'  },
+    { tagName: 'rect', selector: 'body' },
     { tagName: 'rect', selector: 'outer' },
     { tagName: 'text', selector: 'label' },
   ],
   attrs: {
-    body:  { refWidth: 1, refHeight: 1, fill: '#e3f2fd', stroke: '#1565c0', strokeWidth: 1.5, rx: 0, ry: 0 },
+    body: { refWidth: 1, refHeight: 1, fill: '#e3f2fd', stroke: '#1565c0', strokeWidth: 1.5, rx: 0, ry: 0 },
     outer: { refX: 0.05, refY: 0.1, refWidth: 0.9, refHeight: 0.8, fill: 'none', stroke: '#1565c0', strokeWidth: 1.5, rx: 0 },
     label: { fill: '#1565c0', fontSize: 13, fontWeight: 'bold' },
   },

@@ -1,4 +1,4 @@
-import type { Graph, Cell } from '@antv/x6'
+import type { Cell, Graph } from '@antv/x6'
 import { NodeFactory } from '../node/NodeFactory'
 import { EdgeFactory } from '../edge/EdgeFactory'
 
@@ -108,18 +108,18 @@ export class ClipboardManager {
   }
 
   private remapSource(
-    original: string | { cell: string; port?: string },
+    original: string | { cell: string, port?: string },
     originals: ClipboardCell[],
     pastedNodes: Cell[],
-  ): string | { cell: string; port?: string } {
+  ): string | { cell: string, port?: string } {
     if (typeof original === 'string') {
-      const idx = originals.findIndex((c) => (c.data as any).id === original)
+      const idx = originals.findIndex(c => (c.data as any).id === original)
       if (idx >= 0 && idx < pastedNodes.length) {
         return pastedNodes[idx].id
       }
       return original
     }
-    const idx = originals.findIndex((c) => (c.data as any).id === original.cell)
+    const idx = originals.findIndex(c => (c.data as any).id === original.cell)
     if (idx >= 0 && idx < pastedNodes.length) {
       return { cell: pastedNodes[idx].id, port: original.port }
     }

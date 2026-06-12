@@ -1,53 +1,3 @@
-<template>
-  <Teleport to="body">
-    <Transition name="preview-fade">
-      <div v-if="visible" class="preview-modal-mask" @click.self="onClose">
-        <div class="preview-modal">
-          <div class="preview-modal-header">
-            <span class="preview-modal-title">{{ title }}</span>
-            <div class="preview-modal-actions">
-              <button class="preview-icon-btn" :title="copyTitle" @click="onCopy">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <rect x="9" y="9" width="13" height="13" rx="2" />
-                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-                </svg>
-              </button>
-              <button class="preview-icon-btn" :title="downloadTitle" @click="onDownload">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                  <polyline points="7 10 12 15 17 10" />
-                  <line x1="12" y1="15" x2="12" y2="3" />
-                </svg>
-              </button>
-              <button class="preview-icon-btn" title="导出图片" @click="onExportImage">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <rect x="3" y="3" width="18" height="18" rx="2" />
-                  <circle cx="8.5" cy="8.5" r="1.5" />
-                  <path d="M21 15l-5-5L5 21" />
-                </svg>
-              </button>
-              <button class="preview-icon-btn" :title="closeTitle" @click="onClose">✕</button>
-            </div>
-          </div>
-          <div class="preview-modal-body">
-            <FlexibleDraw
-              v-if="visible"
-              ref="canvasRef"
-              :model-value="previewData"
-              class="preview-canvas"
-              readonly
-              :grid="false"
-              :snapline="false"
-              :keyboard="false"
-              :minimap="false"
-            />
-          </div>
-        </div>
-      </div>
-    </Transition>
-  </Teleport>
-</template>
-
 <script setup lang="ts">
 import { computed, nextTick, ref, watch } from 'vue'
 import { FlexibleDraw, registerAllShapes } from '@uni-draw/draw'
@@ -136,7 +86,8 @@ function onDownload() {
 
 async function onExportImage() {
   const url = await canvasRef.value?.exportPreviewImage?.()
-  if (!url) return
+  if (!url)
+    return
   const a = document.createElement('a')
   a.href = url
   a.download = `${props.data?.meta?.title ?? 'preview'}.png`
@@ -151,6 +102,58 @@ defineExpose({
   exportImage,
 })
 </script>
+
+<template>
+  <Teleport to="body">
+    <Transition name="preview-fade">
+      <div v-if="visible" class="preview-modal-mask" @click.self="onClose">
+        <div class="preview-modal">
+          <div class="preview-modal-header">
+            <span class="preview-modal-title">{{ title }}</span>
+            <div class="preview-modal-actions">
+              <button class="preview-icon-btn" :title="copyTitle" @click="onCopy">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="9" y="9" width="13" height="13" rx="2" />
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                </svg>
+              </button>
+              <button class="preview-icon-btn" :title="downloadTitle" @click="onDownload">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="7 10 12 15 17 10" />
+                  <line x1="12" y1="15" x2="12" y2="3" />
+                </svg>
+              </button>
+              <button class="preview-icon-btn" title="导出图片" @click="onExportImage">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="3" width="18" height="18" rx="2" />
+                  <circle cx="8.5" cy="8.5" r="1.5" />
+                  <path d="M21 15l-5-5L5 21" />
+                </svg>
+              </button>
+              <button class="preview-icon-btn" :title="closeTitle" @click="onClose">
+                ✕
+              </button>
+            </div>
+          </div>
+          <div class="preview-modal-body">
+            <FlexibleDraw
+              v-if="visible"
+              ref="canvasRef"
+              :model-value="previewData"
+              class="preview-canvas"
+              readonly
+              :grid="false"
+              :snapline="false"
+              :keyboard="false"
+              :minimap="false"
+            />
+          </div>
+        </div>
+      </div>
+    </Transition>
+  </Teleport>
+</template>
 
 <style scoped>
 .preview-modal-mask {
@@ -238,11 +241,15 @@ defineExpose({
 }
 
 .preview-fade-enter-active .preview-modal {
-  transition: transform 0.2s ease, opacity 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    opacity 0.2s ease;
 }
 
 .preview-fade-leave-active .preview-modal {
-  transition: transform 0.15s ease, opacity 0.15s ease;
+  transition:
+    transform 0.15s ease,
+    opacity 0.15s ease;
 }
 
 .preview-fade-enter-from,

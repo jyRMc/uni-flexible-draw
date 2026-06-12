@@ -1,6 +1,6 @@
-import { Graph, type Edge } from '@antv/x6'
+import { type Edge, Graph } from '@antv/x6'
 import rough from 'roughjs'
-import type { Options as RoughOptions, OpSet } from 'roughjs/bin/core'
+import type { OpSet, Options as RoughOptions } from 'roughjs/bin/core'
 import { PRIMARY_COLOR } from '../theme'
 import { ROUGHNESS } from '../../core'
 
@@ -16,13 +16,14 @@ function hashSeed(value: string): number {
   return Math.abs(hash) || 1
 }
 
-function toPoint(value: any): { x: number; y: number } {
+function toPoint(value: any): { x: number, y: number } {
   return { x: Number(value?.x ?? 0), y: Number(value?.y ?? 0) }
 }
 
 function opsToD(opSet: OpSet): string {
   const ops = opSet.ops
-  if (!ops || ops.length === 0) return ''
+  if (!ops || ops.length === 0)
+    return ''
   let d = ''
   for (const op of ops) {
     switch (op.op) {
@@ -40,19 +41,20 @@ function opsToD(opSet: OpSet): string {
   return d
 }
 
-function adjustRoughness(points: Array<{ x: number; y: number }>, roughness: number): number {
+function adjustRoughness(points: Array<{ x: number, y: number }>, roughness: number): number {
   const xs = points.map(point => point.x)
   const ys = points.map(point => point.y)
   const width = Math.max(...xs) - Math.min(...xs)
   const height = Math.max(...ys) - Math.min(...ys)
   const maxSize = Math.max(width, height)
 
-  if (maxSize >= 50) return roughness
+  if (maxSize >= 50)
+    return roughness
 
   return Math.min(roughness / (maxSize < 10 ? 3 : 2), 2.5)
 }
 
-function getLinearPathD(points: Array<{ x: number; y: number }>, args?: Record<string, any>): string {
+function getLinearPathD(points: Array<{ x: number, y: number }>, args?: Record<string, any>): string {
   const roughness = Number(args?.roughness ?? ROUGHNESS.artist)
   const strokeWidth = Math.max(Number(args?.strokeWidth ?? 2), 1)
   const options: RoughOptions = {
@@ -70,7 +72,8 @@ function getLinearPathD(points: Array<{ x: number; y: number }>, args?: Record<s
 }
 
 function registerSketchConnector() {
-  if (sketchConnectorRegistered) return
+  if (sketchConnectorRegistered)
+    return
   Graph.registerConnector(SKETCH_CONNECTOR_NAME, (sourcePoint: any, targetPoint: any, routePoints: any[] = [], args?: Record<string, any>) => {
     const points = [toPoint(sourcePoint), ...routePoints.map(toPoint), toPoint(targetPoint)]
     return getLinearPathD(points, args)

@@ -1,4 +1,4 @@
-import { inject, type InjectionKey } from 'vue'
+import { type InjectionKey, inject } from 'vue'
 import type { UniDrawLocale } from './types'
 import zhCN from './zh-CN'
 

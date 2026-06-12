@@ -68,7 +68,7 @@ export class AntVRenderEngine {
         : undefined,
       interacting: options.readonly
         ? { nodeMovable: false, edgeMovable: false, arrowheadMovable: false }
-        : ((cellView: any) => {
+        : (cellView: any) => {
             const cell = cellView.cell
             const isLocked = cell?.getData?.()?.locked === true
             if (cell?.isEdge?.()) {
@@ -85,7 +85,7 @@ export class AntVRenderEngine {
               nodeMovable: !isLocked,
               magnetConnectable: !isLocked,
             }
-          }),
+          },
       embedding: {
         enabled: true,
         findParent({ node }) {
@@ -153,12 +153,12 @@ export class AntVRenderEngine {
       this.graph.use(
         new Transform({
           resizing: {
-            enabled: (node) => node.getData()?.locked !== true,
+            enabled: node => node.getData()?.locked !== true,
             orthogonal: false,
             preserveAspectRatio: false,
           },
           rotating: {
-            enabled: (node) => node.getData()?.locked !== true,
+            enabled: node => node.getData()?.locked !== true,
           },
         }),
       )
@@ -213,16 +213,16 @@ export class AntVRenderEngine {
                 threshold: 12,
                 snapRadius: 10,
                 attrs: {
-                  fill: PRIMARY_COLOR,
-                  stroke: '#fff',
+                  'fill': PRIMARY_COLOR,
+                  'stroke': '#fff',
                   'stroke-width': 2,
-                  width: 20,
-                  height: 8,
-                  x: -10,
-                  y: -4,
-                  rx: 4,
-                  ry: 4,
-                  cursor: 'move',
+                  'width': 20,
+                  'height': 8,
+                  'x': -10,
+                  'y': -4,
+                  'rx': 4,
+                  'ry': 4,
+                  'cursor': 'move',
                 },
               },
             },
@@ -231,15 +231,18 @@ export class AntVRenderEngine {
       })
       this.graph.on('edge:mouseleave', ({ edge, e }: any) => {
         const graph = this.graph
-        if (!graph) return
-        if (graph.isSelected?.(edge) || isEdgeToolElement(e?.relatedTarget ?? null)) return
+        if (!graph)
+          return
+        if (graph.isSelected?.(edge) || isEdgeToolElement(e?.relatedTarget ?? null))
+          return
         unhighlightEdge(edge)
         edge.removeTools()
       })
 
       // 双击节点：浮层 textarea 内联编辑标签（图片/SVG 节点由 useCanvas 处理）
       this.graph.on('node:dblclick', ({ node, e }: any) => {
-        if (node.shape === 'basic-image' || node.shape === 'basic-svg') return
+        if (node.shape === 'basic-image' || node.shape === 'basic-svg')
+          return
         e.stopPropagation()
         e.preventDefault()
 
@@ -253,7 +256,8 @@ export class AntVRenderEngine {
           const pt = (this.graph as any).localToClient({ x: pos.x, y: pos.y })
           clientX = pt.x
           clientY = pt.y
-        } else {
+        }
+        else {
           const { tx, ty } = this.graph!.translate()
           const rect = container.getBoundingClientRect()
           clientX = rect.left + tx + pos.x * zoom
@@ -301,7 +305,8 @@ export class AntVRenderEngine {
         editor.addEventListener('blur', commit)
         editor.addEventListener('keydown', (ke: KeyboardEvent) => {
           if (ke.key === 'Enter' && !ke.shiftKey) { ke.preventDefault(); commit() }
-          if (ke.key === 'Escape' && document.body.contains(editor)) document.body.removeChild(editor)
+          if (ke.key === 'Escape' && document.body.contains(editor))
+            document.body.removeChild(editor)
         })
       })
     }
@@ -313,9 +318,11 @@ export class AntVRenderEngine {
    * 注入旋转控制柄自定义 SVG 图标
    */
   private injectRotateHandleStyle(path?: string): void {
-    if (typeof document === 'undefined') return
+    if (typeof document === 'undefined')
+      return
     const id = 'uni-draw-rotate-handle-style'
-    if (document.getElementById(id)) return
+    if (document.getElementById(id))
+      return
     const handlePath = path ?? 'M512 112A400 400 0 1 0 912 512H832a320 320 0 1 1-55.36-179.968H672v80h240v-240H832v99.904A399.36 399.36 0 0 0 512 112z'
     const svg = `<svg style="vertical-align: middle;" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 1024 1024" fill="#99999C" stroke="#99999C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="${handlePath}"/></svg>`
     const encoded = encodeURIComponent(svg)

@@ -31,16 +31,16 @@ export const dfdDataStore: Node.Config = {
   width: 120,
   height: 40,
   markup: [
-    { tagName: 'rect', selector: 'body'       },
-    { tagName: 'rect', selector: 'topBar'     },
-    { tagName: 'rect', selector: 'bottomBar'  },
-    { tagName: 'text', selector: 'label'      },
+    { tagName: 'rect', selector: 'body' },
+    { tagName: 'rect', selector: 'topBar' },
+    { tagName: 'rect', selector: 'bottomBar' },
+    { tagName: 'text', selector: 'label' },
   ],
   attrs: {
-    body:      { refWidth: 1, refHeight: 1, fill: '#e3f2fd', stroke: 'none' },
-    topBar:    { refX: 0, refY: 0,    refWidth: 1, refHeight: 0.06, fill: '#1565c0', stroke: 'none' },
+    body: { refWidth: 1, refHeight: 1, fill: '#e3f2fd', stroke: 'none' },
+    topBar: { refX: 0, refY: 0, refWidth: 1, refHeight: 0.06, fill: '#1565c0', stroke: 'none' },
     bottomBar: { refX: 0, refY: 0.94, refWidth: 1, refHeight: 0.06, fill: '#1565c0', stroke: 'none' },
-    label:     { fill: '#1565c0', fontSize: 12, refX: 0.5, refY: 0.5, textAnchor: 'middle', textVerticalAnchor: 'middle' },
+    label: { fill: '#1565c0', fontSize: 12, refX: 0.5, refY: 0.5, textAnchor: 'middle', textVerticalAnchor: 'middle' },
   },
   ports,
 }

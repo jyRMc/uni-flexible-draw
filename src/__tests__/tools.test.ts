@@ -1,10 +1,10 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { beforeEach, describe, expect, it } from 'vitest'
 import { Graph } from '@antv/x6'
 import { ZoomTool } from '../core/tool/ZoomTool'
 import { PanTool } from '../core/tool/PanTool'
 import { MiniMapTool } from '../core/tool/MiniMapTool'
 import { ShortcutManager } from '../core/shortcut/ShortcutManager'
-import { NodeRegistry, EdgeRegistry } from '../core'
+import { EdgeRegistry, NodeRegistry } from '../core'
 import { registerAllShapes } from '../shapes/register'
 
 function makeContainer(): HTMLDivElement {
@@ -15,7 +15,7 @@ function makeContainer(): HTMLDivElement {
   return div
 }
 
-describe('ZoomTool', () => {
+describe('zoomTool', () => {
   let graph: Graph
   let tool: ZoomTool
   let container: HTMLDivElement
@@ -53,7 +53,7 @@ describe('ZoomTool', () => {
   })
 })
 
-describe('PanTool', () => {
+describe('panTool', () => {
   let graph: Graph
   let tool: PanTool
   let container: HTMLDivElement
@@ -90,7 +90,7 @@ describe('PanTool', () => {
   })
 })
 
-describe('MiniMapTool', () => {
+describe('miniMapTool', () => {
   let graph: Graph
   let tool: MiniMapTool
   let container: HTMLDivElement
@@ -121,7 +121,7 @@ describe('MiniMapTool', () => {
   })
 })
 
-describe('ShortcutManager', () => {
+describe('shortcutManager', () => {
   let graph: Graph
   let shortcuts: ShortcutManager
   let container: HTMLDivElement

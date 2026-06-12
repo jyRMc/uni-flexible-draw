@@ -200,53 +200,53 @@ export const RX_SUPPORTED_SHAPES: ReadonlySet<string> = new Set([
   // 基础图形 - rect 系列
   BASIC_SHAPES.RECT,
   BASIC_SHAPES.ROUNDED_RECT,
-  BASIC_SHAPES.CYLINDER,       // body=rect(rx=35), 圆柱体弧形效果依赖 rx
-  BASIC_SHAPES.CLOUD,         // body=rect(rx=30), 云朵效果依赖 rx
-  BASIC_SHAPES.DOCUMENT,      // body=rect，可加圆角
+  BASIC_SHAPES.CYLINDER, // body=rect(rx=35), 圆柱体弧形效果依赖 rx
+  BASIC_SHAPES.CLOUD, // body=rect(rx=30), 云朵效果依赖 rx
+  BASIC_SHAPES.DOCUMENT, // body=rect，可加圆角
 
   // 流程图 - rect 系列
-  FLOWCHART_SHAPES.START_END,       // body=rect(rx=25)
-  FLOWCHART_SHAPES.PROCESS,         // body=rect
-  FLOWCHART_SHAPES.DOCUMENT,        // body=rect
-  FLOWCHART_SHAPES.DATABASE,        // body=rect(rx=0)
-  FLOWCHART_SHAPES.PREDEFINED,      // body=rect
-  FLOWCHART_SHAPES.INTERNAL_STORAGE,// body=rect
+  FLOWCHART_SHAPES.START_END, // body=rect(rx=25)
+  FLOWCHART_SHAPES.PROCESS, // body=rect
+  FLOWCHART_SHAPES.DOCUMENT, // body=rect
+  FLOWCHART_SHAPES.DATABASE, // body=rect(rx=0)
+  FLOWCHART_SHAPES.PREDEFINED, // body=rect
+  FLOWCHART_SHAPES.INTERNAL_STORAGE, // body=rect
 
   // UML - rect 系列
-  UML_SHAPES.CLASS,           // body=rect
-  UML_SHAPES.INTERFACE,       // body=rect(markup)
-  UML_SHAPES.ABSTRACT,        // body=rect(markup)
-  UML_SHAPES.ENUM,            // body=rect(markup)
-  UML_SHAPES.PACKAGE,         // body=rect(markup, rx=0)
-  UML_SHAPES.OBJECT,          // body=rect(markup, rx=0)
-  UML_SHAPES.COMPONENT,       // body=rect(markup, rx=0)
+  UML_SHAPES.CLASS, // body=rect
+  UML_SHAPES.INTERFACE, // body=rect(markup)
+  UML_SHAPES.ABSTRACT, // body=rect(markup)
+  UML_SHAPES.ENUM, // body=rect(markup)
+  UML_SHAPES.PACKAGE, // body=rect(markup, rx=0)
+  UML_SHAPES.OBJECT, // body=rect(markup, rx=0)
+  UML_SHAPES.COMPONENT, // body=rect(markup, rx=0)
 
   // 时序图 - rect 系列
-  SEQUENCE_SHAPES.ACTIVATION,       // body=rect(rx=2)
-  SEQUENCE_SHAPES.FRAGMENT_ALT,     // body=rect(rx=2)
-  SEQUENCE_SHAPES.FRAGMENT_OPT,     // body=rect(rx=2)
-  SEQUENCE_SHAPES.FRAGMENT_LOOP,    // body=rect(rx=2)
-  SEQUENCE_SHAPES.FRAGMENT_PAR,     // body=rect(rx=2)
-  SEQUENCE_SHAPES.FRAGMENT_CRITICAL,// body=rect(rx=2)
+  SEQUENCE_SHAPES.ACTIVATION, // body=rect(rx=2)
+  SEQUENCE_SHAPES.FRAGMENT_ALT, // body=rect(rx=2)
+  SEQUENCE_SHAPES.FRAGMENT_OPT, // body=rect(rx=2)
+  SEQUENCE_SHAPES.FRAGMENT_LOOP, // body=rect(rx=2)
+  SEQUENCE_SHAPES.FRAGMENT_PAR, // body=rect(rx=2)
+  SEQUENCE_SHAPES.FRAGMENT_CRITICAL, // body=rect(rx=2)
 
   // ER图 - rect 系列
-  ER_SHAPES.ENTITY,           // body=rect(rx=0)
-  ER_SHAPES.WEAK_ENTITY,      // body=rect(markup, rx=0)
-  ER_SHAPES.ASSOCIATIVE,      // body=rect(markup)
+  ER_SHAPES.ENTITY, // body=rect(rx=0)
+  ER_SHAPES.WEAK_ENTITY, // body=rect(markup, rx=0)
+  ER_SHAPES.ASSOCIATIVE, // body=rect(markup)
 
   // 数据流图 - rect 系列
   DFD_SHAPES.EXTERNAL_ENTITY, // body=rect(rx=0)
 
   // 泳道图 - rect 系列
   SWIMLANE_SHAPES.HORIZONTAL, // body=rect(rx=0)
-  SWIMLANE_SHAPES.VERTICAL,   // body=rect(rx=0)
-  SWIMLANE_SHAPES.POOL,       // body=rect(rx=0)
-  SWIMLANE_SHAPES.PHASE,      // body=rect(rx=0)
+  SWIMLANE_SHAPES.VERTICAL, // body=rect(rx=0)
+  SWIMLANE_SHAPES.POOL, // body=rect(rx=0)
+  SWIMLANE_SHAPES.PHASE, // body=rect(rx=0)
 
   // 状态图 - rect 系列
-  STATE_SHAPES.STATE,         // body=rect(rx=12)
-  STATE_SHAPES.FORK,          // body=rect(rx=0)
-  STATE_SHAPES.JOIN,          // body=rect(rx=0)
+  STATE_SHAPES.STATE, // body=rect(rx=12)
+  STATE_SHAPES.FORK, // body=rect(rx=0)
+  STATE_SHAPES.JOIN, // body=rect(rx=0)
 ])
 
 /**
@@ -270,37 +270,37 @@ export const RX_UNSUPPORTED_SHAPES: ReadonlySet<string> = new Set([
   // 流程图 - polygon/ellipse 系列
   FLOWCHART_SHAPES.DECISION,
   FLOWCHART_SHAPES.INPUT_OUTPUT,
-  FLOWCHART_SHAPES.CONNECTOR,   // circle
+  FLOWCHART_SHAPES.CONNECTOR, // circle
   FLOWCHART_SHAPES.MERGE,
 
   // UML - ellipse/特殊
-  UML_SHAPES.USE_CASE,          // ellipse
-  UML_SHAPES.COLLABORATION,     // ellipse
-  UML_SHAPES.NOTE,              // body 被覆盖为 polygon
-  UML_SHAPES.ACTOR,             // 火柴人，无 body
-  UML_SHAPES.DEPLOYMENT,        // 3D立方体，多面拼接加圆角会断裂
-  UML_SHAPES.NODE,              // 3D立方体，同上
-  UML_SHAPES.COMPOSITE,         // body=rect 但内嵌 polygon 装饰
-  UML_SHAPES.ARTIFACT,          // body=rect 但有 path 折角装饰
+  UML_SHAPES.USE_CASE, // ellipse
+  UML_SHAPES.COLLABORATION, // ellipse
+  UML_SHAPES.NOTE, // body 被覆盖为 polygon
+  UML_SHAPES.ACTOR, // 火柴人，无 body
+  UML_SHAPES.DEPLOYMENT, // 3D立方体，多面拼接加圆角会断裂
+  UML_SHAPES.NODE, // 3D立方体，同上
+  UML_SHAPES.COMPOSITE, // body=rect 但内嵌 polygon 装饰
+  UML_SHAPES.ARTIFACT, // body=rect 但有 path 折角装饰
 
   // 时序图 - polygon/特殊
-  SEQUENCE_SHAPES.ACTOR,        // 火柴人，无 body
-  SEQUENCE_SHAPES.LIFELINE,     // 无 body，header+line
-  SEQUENCE_SHAPES.GATEWAY,      // polygon
+  SEQUENCE_SHAPES.ACTOR, // 火柴人，无 body
+  SEQUENCE_SHAPES.LIFELINE, // 无 body，header+line
+  SEQUENCE_SHAPES.GATEWAY, // polygon
 
   // ER图 - polygon/ellipse 系列
   ER_SHAPES.RELATIONSHIP,
   ER_SHAPES.IDENTIFYING_REL,
-  ER_SHAPES.ATTRIBUTE,          // ellipse
-  ER_SHAPES.KEY_ATTRIBUTE,      // ellipse
-  ER_SHAPES.MULTIVALUED,        // ellipse
-  ER_SHAPES.DERIVED,            // ellipse
-  ER_SHAPES.TOTAL_PARTICIPATION,// polygon
+  ER_SHAPES.ATTRIBUTE, // ellipse
+  ER_SHAPES.KEY_ATTRIBUTE, // ellipse
+  ER_SHAPES.MULTIVALUED, // ellipse
+  ER_SHAPES.DERIVED, // ellipse
+  ER_SHAPES.TOTAL_PARTICIPATION, // polygon
 
   // 数据流图 - circle/特殊
-  DFD_SHAPES.PROCESS,           // circle
-  DFD_SHAPES.MULTIPLE_PROCESS,  // circle
-  DFD_SHAPES.DATA_STORE,        // body 透明，形状由3条 line 构成
+  DFD_SHAPES.PROCESS, // circle
+  DFD_SHAPES.MULTIPLE_PROCESS, // circle
+  DFD_SHAPES.DATA_STORE, // body 透明，形状由3条 line 构成
 
   // 状态图 - circle/polygon 系列
   STATE_SHAPES.INITIAL,
@@ -308,12 +308,12 @@ export const RX_UNSUPPORTED_SHAPES: ReadonlySet<string> = new Set([
   STATE_SHAPES.SHALLOW_HISTORY,
   STATE_SHAPES.DEEP_HISTORY,
   STATE_SHAPES.JUNCTION,
-  STATE_SHAPES.CHOICE,          // polygon
+  STATE_SHAPES.CHOICE, // polygon
   STATE_SHAPES.ENTRY_POINT,
   STATE_SHAPES.EXIT_POINT,
   STATE_SHAPES.TERMINATE,
-  STATE_SHAPES.SIGNAL_SEND,     // polygon
-  STATE_SHAPES.SIGNAL_RECEIVE,  // polygon
+  STATE_SHAPES.SIGNAL_SEND, // polygon
+  STATE_SHAPES.SIGNAL_RECEIVE, // polygon
 ])
 
 /**

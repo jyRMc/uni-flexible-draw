@@ -51,8 +51,10 @@ export class DataMigration {
     for (let i = 0; i < Math.max(parts1.length, parts2.length); i++) {
       const a = parts1[i] ?? 0
       const b = parts2[i] ?? 0
-      if (a < b) return -1
-      if (a > b) return 1
+      if (a < b)
+        return -1
+      if (a > b)
+        return 1
     }
     return 0
   }

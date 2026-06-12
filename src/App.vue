@@ -1,13 +1,15 @@
-<template>
-  <AIDrawExample />
-</template>
-
 <script setup lang="ts">
 import AIDrawExample from './views/AIDrawExample.vue'
 </script>
 
+<template>
+  <AIDrawExample />
+</template>
+
 <style>
-html, body, #app {
+html,
+body,
+#app {
   margin: 0;
   padding: 0;
   width: 100%;

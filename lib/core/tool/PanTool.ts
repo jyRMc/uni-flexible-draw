@@ -22,7 +22,8 @@ export class PanTool {
   }
 
   enable(): void {
-    if (this.enabled) return
+    if (this.enabled)
+      return
 
     // 禁止节点拖动（保存原始配置以便 disable 时恢复）
     this._savedInteracting = (this.graph.options as any).interacting
@@ -35,7 +36,8 @@ export class PanTool {
   }
 
   disable(): void {
-    if (!this.enabled) return
+    if (!this.enabled)
+      return
 
     // 解绑平移事件
     this.unbindPanEvents()
@@ -61,17 +63,22 @@ export class PanTool {
   }
 
   private unbindPanEvents(): void {
-    if (this._onMouseDown) document.removeEventListener('mousedown', this._onMouseDown, true)
-    if (this._onMouseMove) document.removeEventListener('mousemove', this._onMouseMove)
-    if (this._onMouseUp) document.removeEventListener('mouseup', this._onMouseUp)
+    if (this._onMouseDown)
+      document.removeEventListener('mousedown', this._onMouseDown, true)
+    if (this._onMouseMove)
+      document.removeEventListener('mousemove', this._onMouseMove)
+    if (this._onMouseUp)
+      document.removeEventListener('mouseup', this._onMouseUp)
 
     this.graph.container.style.cursor = ''
   }
 
   private onMouseDown(e: MouseEvent): void {
-    if (e.button !== 0) return
+    if (e.button !== 0)
+      return
     // 仅响应画布容器内的点击
-    if (!this.graph.container.contains(e.target as Node)) return
+    if (!this.graph.container.contains(e.target as Node))
+      return
     this.panningState = true
     this.startX = e.clientX
     this.startY = e.clientY
@@ -81,7 +88,8 @@ export class PanTool {
   }
 
   private onMouseMove(e: MouseEvent): void {
-    if (!this.panningState) return
+    if (!this.panningState)
+      return
     const dx = e.clientX - this.startX
     const dy = e.clientY - this.startY
     this.startX = e.clientX
@@ -91,7 +99,8 @@ export class PanTool {
   }
 
   private onMouseUp(): void {
-    if (!this.panningState) return
+    if (!this.panningState)
+      return
     this.panningState = false
     this.graph.container.style.cursor = 'grab'
   }
@@ -103,7 +112,8 @@ export class PanTool {
   toggle(): boolean {
     if (this.enabled) {
       this.disable()
-    } else {
+    }
+    else {
       this.enable()
     }
     return this.enabled

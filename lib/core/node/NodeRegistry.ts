@@ -12,12 +12,15 @@ export class NodeRegistry {
    * 注册节点图形
    */
   static register(name: string, config: Node.Config): void {
-    if (NodeRegistry.configs.has(name)) return
+    if (NodeRegistry.configs.has(name))
+      return
     NodeRegistry.configs.set(name, config)
     try {
       Graph.registerNode(name, config)
-    } catch (e: any) {
-      if (e?.message?.includes('already registered')) return
+    }
+    catch (e: any) {
+      if (e?.message?.includes('already registered'))
+        return
       throw e
     }
   }

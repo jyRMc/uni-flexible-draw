@@ -1,121 +1,3 @@
-﻿<template>
-  <div class="ai-panel">
-    <!-- 标签页切换 -->
-    <div class="ai-tabs">
-      <button
-        v-for="tab in tabs"
-        :key="tab.key"
-        class="ai-tab"
-        :class="{ active: activeTab === tab.key }"
-        @click="activeTab = tab.key"
-      >
-        {{ tab.label }}
-      </button>
-    </div>
-
-    <!-- 推荐提示 标签页 -->
-    <div v-if="activeTab === 'suggestions'" class="ai-tab-content">
-      <div class="ai-prompts">
-        <div class="ai-prompts-title">试试这样说</div>
-        <div class="ai-prompts-list">
-          <button
-            v-for="prompt in suggestions"
-            :key="prompt"
-            class="ai-prompt-btn"
-            @click="sendPrompt(prompt)"
-          >
-            {{ prompt }}
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- 助手 标签页 -->
-    <div v-if="activeTab === 'chat'" class="ai-tab-content chat-content">
-      <div class="ai-messages">
-        <div
-          v-for="(msg, index) in messages"
-          :key="index"
-          class="ai-message"
-          :class="msg.role"
-        >
-          <div class="ai-message-content">{{ msg.content }}</div>
-        </div>
-        <div v-if="isLoading" class="ai-message assistant">
-          <div class="ai-message-content ai-typing">
-            <span class="dot" /><span class="dot" /><span class="dot" />
-          </div>
-        </div>
-      </div>
-
-      <!-- 你可能还想问 -->
-      <div v-if="followUpQuestions.length > 0 && !isLoading" class="ai-follow-ups">
-        <div class="ai-follow-ups-title">你可能还想问</div>
-        <button
-          v-for="q in followUpQuestions"
-          :key="q"
-          class="ai-follow-up-btn"
-          @click="sendPrompt(q)"
-        >
-          {{ q }}
-        </button>
-      </div>
-    </div>
-
-    <!-- 历史记录 标签页 -->
-    <div v-if="activeTab === 'history'" class="ai-tab-content">
-      <div class="ai-history-empty">
-        <div class="ai-history-empty-icon">📋</div>
-        <div class="ai-history-empty-text">暂无历史记录</div>
-      </div>
-    </div>
-
-    <!-- 底部输入区 -->
-    <div class="ai-input-area">
-      <div class="ai-input-row">
-        <input
-          v-model="inputValue"
-          type="text"
-          placeholder="描述你想绘制的图表..."
-          class="ai-input"
-          @keyup.enter="sendInput"
-        >
-        <button class="ai-send-btn" :disabled="isLoading || !inputValue.trim()" @click="sendInput">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" />
-          </svg>
-        </button>
-      </div>
-      <div class="ai-model-selector">
-        <div class="ai-config-grid">
-          <input
-            :value="props.config.model"
-            type="text"
-            class="ai-config-input"
-            placeholder="模型名称，例如 deepseek-ai/DeepSeek-V3"
-            @input="onModelInput"
-          >
-          <input
-            :value="props.config.apiUrl"
-            type="text"
-            class="ai-config-input"
-            placeholder="RestAPI 调用地址，例如 https://api.example.com/v1/chat/completions"
-            @input="onApiUrlInput"
-          >
-          <input
-            :value="props.config.apiKey"
-            type="password"
-            class="ai-config-input"
-            placeholder="API Key"
-            @input="onApiKeyInput"
-          >
-        </div>
-        <span class="ai-model-label">{{ props.config.model || '未配置模型' }}</span>
-      </div>
-    </div>
-  </div>
-</template>
-
 <script setup lang="ts">
 import { ref } from 'vue'
 import type { AIConnectionConfig } from '../mocks/aiService'
@@ -165,7 +47,8 @@ function sendPrompt(prompt: string) {
 }
 
 function sendInput() {
-  if (!inputValue.value.trim() || props.isLoading) return
+  if (!inputValue.value.trim() || props.isLoading)
+    return
   activeTab.value = 'chat'
   emit('send', inputValue.value.trim())
   inputValue.value = ''
@@ -190,6 +73,134 @@ function onApiKeyInput(event: Event) {
   updateConfig({ apiKey: (event.target as HTMLInputElement | null)?.value ?? '' })
 }
 </script>
+
+<template>
+  <div class="ai-panel">
+    <!-- 标签页切换 -->
+    <div class="ai-tabs">
+      <button
+        v-for="tab in tabs"
+        :key="tab.key"
+        class="ai-tab"
+        :class="{ active: activeTab === tab.key }"
+        @click="activeTab = tab.key"
+      >
+        {{ tab.label }}
+      </button>
+    </div>
+
+    <!-- 推荐提示 标签页 -->
+    <div v-if="activeTab === 'suggestions'" class="ai-tab-content">
+      <div class="ai-prompts">
+        <div class="ai-prompts-title">
+          试试这样说
+        </div>
+        <div class="ai-prompts-list">
+          <button
+            v-for="prompt in suggestions"
+            :key="prompt"
+            class="ai-prompt-btn"
+            @click="sendPrompt(prompt)"
+          >
+            {{ prompt }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 助手 标签页 -->
+    <div v-if="activeTab === 'chat'" class="ai-tab-content chat-content">
+      <div class="ai-messages">
+        <div
+          v-for="(msg, index) in messages"
+          :key="index"
+          class="ai-message"
+          :class="msg.role"
+        >
+          <div class="ai-message-content">
+            {{ msg.content }}
+          </div>
+        </div>
+        <div v-if="isLoading" class="ai-message assistant">
+          <div class="ai-message-content ai-typing">
+            <span class="dot" /><span class="dot" /><span class="dot" />
+          </div>
+        </div>
+      </div>
+
+      <!-- 你可能还想问 -->
+      <div v-if="followUpQuestions.length > 0 && !isLoading" class="ai-follow-ups">
+        <div class="ai-follow-ups-title">
+          你可能还想问
+        </div>
+        <button
+          v-for="q in followUpQuestions"
+          :key="q"
+          class="ai-follow-up-btn"
+          @click="sendPrompt(q)"
+        >
+          {{ q }}
+        </button>
+      </div>
+    </div>
+
+    <!-- 历史记录 标签页 -->
+    <div v-if="activeTab === 'history'" class="ai-tab-content">
+      <div class="ai-history-empty">
+        <div class="ai-history-empty-icon">
+          📋
+        </div>
+        <div class="ai-history-empty-text">
+          暂无历史记录
+        </div>
+      </div>
+    </div>
+
+    <!-- 底部输入区 -->
+    <div class="ai-input-area">
+      <div class="ai-input-row">
+        <input
+          v-model="inputValue"
+          type="text"
+          placeholder="描述你想绘制的图表..."
+          class="ai-input"
+          @keyup.enter="sendInput"
+        >
+        <button class="ai-send-btn" :disabled="isLoading || !inputValue.trim()" @click="sendInput">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" />
+          </svg>
+        </button>
+      </div>
+      <div class="ai-model-selector">
+        <div class="ai-config-grid">
+          <input
+            :value="props.config.model"
+            type="text"
+            class="ai-config-input"
+            placeholder="模型名称，例如 deepseek-ai/DeepSeek-V3"
+            @input="onModelInput"
+          >
+          <input
+            :value="props.config.apiUrl"
+            type="text"
+            class="ai-config-input"
+            placeholder="RestAPI 调用地址，例如 https://api.example.com/v1/chat/completions"
+            @input="onApiUrlInput"
+          >
+          <input
+            :value="props.config.apiKey"
+            type="password"
+            class="ai-config-input"
+            placeholder="API Key"
+            @input="onApiKeyInput"
+          >
+        </div>
+        <span class="ai-model-label">{{ props.config.model || '未配置模型' }}</span>
+      </div>
+    </div>
+  </div>
+</template>
 
 <style scoped>
 .ai-panel {
@@ -348,8 +359,16 @@ function onApiKeyInput(event: Event) {
 }
 
 @keyframes typingDot {
-  0%, 60%, 100% { opacity: 0.3; transform: scale(0.8); }
-  30% { opacity: 1; transform: scale(1); }
+  0%,
+  60%,
+  100% {
+    opacity: 0.3;
+    transform: scale(0.8);
+  }
+  30% {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 /* 你可能还想问 */

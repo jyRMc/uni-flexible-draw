@@ -1,7 +1,7 @@
-import { describe, it, expect } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { ref } from 'vue'
 import { useAlignment } from '../composables/useAlignment'
-import { useStyleEditor, type EdgeViewData } from '../composables/useStyleEditor'
+import { type EdgeViewData, useStyleEditor } from '../composables/useStyleEditor'
 
 function makeMockNode(x: number, y: number, w: number, h: number) {
   let pos = { x, y }

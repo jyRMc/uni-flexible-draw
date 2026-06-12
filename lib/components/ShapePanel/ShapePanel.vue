@@ -1,29 +1,6 @@
-<template>
-  <div class="shape-panel">
-    <div v-if="searchable" class="shape-panel-search">
-      <input
-        v-model="searchQuery"
-        type="text"
-        :placeholder="t.panel.searchShapes"
-        class="shape-panel-search-input"
-      >
-    </div>
-    <div class="shape-panel-content">
-      <ShapeCategory
-        v-for="library in filteredLibraries"
-        :key="library.id"
-        :library="library"
-        :collapsible="collapsible"
-        @dragstart="onDragStart"
-        @select="onSelect"
-      />
-    </div>
-  </div>
-</template>
-
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import type { MaterialLibrary, MaterialItem } from '@uni-draw/shared'
+import { computed, ref } from 'vue'
+import type { MaterialItem, MaterialLibrary } from '@uni-draw/shared'
 import { useLocale } from '../../locale'
 import ShapeCategory from './ShapeCategory.vue'
 
@@ -47,15 +24,16 @@ const t = useLocale()
 const searchQuery = ref('')
 
 const filteredLibraries = computed(() => {
-  if (!searchQuery.value.trim()) return props.libraries
+  if (!searchQuery.value.trim())
+    return props.libraries
   const query = searchQuery.value.toLowerCase()
   return props.libraries
     .map((lib: MaterialLibrary) => ({
       ...lib,
       items: lib.items.filter(
         (item: MaterialItem) =>
-          item.name.toLowerCase().includes(query) ||
-          item.shape.toLowerCase().includes(query),
+          item.name.toLowerCase().includes(query)
+          || item.shape.toLowerCase().includes(query),
       ),
     }))
     .filter((lib: MaterialLibrary) => lib.items.length > 0)
@@ -69,6 +47,29 @@ function onSelect(item: MaterialItem) {
   emit('select', item)
 }
 </script>
+
+<template>
+  <div class="shape-panel">
+    <div v-if="searchable" class="shape-panel-search">
+      <input
+        v-model="searchQuery"
+        type="text"
+        :placeholder="t.panel.searchShapes"
+        class="shape-panel-search-input"
+      >
+    </div>
+    <div class="shape-panel-content">
+      <ShapeCategory
+        v-for="library in filteredLibraries"
+        :key="library.id"
+        :library="library"
+        :collapsible="collapsible"
+        @dragstart="onDragStart"
+        @select="onSelect"
+      />
+    </div>
+  </div>
+</template>
 
 <style scoped>
 .shape-panel {
@@ -111,5 +112,4 @@ function onSelect(item: MaterialItem) {
   overflow-y: auto;
   padding: 2px 0 12px;
 }
-
 </style>

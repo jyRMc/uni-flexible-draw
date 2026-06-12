@@ -1,5 +1,5 @@
-import { PRIMARY_COLOR } from '../theme'
 import type { Node } from '@antv/x6'
+import { PRIMARY_COLOR } from '../theme'
 
 export interface TableShapeData {
   rows: number
@@ -42,8 +42,10 @@ export function normalizeTableData(raw: unknown): TableShapeData {
       const row = Array.isArray(cells[rowIndex]) ? cells[rowIndex] as unknown[] : []
       return Array.from({ length: cols }, (_, colIndex) => {
         const value = row[colIndex]
-        if (typeof value === 'string') return value
-        if (value == null) return rowIndex === 0 ? `列${colIndex + 1}` : ''
+        if (typeof value === 'string')
+          return value
+        if (value == null)
+          return rowIndex === 0 ? `列${colIndex + 1}` : ''
         return String(value)
       })
     }),
