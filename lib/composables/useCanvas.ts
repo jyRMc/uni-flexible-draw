@@ -868,7 +868,6 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
       position: position ?? { x: 100, y: 100 },
       size: { ...material.defaultSize },
       label: material.defaultLabel ?? material.name,
-      ports: material.defaultPorts,
       ...(material.defaultStyle ? { style: material.defaultStyle as NodeStyle } : {}),
       ...(materialData ? { data: materialData } : {}),
     }

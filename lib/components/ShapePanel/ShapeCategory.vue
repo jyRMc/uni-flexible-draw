@@ -3,6 +3,7 @@ import '../../icon/iconfont.css'
 import { computed, ref } from 'vue'
 import type { MaterialItem, MaterialLibrary } from '@uni-draw/shared'
 import { useLocale } from '../../locale'
+import { getShapePreviewSVG } from './ShapePreviewRenderer'
 
 export interface ShapeCategoryProps {
   library: MaterialLibrary
@@ -38,150 +39,6 @@ function onDragStart(item: MaterialItem, event: DragEvent) {
 
 function onSelect(item: MaterialItem) {
   emit('select', item)
-}
-
-const SHAPE_ICON_CLASSES: Record<string, string> = {
-  'basic-rect': 'icon-basic-rectangle',
-  'basic-rounded-rect': 'icon-basic-rounded-rectangle',
-  'basic-circle': 'icon-basic-circle',
-  'basic-diamond': 'icon-basic-diamond',
-  'basic-triangle': 'icon-basic-triangle',
-  'basic-parallelogram': 'icon-basic-parallelogram',
-  'basic-trapezoid': 'icon-basic-trapezoid',
-  'basic-hexagon': 'icon-basic-hexagon',
-  'basic-pentagon': 'icon-a-basic-pentagon',
-  'basic-octagon': 'icon-a-basic-octagon',
-  'basic-star': 'icon-a-basic-star',
-  'basic-cross': 'icon-a-basic-cross',
-  'basic-cylinder': 'icon-basic-cylinder',
-  'basic-cloud': 'icon-basic-cloud',
-  'basic-document': 'icon-basic-document',
-  'basic-table': 'icon-basic-rectangle',
-  'basic-text': 'icon-basic-text',
-  'basic-image': 'icon-basic-image',
-  'basic-svg': 'icon-basic-svg',
-  'flowchart-start-end': 'icon-flowchart-start-end',
-  'flowchart-process': 'icon-flowchart-process',
-  'flowchart-decision': 'icon-flowchart-decision',
-  'flowchart-input-output': 'icon-flowchart-input-output',
-  'flowchart-document': 'icon-flowchart-document',
-  'flowchart-database': 'icon-flowchart-database',
-  'flowchart-predefined': 'icon-flowchart-predefined',
-  'flowchart-connector': 'icon-flowchart-connector',
-  'flowchart-merge': 'icon-basic-triangle',
-  'flowchart-internal-storage': 'icon-flowchart-internal-storage',
-  'edge-line': 'icon-edge-line',
-  'edge-dashed': 'icon-edge-dashed',
-  'edge-arrow': 'icon-edge-arrow',
-  'edge-double-arrow': 'icon-edge-double-arrow',
-  'edge-curve': 'icon-edge-curve',
-  'edge-orthogonal': 'icon-edge-orthogonal',
-  'uml-class': 'icon-uml-class',
-  'uml-interface': 'icon-uml-interface',
-  'uml-abstract': 'icon-uml-class',
-  'uml-enum': 'icon-uml-enum',
-  'uml-object': 'icon-uml-class',
-  'uml-package': 'icon-uml-package',
-  'uml-note': 'icon-uml-note',
-  'uml-actor': 'icon-uml-actor',
-  'uml-use-case': 'icon-uml-use-case',
-  'uml-component': 'icon-uml-component',
-  'uml-deployment': 'icon-uml-node',
-  'uml-collaboration': 'icon-uml-collaboration',
-  'uml-composite': 'icon-uml-component',
-  'uml-node': 'icon-uml-node',
-  'uml-artifact': 'icon-uml-note',
-  'er-entity': 'icon-basic-rectangle',
-  'er-weak-entity': 'icon-basic-rectangle',
-  'er-relationship': 'icon-basic-diamond',
-  'er-identifying-relationship': 'icon-basic-diamond',
-  'er-attribute': 'icon-basic-circle',
-  'er-key-attribute': 'icon-basic-circle',
-  'er-multivalued': 'icon-basic-circle',
-  'er-derived': 'icon-basic-circle',
-  'er-associative': 'icon-basic-rectangle',
-  'er-total-participation': 'icon-edge-arrow',
-  'state-simple': 'icon-state-simple',
-  'state-initial': 'icon-state-initial',
-  'state-final': 'icon-state-final',
-  'state-shallow-history': 'icon-state-shallow-history',
-  'state-deep-history': 'icon-state-deep-history',
-  'state-junction': 'icon-state-junction',
-  'state-choice': 'icon-state-choice',
-  'state-fork': 'icon-state-fork',
-  'state-join': 'icon-state-join',
-  'state-entry-point': 'icon-state-initial',
-  'state-exit-point': 'icon-state-terminate',
-  'state-terminate': 'icon-state-terminate',
-  'state-signal-send': 'icon-state-signal-send',
-  'state-signal-receive': 'icon-state-signal-receive',
-  'dfd-process': 'icon-dfd-process',
-  'dfd-data-store': 'icon-dfd-data-store',
-  'dfd-external-entity': 'icon-dfd-external-entity',
-  'dfd-multiple-process': 'icon-dfd-multiple-process',
-  'swimlane-horizontal': 'icon-swimlane-horizontal',
-  'swimlane-vertical': 'icon-swimlane-vertical',
-  'swimlane-pool': 'icon-swimlane-horizontal',
-  'swimlane-phase': 'icon-swimlane-horizontal',
-  'sequence-actor': 'icon-sequence-actor',
-  'sequence-lifeline': 'icon-sequence-lifeline',
-  'sequence-activation': 'icon-sequence-activation',
-  'sequence-fragment-alt': 'icon-sequence-fragment-alt',
-  'sequence-fragment-opt': 'icon-sequence-fragment-opt',
-  'sequence-fragment-loop': 'icon-sequence-fragment-loop',
-  'sequence-fragment-par': 'icon-sequence-fragment-par',
-  'sequence-fragment-critical': 'icon-sequence-fragment-critical',
-  'sequence-gateway': 'icon-basic-diamond',
-}
-
-const CATEGORY_ICON_CLASSES: Record<string, string> = {
-  basic: 'icon-basic-rectangle',
-  flowchart: 'icon-flowchart-process',
-  edge: 'icon-edge-line',
-  uml: 'icon-uml-class',
-  er: 'icon-basic-rectangle',
-  state: 'icon-state-simple',
-  dfd: 'icon-dfd-process',
-  swimlane: 'icon-swimlane-horizontal',
-  sequence: 'icon-sequence-actor',
-}
-
-function getShapeIconClass(shape: string): string {
-  return SHAPE_ICON_CLASSES[shape] ?? CATEGORY_ICON_CLASSES[shape.split('-')[0]] ?? 'icon-basic-rectangle'
-}
-
-function isEdgePreviewShape(shape: string): boolean {
-  return shape === 'edge-line'
-    || shape === 'edge-sketch'
-    || shape === 'edge-dashed'
-    || shape === 'edge-arrow'
-    || shape === 'edge-double-arrow'
-    || shape === 'edge-curve'
-    || shape === 'edge-orthogonal'
-}
-
-function getEdgePreviewSvg(shape: string): string {
-  const stroke = 'currentColor'
-  const line = `fill="none" stroke="${stroke}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"`
-
-  switch (shape) {
-    case 'edge-line':
-      return `<svg viewBox="0 0 44 18" xmlns="http://www.w3.org/2000/svg"><line x1="4" y1="9" x2="40" y2="9" ${line}/></svg>`
-    case 'edge-sketch':
-      return `<svg viewBox="0 0 44 18" xmlns="http://www.w3.org/2000/svg"><path d="M4,9 C6.5,5.7 9.5,11.7 13,8.4 C17,4.8 21,12.2 25,8.2 C29,4.6 33,10.8 36.5,7.6 C38.2,6.1 39.2,9.8 40,9" ${line}/></svg>`
-    case 'edge-dashed':
-      return `<svg viewBox="0 0 44 18" xmlns="http://www.w3.org/2000/svg"><line x1="4" y1="9" x2="40" y2="9" ${line} stroke-dasharray="5 3"/></svg>`
-    case 'edge-arrow':
-      return `<svg viewBox="0 0 44 18" xmlns="http://www.w3.org/2000/svg"><line x1="4" y1="9" x2="31" y2="9" ${line}/><polygon points="31,5 40,9 31,13" fill="${stroke}"/></svg>`
-    case 'edge-double-arrow':
-      return `<svg viewBox="0 0 44 18" xmlns="http://www.w3.org/2000/svg"><line x1="12" y1="9" x2="32" y2="9" ${line}/><polygon points="12,5 4,9 12,13" fill="${stroke}"/><polygon points="32,5 40,9 32,13" fill="${stroke}"/></svg>`
-    case 'edge-curve':
-      return `<svg viewBox="0 0 44 22" xmlns="http://www.w3.org/2000/svg"><path d="M4,7 C11,7 11,17 22,17 C33,17 33,7 40,7" ${line}/></svg>`
-    case 'edge-orthogonal':
-      return `<svg viewBox="0 0 44 28" xmlns="http://www.w3.org/2000/svg"><path d="M4,22 L18,22 Q21,22 21,19 L21,9 Q21,6 24,6 L40,6" ${line}/></svg>`
-    default:
-      return `<svg viewBox="0 0 44 18" xmlns="http://www.w3.org/2000/svg"><line x1="4" y1="9" x2="40" y2="9" ${line}/></svg>`
-  }
 }
 
 /*
@@ -348,8 +205,7 @@ function _getShapeSVG(shape: string): string {
         @dragstart="(e: DragEvent) => onDragStart(item, e)"
         @click="onSelect(item)"
       >
-        <div v-if="isEdgePreviewShape(item.shape)" class="shape-svg-preview" v-html="getEdgePreviewSvg(item.shape)" />
-        <span v-else class="shape-icon-font iconfont" :class="[getShapeIconClass(item.shape)]" aria-hidden="true" />
+        <div class="shape-preview-svg" v-html="getShapePreviewSVG(item.shape)" />
       </div>
     </div>
   </div>
@@ -431,34 +287,21 @@ function _getShapeSVG(shape: string): string {
   background: #dce5f5;
 }
 
-.shape-icon-font {
+.shape-preview-svg {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 18px;
-  height: 18px;
-  font-size: 18px;
-  line-height: 1;
-  color: inherit;
-  transition: color 0.15s;
+  width: 28px;
+  height: 28px;
 }
 
-.shape-svg-preview {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 20px;
-  height: 20px;
-  color: inherit;
+.shape-preview-svg svg {
+  width: 100%;
+  height: 100%;
+  display: block;
 }
 
-.shape-svg-preview :deep(svg) {
-  width: 20px;
-  height: 20px;
-  overflow: visible;
-}
-
-.shape-category-item:hover .shape-icon-font {
-  color: inherit;
+.shape-preview-svg :deep(text) {
+  font-family: sans-serif;
 }
 </style>

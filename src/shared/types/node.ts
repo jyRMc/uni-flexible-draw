@@ -27,6 +27,23 @@ export interface NodeData {
   children?: string[]
 }
 
+/**
+ * 多区域节点数据
+ * 用于 UML 类图、时序图 fragment、泳道图等含内部区域分隔的节点
+ */
+export interface RegionData {
+  /** 各区域配置 */
+  regions: Array<{
+    id: string
+    label: string
+  }>
+  /** 分隔线位置比例 (0~1) */
+  dividers: Array<{
+    id: string
+    position: number
+  }>
+}
+
 export interface NodeStyle {
   /** 填充色 */
   fill?: string

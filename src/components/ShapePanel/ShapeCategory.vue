@@ -3,6 +3,7 @@ import '../../../lib/icon/iconfont.css'
 import { computed, ref } from 'vue'
 import type { MaterialItem, MaterialLibrary } from '../../shared'
 import { useLocale } from '../../locale'
+import { getShapePreviewSVG } from './ShapePreviewRenderer'
 
 export interface ShapeCategoryProps {
   library: MaterialLibrary
@@ -38,117 +39,6 @@ function onDragStart(item: MaterialItem, event: DragEvent) {
 
 function onSelect(item: MaterialItem) {
   emit('select', item)
-}
-
-const SHAPE_ICON_CLASSES: Record<string, string> = {
-  'basic-rect': 'icon-basic-rectangle',
-  'basic-rounded-rect': 'icon-basic-rounded-rectangle',
-  'basic-circle': 'icon-basic-circle',
-  'basic-diamond': 'icon-basic-diamond',
-  'basic-triangle': 'icon-basic-triangle',
-  'basic-parallelogram': 'icon-basic-parallelogram',
-  'basic-trapezoid': 'icon-basic-trapezoid',
-  'basic-hexagon': 'icon-basic-hexagon',
-  'basic-pentagon': 'icon-a-basic-pentagon',
-  'basic-octagon': 'icon-a-basic-octagon',
-  'basic-star': 'icon-a-basic-star',
-  'basic-cross': 'icon-a-basic-cross',
-  'basic-cylinder': 'icon-basic-cylinder',
-  'basic-cloud': 'icon-basic-cloud',
-  'basic-document': 'icon-basic-document',
-  'basic-table': 'icon-basic-rectangle',
-  'basic-text': 'icon-basic-text',
-  'basic-image': 'icon-basic-image',
-  'basic-svg': 'icon-basic-svg',
-  'flowchart-start-end': 'icon-flowchart-start-end',
-  'flowchart-process': 'icon-flowchart-process',
-  'flowchart-decision': 'icon-flowchart-decision',
-  'flowchart-input-output': 'icon-flowchart-input-output',
-  'flowchart-document': 'icon-flowchart-document',
-  'flowchart-database': 'icon-flowchart-database',
-  'flowchart-predefined': 'icon-flowchart-predefined',
-  'flowchart-connector': 'icon-flowchart-connector',
-  'flowchart-merge': 'icon-basic-triangle',
-  'flowchart-internal-storage': 'icon-flowchart-internal-storage',
-  'edge-line': 'icon-edge-line',
-  'edge-sketch': 'icon-edge-line',
-  'edge-dashed': 'icon-edge-dashed',
-  'edge-arrow': 'icon-edge-arrow',
-  'edge-double-arrow': 'icon-edge-double-arrow',
-  'edge-curve': 'icon-edge-curve',
-  'edge-orthogonal': 'icon-edge-orthogonal',
-  'uml-class': 'icon-uml-class',
-  'uml-interface': 'icon-uml-interface',
-  'uml-abstract': 'icon-uml-class',
-  'uml-enum': 'icon-uml-enum',
-  'uml-object': 'icon-uml-class',
-  'uml-package': 'icon-uml-package',
-  'uml-note': 'icon-uml-note',
-  'uml-actor': 'icon-uml-actor',
-  'uml-use-case': 'icon-uml-use-case',
-  'uml-component': 'icon-uml-component',
-  'uml-deployment': 'icon-uml-node',
-  'uml-collaboration': 'icon-uml-collaboration',
-  'uml-composite': 'icon-uml-component',
-  'uml-node': 'icon-uml-node',
-  'uml-artifact': 'icon-uml-note',
-  'er-entity': 'icon-basic-rectangle',
-  'er-weak-entity': 'icon-basic-rectangle',
-  'er-relationship': 'icon-basic-diamond',
-  'er-identifying-relationship': 'icon-basic-diamond',
-  'er-attribute': 'icon-basic-circle',
-  'er-key-attribute': 'icon-basic-circle',
-  'er-multivalued': 'icon-basic-circle',
-  'er-derived': 'icon-basic-circle',
-  'er-associative': 'icon-basic-rectangle',
-  'er-total-participation': 'icon-edge-arrow',
-  'state-simple': 'icon-state-simple',
-  'state-initial': 'icon-state-initial',
-  'state-final': 'icon-state-final',
-  'state-shallow-history': 'icon-state-shallow-history',
-  'state-deep-history': 'icon-state-deep-history',
-  'state-junction': 'icon-state-junction',
-  'state-choice': 'icon-state-choice',
-  'state-fork': 'icon-state-fork',
-  'state-join': 'icon-state-join',
-  'state-entry-point': 'icon-state-initial',
-  'state-exit-point': 'icon-state-terminate',
-  'state-terminate': 'icon-state-terminate',
-  'state-signal-send': 'icon-state-signal-send',
-  'state-signal-receive': 'icon-state-signal-receive',
-  'dfd-process': 'icon-dfd-process',
-  'dfd-data-store': 'icon-dfd-data-store',
-  'dfd-external-entity': 'icon-dfd-external-entity',
-  'dfd-multiple-process': 'icon-dfd-multiple-process',
-  'swimlane-horizontal': 'icon-swimlane-horizontal',
-  'swimlane-vertical': 'icon-swimlane-vertical',
-  'swimlane-pool': 'icon-swimlane-horizontal',
-  'swimlane-phase': 'icon-swimlane-horizontal',
-  'sequence-actor': 'icon-sequence-actor',
-  'sequence-lifeline': 'icon-sequence-lifeline',
-  'sequence-activation': 'icon-sequence-activation',
-  'sequence-fragment-alt': 'icon-sequence-fragment-alt',
-  'sequence-fragment-opt': 'icon-sequence-fragment-opt',
-  'sequence-fragment-loop': 'icon-sequence-fragment-loop',
-  'sequence-fragment-par': 'icon-sequence-fragment-par',
-  'sequence-fragment-critical': 'icon-sequence-fragment-critical',
-  'sequence-gateway': 'icon-basic-diamond',
-}
-
-const CATEGORY_ICON_CLASSES: Record<string, string> = {
-  basic: 'icon-basic-rectangle',
-  flowchart: 'icon-flowchart-process',
-  edge: 'icon-edge-line',
-  uml: 'icon-uml-class',
-  er: 'icon-basic-rectangle',
-  state: 'icon-state-simple',
-  dfd: 'icon-dfd-process',
-  swimlane: 'icon-swimlane-horizontal',
-  sequence: 'icon-sequence-actor',
-}
-
-function getShapeIconClass(shape: string): string {
-  return SHAPE_ICON_CLASSES[shape] ?? CATEGORY_ICON_CLASSES[shape.split('-')[0]] ?? 'icon-basic-rectangle'
 }
 
 /*
@@ -315,7 +205,7 @@ function _getShapeSVG(shape: string): string {
         @dragstart="(e: DragEvent) => onDragStart(item, e)"
         @click="onSelect(item)"
       >
-        <span class="shape-icon-font iconfont" :class="[getShapeIconClass(item.shape)]" aria-hidden="true" />
+        <div class="shape-preview-svg" v-html="getShapePreviewSVG(item.shape)" />
       </div>
     </div>
   </div>
@@ -397,19 +287,21 @@ function _getShapeSVG(shape: string): string {
   background: #dce5f5;
 }
 
-.shape-icon-font {
+.shape-preview-svg {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 18px;
-  height: 18px;
-  font-size: 18px;
-  line-height: 1;
-  color: inherit;
-  transition: color 0.15s;
+  width: 28px;
+  height: 28px;
 }
 
-.shape-category-item:hover .shape-icon-font {
-  color: inherit;
+.shape-preview-svg svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.shape-preview-svg :deep(text) {
+  font-family: sans-serif;
 }
 </style>

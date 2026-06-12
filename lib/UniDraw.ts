@@ -13,6 +13,8 @@ import zhCN from './locale/zh-CN'
 import type { UniDrawLocale } from './locale'
 import { PRIMARY_COLOR } from './shared/constants/theme'
 import { getEdgeLineConfig, getEdgeLineType, getEdgeLineTypeOptions, getEdgeLineVertices } from './shared'
+import { shortId } from './shared/utils/id'
+import { NodeFactory } from './core/node/NodeFactory'
 import { type NativeColorPickerInstance, createNativeColorPicker } from './components/ColorPicker/native'
 
 // ─── Public types ──────────────────────────────────────────────────────────
@@ -832,29 +834,17 @@ export class UniDraw {
     const center = position ?? this.getCanvasCenterPosition()
     const x = center.x - item.defaultSize.width / 2 + (position ? 0 : (Math.random() * 40 - 20))
     const y = center.y - item.defaultSize.height / 2 + (position ? 0 : (Math.random() * 40 - 20))
-    const imageHref = typeof item.data?.imageHref === 'string' ? item.data.imageHref : ''
-    graph.addNode({
+    const nodeData: NodeData = {
+      id: shortId('node'),
       shape: item.shape,
-      x,
-      y,
-      width: item.defaultSize.width,
-      height: item.defaultSize.height,
+      position: { x, y },
+      size: { width: item.defaultSize.width, height: item.defaultSize.height },
       label: item.defaultLabel ?? item.name,
-      attrs: {
-        ...(imageHref
-          ? { image: { 'xlink:href': imageHref, 'refWidth': '100%', 'refHeight': '100%', 'x': 0, 'y': 0 } }
-          : {
-              body: {
-                fill: item.defaultStyle?.fill ?? '#fff',
-                stroke: item.defaultStyle?.stroke ?? PRIMARY_COLOR,
-                strokeWidth: item.defaultStyle?.strokeWidth ?? 1.5,
-              },
-            }),
-        label: { fill: '#333', fontSize: 12 },
-      },
-      ports: item.defaultPorts,
-      ...(item.data ? { data: { ...item.data } } : {}),
-    })
+      style: item.defaultStyle,
+      data: item.data,
+    }
+    const node = NodeFactory.createNode(graph, nodeData)
+    graph.addNode(node)
     this.opts.onDataChange?.(this.getData())
   }
 

@@ -5,6 +5,7 @@ import { Transform } from '@antv/x6-plugin-transform'
 import { Export } from '@antv/x6-plugin-export'
 import type { CanvasConfig } from '@uni-draw/shared'
 import { PRIMARY_COLOR } from '@uni-draw/shared'
+import { buildMultiRegionAttrs } from '../../shapes/utils/regionNodes'
 import { highlightEdge, unhighlightEdge } from '../graph/highlight'
 
 export interface AntVRenderEngineOptions {
@@ -199,15 +200,96 @@ export class AntVRenderEngine {
         )
       }
 
+      let dividerDragState: { node: any, dividerIndex: number, startY: number, startPositions: number[], containerHeight: number } | null = null
+
       this.graph.on('node:mouseenter', ({ node, view }: any) => {
         const ports = view.container.querySelectorAll('.x6-port-body') as NodeListOf<SVGElement>
-        ports.forEach((el) => { el.style.visibility = 'visible' })
+        ports.forEach((el) => {
+          el.style.visibility = 'visible'
+        })
         node.setTools([])
+        // 多区域节点：给 divider 添加可拖动光标
+        const dividers = view.container.querySelectorAll('[data-selector^="divider"]') as NodeListOf<SVGElement>
+        dividers.forEach((el) => {
+          el.style.cursor = 'ns-resize'
+        })
       })
       this.graph.on('node:mouseleave', ({ node, view }: any) => {
         const ports = view.container.querySelectorAll('.x6-port-body') as NodeListOf<SVGElement>
-        ports.forEach((el) => { el.style.visibility = 'hidden' })
+        ports.forEach((el) => {
+          el.style.visibility = 'hidden'
+        })
         node.removeTools()
+        const dividers = view.container.querySelectorAll('[data-selector^="divider"]') as NodeListOf<SVGElement>
+        dividers.forEach((el) => {
+          el.style.cursor = ''
+        })
+      })
+
+      // 分隔线拖动
+      this.graph.on('node:mousedown', ({ node, e }: any) => {
+        const selector = (() => {
+          let target = e?.target as Element | null
+          while (target) {
+            const sel = target.getAttribute('data-selector')
+            if (sel) return sel
+            target = target.parentElement
+          }
+          return undefined
+        })()
+        if (!selector || !selector.startsWith('divider'))
+          return
+        e.stopPropagation()
+        const regionData = node.getData()?.regionData
+        if (!regionData || !Array.isArray(regionData.dividers))
+          return
+        const dividerIndex = regionData.dividers.findIndex((d: any) => d.id === selector)
+        if (dividerIndex < 0)
+          return
+        const size = node.getSize()
+        dividerDragState = {
+          node,
+          dividerIndex,
+          startY: e.clientY,
+          startPositions: regionData.dividers.map((d: any) => d.position),
+          containerHeight: size.height,
+        }
+
+        const onMouseMove = (ev: MouseEvent) => {
+          if (!dividerDragState)
+            return
+          const { node, dividerIndex, startY, startPositions, containerHeight } = dividerDragState
+          const deltaY = (ev.clientY - startY) / containerHeight
+          let newPos = startPositions[dividerIndex] + deltaY
+          // 约束在相邻 divider 之间
+          const prev = dividerIndex > 0 ? startPositions[dividerIndex - 1] + deltaY : 0.05
+          const next = dividerIndex < startPositions.length - 1 ? startPositions[dividerIndex + 1] + deltaY : 0.95
+          newPos = Math.max(prev + 0.05, Math.min(next - 0.05, newPos))
+          newPos = Math.max(0.05, Math.min(0.95, newPos))
+
+          const data = node.getData() as any
+          const nextDividers = [...data.regionData.dividers]
+          nextDividers[dividerIndex] = { ...nextDividers[dividerIndex], position: newPos }
+          const nextRegionData = { ...data.regionData, dividers: nextDividers }
+          node.setData({ ...data, regionData: nextRegionData })
+
+          // 更新 attrs
+          const regionAttrs = buildMultiRegionAttrs(node.shape, nextRegionData)
+          if (regionAttrs) {
+            Object.keys(regionAttrs).forEach((key) => {
+              node.setAttrByPath(key, regionAttrs[key])
+            })
+          }
+        }
+
+        const onMouseUp = () => {
+          dividerDragState = null
+          document.removeEventListener('mousemove', onMouseMove)
+          document.removeEventListener('mouseup', onMouseUp)
+        }
+
+        document.addEventListener('mousemove', onMouseMove)
+        document.addEventListener('mouseup', onMouseUp)
       })
 
       // 悬停边时高亮线条并显示顶点手柄
@@ -275,8 +357,21 @@ export class AntVRenderEngine {
         const w = size.width * zoom
         const h = size.height * zoom
 
+        // 检测是否点击了多区域节点的某个子元素
+        const selector = (() => {
+          let target = e?.target as Element | null
+          while (target) {
+            const sel = target.getAttribute('data-selector')
+            if (sel) return sel
+            target = target.parentElement
+          }
+          return undefined
+        })()
+        const regionId = selector ? mapSelectorToRegionId(node.shape, selector) : undefined
         const editor = document.createElement('textarea')
-        editor.value = (node.getLabel() as string) ?? ''
+        editor.value = regionId
+          ? getRegionLabel(node, regionId)
+          : (node.getLabel() as string) ?? ''
         Object.assign(editor.style, {
           position: 'fixed',
           left: `${clientX}px`,
@@ -304,17 +399,26 @@ export class AntVRenderEngine {
         editor.select()
 
         const commit = () => {
-          if (document.body.contains(editor)) {
-            node.setLabel(editor.value)
-            document.body.removeChild(editor)
+          if (!document.body.contains(editor))
+            return
+          if (regionId) {
+            setRegionLabel(node, regionId, editor.value)
           }
+          else {
+            node.setLabel(editor.value)
+          }
+          document.body.removeChild(editor)
         }
 
         editor.addEventListener('blur', commit)
         editor.addEventListener('keydown', (ke: KeyboardEvent) => {
-          if (ke.key === 'Enter' && !ke.shiftKey) { ke.preventDefault(); commit() }
-          if (ke.key === 'Escape' && document.body.contains(editor))
+          if (ke.key === 'Enter' && !ke.shiftKey) {
+            ke.preventDefault()
+            commit()
+          }
+          if (ke.key === 'Escape' && document.body.contains(editor)) {
             document.body.removeChild(editor)
+          }
         })
       })
     }
@@ -363,5 +467,77 @@ export class AntVRenderEngine {
     }
 
     this.container = null
+  }
+}
+
+// ── 多区域节点辅助函数 ───────────────────────────────────────────────
+
+function mapSelectorToRegionId(shape: string, selector: string): string | undefined {
+  const map: Record<string, Record<string, string>> = {
+    'uml-class': {
+      nameLabel: 'name',
+      attrsLabel: 'attributes',
+      methodsLabel: 'methods',
+    },
+    'uml-abstract': {
+      stereotypeLabel: 'stereotype',
+      nameLabel: 'name',
+    },
+    'uml-interface': {
+      stereotypeLabel: 'stereotype',
+      nameLabel: 'name',
+    },
+    'uml-enum': {
+      stereotypeLabel: 'stereotype',
+      nameLabel: 'name',
+    },
+    'sequence-fragment-alt': {
+      topLabel: 'top',
+      bottomLabel: 'bottom',
+    },
+    'sequence-fragment-par': {
+      topLabel: 'top',
+      bottomLabel: 'bottom',
+    },
+    'swimlane-horizontal': {
+      label: 'header',
+    },
+    'swimlane-vertical': {
+      label: 'header',
+    },
+    'swimlane-pool': {
+      label: 'header',
+    },
+  }
+  return map[shape]?.[selector]
+}
+
+function getRegionLabel(node: any, regionId: string): string {
+  const data = node.getData()
+  const regionData = data?.regionData
+  if (!regionData)
+    return ''
+  const region = regionData.regions?.find((r: any) => r.id === regionId)
+  return region?.label ?? ''
+}
+
+function setRegionLabel(node: any, regionId: string, value: string): void {
+  const data = node.getData() as any
+  if (!data?.regionData)
+    return
+  const nextRegions = data.regionData.regions.map((r: any) =>
+    r.id === regionId ? { ...r, label: value } : r,
+  )
+  const nextRegionData = { ...data.regionData, regions: nextRegions }
+  node.setData({ ...data, regionData: nextRegionData })
+
+  // 同步更新 attrs 中的文本
+  const regionAttrs = buildMultiRegionAttrs(node.shape, nextRegionData)
+  if (regionAttrs) {
+    Object.keys(regionAttrs).forEach((key) => {
+      if (key.endsWith('Label')) {
+        node.setAttrByPath(key, regionAttrs[key])
+      }
+    })
   }
 }

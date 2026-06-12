@@ -1,45 +1,9 @@
 import type { Graph, Node } from '@antv/x6'
-import type { LabelConfig, NodeData, PortsConfig } from '@uni-draw/shared'
+import type { LabelConfig, NodeData } from '@uni-draw/shared'
 import { PRIMARY_COLOR } from '@uni-draw/shared'
 import { buildTableAttrs, buildTableMarkup, normalizeTableData } from '../../shapes/basic/table'
-
-/**
- * 默认连接桩配置：上下左右四个方向，悬停时显示
- */
-const DEFAULT_PORTS: PortsConfig = {
-  groups: {
-    top: {
-      position: 'top',
-      attrs: {
-        circle: { r: 4, magnet: true, stroke: PRIMARY_COLOR, strokeWidth: 1.5, fill: '#fff', style: { visibility: 'hidden' } },
-      },
-    },
-    right: {
-      position: 'right',
-      attrs: {
-        circle: { r: 4, magnet: true, stroke: PRIMARY_COLOR, strokeWidth: 1.5, fill: '#fff', style: { visibility: 'hidden' } },
-      },
-    },
-    bottom: {
-      position: 'bottom',
-      attrs: {
-        circle: { r: 4, magnet: true, stroke: PRIMARY_COLOR, strokeWidth: 1.5, fill: '#fff', style: { visibility: 'hidden' } },
-      },
-    },
-    left: {
-      position: 'left',
-      attrs: {
-        circle: { r: 4, magnet: true, stroke: PRIMARY_COLOR, strokeWidth: 1.5, fill: '#fff', style: { visibility: 'hidden' } },
-      },
-    },
-  },
-  items: [
-    { id: 'port-top', group: 'top' },
-    { id: 'port-right', group: 'right' },
-    { id: 'port-bottom', group: 'bottom' },
-    { id: 'port-left', group: 'left' },
-  ],
-}
+import { getShapePorts } from '../../shapes/ports'
+import { buildMultiRegionAttrs, getDefaultRegionData, getMultiRegionMarkup, isMultiRegionShape } from '../../shapes/utils/regionNodes'
 
 function buildLabelAttrs(label: NodeData['label']): Record<string, unknown> | undefined {
   if (typeof label !== 'object' || label === null)
@@ -164,7 +128,23 @@ export class NodeFactory {
       }
     }
 
-    return graph.createNode({
+    // 多区域节点：动态构建 markup 和 attrs
+    let markup = tableData ? buildTableMarkup(tableData) : undefined
+    let nodeData = data.data
+    if (isMultiRegionShape(data.shape)) {
+      const regionData = (data.data?.regionData as any) ?? getDefaultRegionData(data.shape)
+      if (regionData) {
+        markup = getMultiRegionMarkup(data.shape) as any
+        const regionAttrs = buildMultiRegionAttrs(data.shape, regionData)
+        if (regionAttrs) {
+          Object.assign(baseAttrs, regionAttrs)
+        }
+        nodeData = { ...(data.data ?? {}), regionData }
+      }
+    }
+
+    const shapePorts = getShapePorts(data.shape)
+    const node = graph.createNode({
       id: data.id,
       shape: data.shape,
       x: data.position.x,
@@ -173,12 +153,34 @@ export class NodeFactory {
       height: data.size.height,
       angle: data.angle,
       zIndex: data.zIndex,
-      markup: tableData ? buildTableMarkup(tableData) : undefined,
+      markup,
       attrs: Object.keys(baseAttrs).length > 0 ? baseAttrs : undefined,
       label: labelText,
-      data: data.data,
-      ports: ((data.ports?.items?.length ?? 0) > 0 ? data.ports : DEFAULT_PORTS) as any,
+      data: nodeData,
+      ports: ((data.ports?.items?.length ?? 0) > 0 ? data.ports : shapePorts) as any,
     })
+    // 强制覆盖 shape 定义中的默认 ports，确保动态端口策略生效
+    if ((data.ports?.items?.length ?? 0) === 0) {
+      const bbox = node.getBBox()
+      const computedItems = shapePorts.items?.map((item: any) => {
+        const gcfg = shapePorts.groups?.[item.group]
+        if (gcfg && typeof gcfg.position === 'function') {
+          const pos = gcfg.position({ bbox, portId: item.id, groupId: item.group, node })
+          return { ...item, args: { ...item.args, x: pos.x, y: pos.y } }
+        }
+        return item
+      }) ?? []
+      const computedGroups: any = {}
+      Object.entries(shapePorts.groups ?? {}).forEach(([gid, gcfg]: [string, any]) => {
+        if (typeof gcfg.position === 'function') {
+          computedGroups[gid] = { ...gcfg, position: 'absolute' }
+        } else {
+          computedGroups[gid] = gcfg
+        }
+      })
+      node.prop('ports', { ...shapePorts, groups: computedGroups, items: computedItems })
+    }
+    return node
   }
 
   /**
