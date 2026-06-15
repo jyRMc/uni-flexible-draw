@@ -1,5 +1,5 @@
-import { PRIMARY_COLOR } from './theme'
 import type { PortsConfig } from '../types'
+import { PRIMARY_COLOR } from './theme'
 
 /**
  * 外部节点（图片/SVG/路径）的默认四向连接桩配置

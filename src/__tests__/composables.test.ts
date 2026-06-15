@@ -1,7 +1,7 @@
-import { describe, it, expect } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { ref } from 'vue'
 import { useAlignment } from '../composables/useAlignment'
-import { useStyleEditor, type EdgeViewData } from '../composables/useStyleEditor'
+import { type EdgeViewData, useStyleEditor } from '../composables/useStyleEditor'
 
 function makeMockNode(x: number, y: number, w: number, h: number) {
   let pos = { x, y }
@@ -114,6 +114,17 @@ describe('useStyleEditor', () => {
       isEdge: () => true,
       getAttrs: () => attrs,
       setAttrs: (a: any) => Object.assign(attrs, a),
+      attr: (path: string, value: any) => {
+        const keys = path.split('/')
+        let target: any = attrs
+        for (let i = 0; i < keys.length - 1; i++) {
+          const k = keys[i]
+          if (!target[k])
+            target[k] = {}
+          target = target[k]
+        }
+        target[keys[keys.length - 1]] = value
+      },
       getLabels: () => labels,
       setLabels: (l: any[]) => { labels.length = 0; labels.push(...l) },
       getRouter: () => null,

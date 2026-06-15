@@ -1,5 +1,5 @@
 import { createServer } from 'node:http'
-import { readdir, readFile } from 'node:fs/promises'
+import { readFile, readdir } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -67,7 +67,8 @@ async function loadAssets() {
 
   items.sort((a, b) => {
     const categoryCompare = a.category.localeCompare(b.category)
-    if (categoryCompare !== 0) return categoryCompare
+    if (categoryCompare !== 0)
+      return categoryCompare
     return a.name.localeCompare(b.name)
   })
 
@@ -88,7 +89,8 @@ async function getAssets(forceReload = false) {
 
 function toPositiveInt(value, fallback) {
   const num = Number.parseInt(value ?? '', 10)
-  if (!Number.isFinite(num) || num <= 0) return fallback
+  if (!Number.isFinite(num) || num <= 0)
+    return fallback
   return num
 }
 
@@ -118,9 +120,12 @@ function validateAiConfig(body) {
   const apiUrl = typeof body.apiUrl === 'string' ? body.apiUrl.trim() : ''
   const apiKey = typeof body.apiKey === 'string' ? body.apiKey.trim() : ''
   const model = typeof body.model === 'string' ? body.model.trim() : ''
-  if (!apiUrl) return 'Missing apiUrl'
-  if (!apiKey) return 'Missing apiKey'
-  if (!model && body.requireModel !== false) return 'Missing model'
+  if (!apiUrl)
+    return 'Missing apiUrl'
+  if (!apiKey)
+    return 'Missing apiKey'
+  if (!model && body.requireModel !== false)
+    return 'Missing model'
   return ''
 }
 
@@ -174,7 +179,7 @@ async function handleAiChat(req, res) {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${body.apiKey.trim()}`,
+      'Authorization': `Bearer ${body.apiKey.trim()}`,
     },
     body: JSON.stringify({
       model: body.model.trim(),
@@ -204,7 +209,8 @@ async function handleAiChat(req, res) {
   const reader = upstream.body.getReader()
   while (true) {
     const { done, value } = await reader.read()
-    if (done) break
+    if (done)
+      break
     if (value) {
       res.write(Buffer.from(value))
     }
@@ -290,7 +296,8 @@ const server = createServer(async (req, res) => {
     }
 
     sendJson(res, 404, { message: 'Not found' })
-  } catch (error) {
+  }
+  catch (error) {
     sendJson(res, 500, {
       message: error instanceof Error ? error.message : String(error),
     })

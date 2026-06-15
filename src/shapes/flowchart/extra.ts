@@ -5,10 +5,10 @@ export const flowchartPredefined: Node.Config = {
   width: 100,
   height: 60,
   markup: [
-    { tagName: 'rect', selector: 'body'      },
-    { tagName: 'rect', selector: 'lineLeft'  },
+    { tagName: 'rect', selector: 'body' },
+    { tagName: 'rect', selector: 'lineLeft' },
     { tagName: 'rect', selector: 'lineRight' },
-    { tagName: 'text', selector: 'label'     },
+    { tagName: 'text', selector: 'label' },
   ],
   attrs: {
     body: {
@@ -43,16 +43,16 @@ export const flowchartPredefined: Node.Config = {
   },
   ports: {
     groups: {
-      top:    { position: 'top',    attrs: { circle: { r: 4, magnet: true, stroke: '#52c41a', fill: '#fff' } } },
+      top: { position: 'top', attrs: { circle: { r: 4, magnet: true, stroke: '#52c41a', fill: '#fff' } } },
       bottom: { position: 'bottom', attrs: { circle: { r: 4, magnet: true, stroke: '#52c41a', fill: '#fff' } } },
-      left:   { position: 'left',   attrs: { circle: { r: 4, magnet: true, stroke: '#52c41a', fill: '#fff' } } },
-      right:  { position: 'right',  attrs: { circle: { r: 4, magnet: true, stroke: '#52c41a', fill: '#fff' } } },
+      left: { position: 'left', attrs: { circle: { r: 4, magnet: true, stroke: '#52c41a', fill: '#fff' } } },
+      right: { position: 'right', attrs: { circle: { r: 4, magnet: true, stroke: '#52c41a', fill: '#fff' } } },
     },
     items: [
-      { id: 'top',    group: 'top'    },
+      { id: 'top', group: 'top' },
       { id: 'bottom', group: 'bottom' },
-      { id: 'left',   group: 'left'   },
-      { id: 'right',  group: 'right'  },
+      { id: 'left', group: 'left' },
+      { id: 'right', group: 'right' },
     ],
   },
 }
@@ -62,10 +62,10 @@ export const flowchartInternalStorage: Node.Config = {
   width: 100,
   height: 60,
   markup: [
-    { tagName: 'rect', selector: 'body'    },
-    { tagName: 'rect', selector: 'topBar'  },
+    { tagName: 'rect', selector: 'body' },
+    { tagName: 'rect', selector: 'topBar' },
     { tagName: 'rect', selector: 'leftBar' },
-    { tagName: 'text', selector: 'label'   },
+    { tagName: 'text', selector: 'label' },
   ],
   attrs: {
     body: {
@@ -104,16 +104,16 @@ export const flowchartInternalStorage: Node.Config = {
   },
   ports: {
     groups: {
-      top:    { position: 'top',    attrs: { circle: { r: 4, magnet: true, stroke: '#52c41a', fill: '#fff' } } },
+      top: { position: 'top', attrs: { circle: { r: 4, magnet: true, stroke: '#52c41a', fill: '#fff' } } },
       bottom: { position: 'bottom', attrs: { circle: { r: 4, magnet: true, stroke: '#52c41a', fill: '#fff' } } },
-      left:   { position: 'left',   attrs: { circle: { r: 4, magnet: true, stroke: '#52c41a', fill: '#fff' } } },
-      right:  { position: 'right',  attrs: { circle: { r: 4, magnet: true, stroke: '#52c41a', fill: '#fff' } } },
+      left: { position: 'left', attrs: { circle: { r: 4, magnet: true, stroke: '#52c41a', fill: '#fff' } } },
+      right: { position: 'right', attrs: { circle: { r: 4, magnet: true, stroke: '#52c41a', fill: '#fff' } } },
     },
     items: [
-      { id: 'top',    group: 'top'    },
+      { id: 'top', group: 'top' },
       { id: 'bottom', group: 'bottom' },
-      { id: 'left',   group: 'left'   },
-      { id: 'right',  group: 'right'  },
+      { id: 'left', group: 'left' },
+      { id: 'right', group: 'right' },
     ],
   },
 }

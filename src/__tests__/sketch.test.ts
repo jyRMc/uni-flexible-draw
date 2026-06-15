@@ -1,7 +1,7 @@
-import { describe, it, expect } from 'vitest'
-import { SketchRenderer, getSketchRenderer, ROUGHNESS } from '../core/sketch/SketchRenderer'
+import { describe, expect, it } from 'vitest'
+import { ROUGHNESS, SketchRenderer, getSketchRenderer } from '../core/sketch/SketchRenderer'
 
-describe('SketchRenderer', () => {
+describe('sketchRenderer', () => {
   it('should create an instance', () => {
     const renderer = new SketchRenderer()
     expect(renderer).toBeInstanceOf(SketchRenderer)
@@ -60,7 +60,7 @@ describe('SketchRenderer', () => {
     expect(renderer.curve([{ x: 0, y: 0 }])).toBe('')
   })
 
-  it('ROUGHNESS constants should be defined', () => {
+  it('rOUGHNESS constants should be defined', () => {
     expect(ROUGHNESS.architect).toBe(0)
     expect(ROUGHNESS.artist).toBe(1)
     expect(ROUGHNESS.cartoonist).toBe(2)

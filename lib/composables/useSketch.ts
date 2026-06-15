@@ -1,5 +1,5 @@
 import { ref } from 'vue'
-import { getSketchRenderer, ROUGHNESS, type SketchRenderOptions } from '@uni-draw/core'
+import { ROUGHNESS, type SketchRenderOptions, getSketchRenderer } from '@uni-draw/core'
 import { isShapeRxSupported } from '@uni-draw/shared'
 
 const SKETCH_TEXT_FONT_FAMILY = '"Excalifont", "Xiaolai SC", "Virgil", cursive'
@@ -72,7 +72,8 @@ const EXCALIFONT_FONT_FACE_CSS = `
 `
 
 function ensureSketchTextFontsLoaded() {
-  if (typeof document === 'undefined') return
+  if (typeof document === 'undefined')
+    return
 
   if (!document.getElementById(SKETCH_EXCALIFONT_STYLE_ID)) {
     const style = document.createElement('style')
@@ -133,10 +134,10 @@ export function useSketch(getGraph: () => any) {
 
   function parseRefPoints(refPoints: string, width: number, height: number): [number, number][] {
     const pairs = refPoints.trim().split(/\s+/)
-    return pairs.map(pair => {
+    return pairs.map((pair) => {
       const [xStr, yStr] = pair.split(',')
-      let x = parseFloat(xStr)
-      let y = parseFloat(yStr)
+      let x = Number.parseFloat(xStr)
+      let y = Number.parseFloat(yStr)
       if (x <= 1 && y <= 1) {
         x = x * width
         y = y * height
@@ -147,9 +148,11 @@ export function useSketch(getGraph: () => any) {
 
   function applySketchToNode(node: any) {
     const graph = getGraph()
-    if (!graph) return
-    if (isSketchUnsupportedNode(node)) return
-    ;(graph as any).disableHistory?.()
+    if (!graph)
+      return
+    if (isSketchUnsupportedNode(node)) {
+      return
+    }(graph as any).disableHistory?.()
     ensureSketchTextFontsLoaded()
 
     const renderer = getSketchRenderer()
@@ -184,7 +187,8 @@ export function useSketch(getGraph: () => any) {
       if (parts.length >= 2 && parts[0] <= 3) {
         opts.strokeLineDash = [1.5, 6 + strokeWidth]
         opts.disableMultiStroke = true
-      } else if (parts.length >= 2) {
+      }
+      else if (parts.length >= 2) {
         opts.strokeLineDash = [8, 8 + strokeWidth]
         opts.disableMultiStroke = true
       }
@@ -194,7 +198,8 @@ export function useSketch(getGraph: () => any) {
     if (refPoints) {
       const points = parseRefPoints(refPoints, size.width, size.height)
       d = renderer.polygon(points, size.width, size.height, opts)
-    } else if (!rxSupported) {
+    }
+    else if (!rxSupported) {
       if (!originalMarkupMap.has(node.id)) {
         originalMarkupMap.set(node.id, node.getMarkup())
       }
@@ -204,10 +209,12 @@ export function useSketch(getGraph: () => any) {
 
       if (bodyTag === 'ellipse' || bodyTag === 'circle') {
         d = renderer.ellipse(size.width, size.height, opts)
-      } else {
+      }
+      else {
         d = renderer.rect(size.width, size.height, 0, opts)
       }
-    } else {
+    }
+    else {
       d = renderer.rect(size.width, size.height, rx, opts)
     }
 
@@ -246,11 +253,12 @@ export function useSketch(getGraph: () => any) {
 
   function applySketchToEdge(edge: any) {
     const graph = getGraph()
-    if (!graph) return
-    ;(graph as any).disableHistory?.()
+    if (!graph) {
+      return
+    }(graph as any).disableHistory?.()
     ensureSketchTextFontsLoaded()
 
-    let points: { x: number; y: number }[] = []
+    let points: { x: number, y: number }[] = []
     const view = (graph as any).findView?.(edge)
     if (view) {
       const pathEl = (view.container as Element)?.querySelector('[connection]') as SVGPathElement | null
@@ -259,7 +267,7 @@ export function useSketch(getGraph: () => any) {
         const re = /[ML]\s*([-.\deE]+)[,\s]+([-.\deE]+)/g
         let m: RegExpExecArray | null
         while ((m = re.exec(d)) !== null) {
-          points.push({ x: parseFloat(m[1]), y: parseFloat(m[2]) })
+          points.push({ x: Number.parseFloat(m[1]), y: Number.parseFloat(m[2]) })
         }
       }
     }
@@ -267,7 +275,8 @@ export function useSketch(getGraph: () => any) {
       const sourcePoint = edge.getSourcePoint?.()
       const targetPoint = edge.getTargetPoint?.()
       const vertices = edge.getVertices?.() ?? []
-      if (!sourcePoint || !targetPoint) return
+      if (!sourcePoint || !targetPoint)
+        return
       points = [
         { x: sourcePoint.x, y: sourcePoint.y },
         ...vertices.map((v: any) => ({ x: v.x, y: v.y })),
@@ -298,7 +307,8 @@ export function useSketch(getGraph: () => any) {
       if (parts.length >= 2 && parts[0] <= 3) {
         opts.strokeLineDash = [1.5, 6 + strokeWidth]
         opts.disableMultiStroke = true
-      } else {
+      }
+      else {
         opts.strokeLineDash = [8, 8 + strokeWidth]
         opts.disableMultiStroke = true
       }
@@ -308,7 +318,8 @@ export function useSketch(getGraph: () => any) {
     let d: string
     if (connector?.name === 'smooth' && points.length >= 3) {
       d = renderer.curve(points, opts)
-    } else {
+    }
+    else {
       d = renderer.linearPath(points, opts)
     }
 
@@ -333,14 +344,18 @@ export function useSketch(getGraph: () => any) {
     ;(getGraph() as any)?.disableHistory?.()
     if (cell.isNode?.()) {
       const origMarkup = originalMarkupMap.get(cell.id)
-      if (origMarkup) cell.setMarkup(origMarkup)
+      if (origMarkup)
+        cell.setMarkup(origMarkup)
       const origAttrs = originalAttrsMap.get(cell.id)
-      if (origAttrs) cell.setAttrs(JSON.parse(JSON.stringify(origAttrs)), { overwrite: true })
+      if (origAttrs)
+        cell.setAttrs(JSON.parse(JSON.stringify(origAttrs)), { overwrite: true })
       originalMarkupMap.delete(cell.id)
       originalAttrsMap.delete(cell.id)
-    } else if (cell.isEdge?.()) {
+    }
+    else if (cell.isEdge?.()) {
       const origAttrs = originalAttrsMap.get(cell.id)
-      if (origAttrs) cell.setAttrs(JSON.parse(JSON.stringify(origAttrs)), { overwrite: true })
+      if (origAttrs)
+        cell.setAttrs(JSON.parse(JSON.stringify(origAttrs)), { overwrite: true })
       originalAttrsMap.delete(cell.id)
     }
     ;(getGraph() as any)?.enableHistory?.()
@@ -350,11 +365,13 @@ export function useSketch(getGraph: () => any) {
     sketchMode.value = !sketchMode.value
     sketchAllMode.value = sketchMode.value
     const graph = getGraph()
-    if (!graph) return sketchMode.value
+    if (!graph)
+      return sketchMode.value
 
     if (sketchMode.value) {
       graph.getNodes().forEach((n: any) => {
-        if (isSketchUnsupportedNode(n)) return
+        if (isSketchUnsupportedNode(n))
+          return
         if (!sketchElementIds.value.has(n.id)) {
           sketchElementIds.value.add(n.id)
           applySketchToNode(n)
@@ -366,12 +383,15 @@ export function useSketch(getGraph: () => any) {
           applySketchToEdge(e)
         }
       })
-    } else {
+    }
+    else {
       graph.getNodes().forEach((n: any) => {
-        if (sketchElementIds.value.has(n.id)) resetSketchFromElement(n)
+        if (sketchElementIds.value.has(n.id))
+          resetSketchFromElement(n)
       })
       graph.getEdges().forEach((e: any) => {
-        if (sketchElementIds.value.has(e.id)) resetSketchFromElement(e)
+        if (sketchElementIds.value.has(e.id))
+          resetSketchFromElement(e)
       })
       sketchElementIds.value.clear()
     }
@@ -381,21 +401,29 @@ export function useSketch(getGraph: () => any) {
 
   function toggleElementSketch(id: string): boolean {
     const graph = getGraph()
-    if (!graph) return false
+    if (!graph)
+      return false
     const cell = graph.getCellById(id)
-    if (!cell) return false
-    if (cell.isNode?.() && isSketchUnsupportedNode(cell)) return false
+    if (!cell)
+      return false
+    if (cell.isNode?.() && isSketchUnsupportedNode(cell))
+      return false
     sketchAllMode.value = false
 
     if (sketchElementIds.value.has(id)) {
       sketchElementIds.value.delete(id)
-      if (cell.isNode?.()) resetSketchFromElement(cell)
-      else if (cell.isEdge?.()) resetSketchFromElement(cell)
+      if (cell.isNode?.())
+        resetSketchFromElement(cell)
+      else if (cell.isEdge?.())
+        resetSketchFromElement(cell)
       sketchMode.value = sketchElementIds.value.size > 0
-    } else {
+    }
+    else {
       sketchElementIds.value.add(id)
-      if (cell.isNode?.()) applySketchToNode(cell)
-      else if (cell.isEdge?.()) applySketchToEdge(cell)
+      if (cell.isNode?.())
+        applySketchToNode(cell)
+      else if (cell.isEdge?.())
+        applySketchToEdge(cell)
       sketchMode.value = true
     }
     markSketchElementIds()
@@ -408,13 +436,15 @@ export function useSketch(getGraph: () => any) {
 
   function applySketchToAll() {
     const graph = getGraph()
-    if (!graph) return
+    if (!graph)
+      return
     sketchMode.value = true
     sketchAllMode.value = true
     sketchRedrawing = true
     try {
       graph.getNodes().forEach((n: any) => {
-        if (isSketchUnsupportedNode(n)) return
+        if (isSketchUnsupportedNode(n))
+          return
         if (!sketchElementIds.value.has(n.id)) {
           sketchElementIds.value.add(n.id)
           applySketchToNode(n)
@@ -426,18 +456,22 @@ export function useSketch(getGraph: () => any) {
           applySketchToEdge(e)
         }
       })
-    } finally { sketchRedrawing = false }
+    }
+    finally { sketchRedrawing = false }
     markSketchElementIds()
   }
 
   function resetSketchFromAll() {
     const graph = getGraph()
-    if (!graph) return
+    if (!graph)
+      return
     graph.getNodes().forEach((n: any) => {
-      if (sketchElementIds.value.has(n.id)) resetSketchFromElement(n)
+      if (sketchElementIds.value.has(n.id))
+        resetSketchFromElement(n)
     })
     graph.getEdges().forEach((e: any) => {
-      if (sketchElementIds.value.has(e.id)) resetSketchFromElement(e)
+      if (sketchElementIds.value.has(e.id))
+        resetSketchFromElement(e)
     })
     sketchElementIds.value.clear()
     sketchMode.value = false
@@ -446,39 +480,51 @@ export function useSketch(getGraph: () => any) {
   }
 
   function onSketchNodeAdded({ node }: any) {
-    if (!sketchAllMode.value || isSketchUnsupportedNode(node) || sketchElementIds.value.has(node.id)) return
+    if (!sketchAllMode.value || isSketchUnsupportedNode(node) || sketchElementIds.value.has(node.id))
+      return
     sketchElementIds.value.add(node.id)
     sketchRedrawing = true
-    try { applySketchToNode(node) } finally { sketchRedrawing = false }
+    try { applySketchToNode(node) }
+    finally { sketchRedrawing = false }
     markSketchElementIds()
   }
 
   function onSketchEdgeAdded({ edge }: any) {
-    if (!sketchAllMode.value || sketchElementIds.value.has(edge.id)) return
+    if (!sketchAllMode.value || sketchElementIds.value.has(edge.id))
+      return
     sketchElementIds.value.add(edge.id)
     sketchRedrawing = true
-    try { applySketchToEdge(edge) } finally { sketchRedrawing = false }
+    try { applySketchToEdge(edge) }
+    finally { sketchRedrawing = false }
     markSketchElementIds()
   }
 
   function onSketchNodeChange({ node }: any) {
-    if (isSketchUnsupportedNode(node)) return
-    if (sketchRedrawing || !sketchElementIds.value.has(node.id)) return
+    if (isSketchUnsupportedNode(node))
+      return
+    if (sketchRedrawing || !sketchElementIds.value.has(node.id))
+      return
     sketchRedrawing = true
-    try { applySketchToNode(node) } finally { sketchRedrawing = false }
+    try { applySketchToNode(node) }
+    finally { sketchRedrawing = false }
   }
 
   function onSketchNodeAttrsChange({ node }: any) {
-    if (isSketchUnsupportedNode(node)) return
-    if (sketchRedrawing || !sketchElementIds.value.has(node.id)) return
+    if (isSketchUnsupportedNode(node))
+      return
+    if (sketchRedrawing || !sketchElementIds.value.has(node.id))
+      return
     sketchRedrawing = true
-    try { applySketchToNode(node) } finally { sketchRedrawing = false }
+    try { applySketchToNode(node) }
+    finally { sketchRedrawing = false }
   }
 
   function onSketchEdgeChange({ edge }: any) {
-    if (sketchRedrawing || !sketchElementIds.value.has(edge.id)) return
+    if (sketchRedrawing || !sketchElementIds.value.has(edge.id))
+      return
     sketchRedrawing = true
-    try { applySketchToEdge(edge) } finally { sketchRedrawing = false }
+    try { applySketchToEdge(edge) }
+    finally { sketchRedrawing = false }
   }
 
   return {

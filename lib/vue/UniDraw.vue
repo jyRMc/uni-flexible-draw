@@ -1,12 +1,8 @@
-<template>
-  <div ref="containerRef" style="width:100%;height:100%;overflow:hidden" />
-</template>
-
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount, watch } from 'vue'
+import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { UniDraw } from '../UniDraw'
 import type { UniDrawOptions } from '../UniDraw'
-import type { GraphData, NodeData, EdgeData } from '../shared/types'
+import type { EdgeData, GraphData, NodeData } from '../shared/types'
 
 // ─── Props ────────────────────────────────────────────────────────────────
 
@@ -53,26 +49,27 @@ const containerRef = ref<HTMLElement | null>(null)
 let instance: UniDraw | null = null
 
 onMounted(() => {
-  if (!containerRef.value) return
+  if (!containerRef.value)
+    return
   instance = new UniDraw(containerRef.value, {
     initialData: props.modelValue,
-    assets:       props.assets,
-    assetPage:    props.assetPage,
+    assets: props.assets,
+    assetPage: props.assetPage,
     assetTotalPages: props.assetTotalPages,
     assetPageLoading: props.assetPageLoading,
     canPrevAssets: props.canPrevAssets,
     canNextAssets: props.canNextAssets,
     onAssetsPrevPage: () => emit('assets:prev-page'),
     onAssetsNextPage: () => emit('assets:next-page'),
-    templates:    props.templates,
+    templates: props.templates,
     showShapePanel: props.showShapePanel,
-    showToolbar:    props.showToolbar,
-    grid:           props.grid,
-    snapline:       props.snapline,
-    readonly:       props.readonly,
-    onReady:            ()           => emit('ready'),
-    onSelectionChange:  (nodes, edges) => emit('selection:change', nodes, edges),
-    onDataChange:       (data)       => emit('update:modelValue', data),
+    showToolbar: props.showToolbar,
+    grid: props.grid,
+    snapline: props.snapline,
+    readonly: props.readonly,
+    onReady: () => emit('ready'),
+    onSelectionChange: (nodes, edges) => emit('selection:change', nodes, edges),
+    onDataChange: data => emit('update:modelValue', data),
   })
 })
 
@@ -80,15 +77,18 @@ onBeforeUnmount(() => { instance?.destroy(); instance = null })
 
 // Sync external v-model changes into the canvas
 watch(() => props.modelValue, (val) => {
-  if (val && instance) instance.setData(val)
+  if (val && instance)
+    instance.setData(val)
 })
 
 watch(() => props.assets, (val) => {
-  if (instance && val) instance.setAssets(val)
+  if (instance && val)
+    instance.setAssets(val)
 })
 
 watch(() => props.templates, (val) => {
-  if (instance && val) instance.setTemplates(val)
+  if (instance && val)
+    instance.setTemplates(val)
 })
 
 watch(
@@ -109,18 +109,22 @@ watch(
 // ─── Expose ───────────────────────────────────────────────────────────────
 
 defineExpose({
-  getData:         ()            => instance?.getData(),
-  setData:         (d: GraphData) => instance?.setData(d),
-  clear:           ()            => instance?.clear(),
-  exportPNG:       ()            => instance?.exportPNG(),
-  exportSVG:       ()            => instance?.exportSVG(),
-  exportJSON:      ()            => instance?.exportJSON(),
-  undo:            ()            => instance?.undo(),
-  redo:            ()            => instance?.redo(),
-  zoomIn:          ()            => instance?.zoomIn(),
-  zoomOut:         ()            => instance?.zoomOut(),
-  zoomFit:         ()            => instance?.zoomFit(),
-  selectAll:       ()            => instance?.selectAll(),
-  deleteSelection: ()            => instance?.deleteSelection(),
+  getData: () => instance?.getData(),
+  setData: (d: GraphData) => instance?.setData(d),
+  clear: () => instance?.clear(),
+  exportPNG: () => instance?.exportPNG(),
+  exportSVG: () => instance?.exportSVG(),
+  exportJSON: () => instance?.exportJSON(),
+  undo: () => instance?.undo(),
+  redo: () => instance?.redo(),
+  zoomIn: () => instance?.zoomIn(),
+  zoomOut: () => instance?.zoomOut(),
+  zoomFit: () => instance?.zoomFit(),
+  selectAll: () => instance?.selectAll(),
+  deleteSelection: () => instance?.deleteSelection(),
 })
 </script>
+
+<template>
+  <div ref="containerRef" style="width:100%;height:100%;overflow:hidden" />
+</template>

@@ -13,7 +13,11 @@
   position: relative;
   box-sizing: border-box;
 }
-.ud-root *, .ud-root *::before, .ud-root *::after { box-sizing: inherit; }
+.ud-root *,
+.ud-root *::before,
+.ud-root *::after {
+  box-sizing: inherit;
+}
 
 /* ─── Toolbar ─────────────────────────────────────────────────────────────── */
 
@@ -28,7 +32,9 @@
   padding: 6px 10px;
   background: #fff;
   border-radius: 10px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1), 0 1px 4px rgba(0, 0, 0, 0.06);
+  box-shadow:
+    0 4px 16px rgba(0, 0, 0, 0.1),
+    0 1px 4px rgba(0, 0, 0, 0.06);
   user-select: none;
   z-index: 20;
 }
@@ -55,7 +61,7 @@
 }
 .tb-btn:hover:not(:disabled) {
   background: #f0f0f0;
-  color: var(--uni-draw-primary, #7166F0);
+  color: var(--uni-draw-primary, #7166f0);
 }
 
 .tb-btn:disabled {
@@ -65,7 +71,7 @@
 
 .tb-btn.active {
   background: var(--uni-draw-primary-bg, #eae8fd);
-  color: var(--uni-draw-primary, #7166F0);
+  color: var(--uni-draw-primary, #7166f0);
 }
 
 .tb-zoom {
@@ -132,14 +138,14 @@
   border: none;
   border-radius: 8px;
   cursor: pointer;
-  transition: all .15s;
+  transition: all 0.15s;
 }
 .ud-tab:hover {
   color: #333;
   background: #f0f0f0;
 }
 .ud-tab.active {
-  color: var(--uni-draw-primary, #7166F0);
+  color: var(--uni-draw-primary, #7166f0);
   background: var(--uni-draw-primary-bg-light, #f4f3fe);
 }
 
@@ -176,7 +182,7 @@
 }
 
 .shape-panel-search-input:focus {
-  border-color: var(--uni-draw-primary, #7166F0);
+  border-color: var(--uni-draw-primary, #7166f0);
 }
 
 .shape-panel-content {
@@ -252,7 +258,7 @@
 
 .shape-category-item:hover {
   background: #eef1f8;
-  color: var(--uni-draw-primary, #7166F0);
+  color: var(--uni-draw-primary, #7166f0);
 }
 
 .shape-category-item:active {
@@ -268,7 +274,7 @@
 }
 
 .shape-category-item:hover .ud-shape-preview-svg {
-  color: var(--uni-draw-primary, #7166F0);
+  color: var(--uni-draw-primary, #7166f0);
 }
 
 .ud-empty-state {
@@ -307,14 +313,20 @@
   border-radius: 4px;
   background: var(--uni-draw-panel-bg, #fff);
   cursor: pointer;
-  transition: border-color .15s, box-shadow .15s, background .15s;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s,
+    background 0.15s;
+  grid-auto-rows: 51px;
+  border-left: 1px solid rgba(0, 0, 0, 0.06);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
   aspect-ratio: 1 / 1;
   overflow: hidden;
 }
 
 .ud-asset-cell:hover,
 .ud-asset-cell:focus-visible {
-  border-color: var(--uni-draw-primary, #7166F0);
+  border-color: var(--uni-draw-primary, #7166f0);
   box-shadow: 0 0 0 3px rgba(113, 102, 240, 0.14);
   background: var(--uni-draw-primary-bg-light, #f4f3fe);
   outline: none;
@@ -381,12 +393,15 @@
   color: var(--uni-draw-text-secondary, #555);
   cursor: pointer;
   font-size: 12px;
-  transition: border-color .15s, color .15s, opacity .15s;
+  transition:
+    border-color 0.15s,
+    color 0.15s,
+    opacity 0.15s;
 }
 
 .ud-assets-page-btn:hover:not(:disabled) {
-  border-color: var(--uni-draw-primary, #7166F0);
-  color: var(--uni-draw-primary, #7166F0);
+  border-color: var(--uni-draw-primary, #7166f0);
+  color: var(--uni-draw-primary, #7166f0);
 }
 
 .ud-assets-page-btn:disabled {
@@ -426,7 +441,7 @@
   justify-content: center;
   border-radius: 8px;
   background: linear-gradient(135deg, #f6f3ff, #f8fbff);
-  color: #7166F0;
+  color: #7166f0;
   font-size: 12px;
   text-align: center;
   padding: 8px;
@@ -467,7 +482,7 @@
   padding: 2px 8px;
   border-radius: 999px;
   background: #f1eeff;
-  color: #7166F0;
+  color: #7166f0;
   font-size: 11px;
 }
 
@@ -475,7 +490,7 @@
   height: 34px;
   border: none;
   border-radius: 8px;
-  background: #7166F0;
+  background: #7166f0;
   color: #fff;
   cursor: pointer;
   font-size: 12px;
@@ -483,7 +498,7 @@
 }
 
 .ud-template-apply:hover {
-  opacity: .9;
+  opacity: 0.9;
 }
 
 /* ─── Canvas ──────────────────────────────────────────────────────────────── */
@@ -511,7 +526,9 @@
   width: 180px;
   background: #fff;
   border-radius: 10px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1), 0 1px 4px rgba(0, 0, 0, 0.06);
+  box-shadow:
+    0 4px 16px rgba(0, 0, 0, 0.1),
+    0 1px 4px rgba(0, 0, 0, 0.06);
   z-index: 20;
   overflow: hidden;
   user-select: none;
@@ -594,7 +611,7 @@
 
 .ud-property-input:focus,
 .ud-property-color:focus {
-  border-color: #7166F0;
+  border-color: #7166f0;
 }
 
 .ud-property-color {
@@ -622,14 +639,14 @@
 }
 
 .ud-property-icon-btn:hover {
-  border-color: #7166F0;
-  color: #7166F0;
+  border-color: #7166f0;
+  color: #7166f0;
   background: #f7f5ff;
 }
 
 .ud-property-icon-btn.active {
-  border-color: #7166F0;
-  color: #7166F0;
+  border-color: #7166f0;
+  color: #7166f0;
   background: #f1efff;
 }
 

@@ -36,7 +36,8 @@ export class CommandManager {
 
   /** 撤销 */
   undo(): void {
-    if (!this.canUndo()) return
+    if (!this.canUndo())
+      return
     const command = this.undoStack.pop()!
     command.undo()
     this.redoStack.push(command)
@@ -45,7 +46,8 @@ export class CommandManager {
 
   /** 重做 */
   redo(): void {
-    if (!this.canRedo()) return
+    if (!this.canRedo())
+      return
     const command = this.redoStack.pop()!
     command.execute()
     this.undoStack.push(command)
@@ -94,7 +96,8 @@ export class CommandManager {
     this.changeListeners.push(listener)
     return () => {
       const index = this.changeListeners.indexOf(listener)
-      if (index > -1) this.changeListeners.splice(index, 1)
+      if (index > -1)
+        this.changeListeners.splice(index, 1)
     }
   }
 

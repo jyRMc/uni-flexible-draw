@@ -23,7 +23,7 @@ export interface MaterialItem {
   /** 图形类型 */
   shape: string
   /** 默认尺寸 */
-  defaultSize: { width: number; height: number }
+  defaultSize: { width: number, height: number }
   /** 默认样式（合并到节点样式） */
   defaultStyle?: Partial<NodeStyle>
   /** 默认标签 */

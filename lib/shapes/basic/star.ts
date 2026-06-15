@@ -1,4 +1,5 @@
 import type { Node } from '@antv/x6'
+import { PRIMARY_COLOR } from '@uni-draw/shared'
 
 export const basicStar: Node.Config = {
   inherit: 'polygon',
@@ -7,8 +8,8 @@ export const basicStar: Node.Config = {
   attrs: {
     body: {
       refPoints: '0.5,0 0.62,0.38 1,0.38 0.69,0.62 0.81,1 0.5,0.75 0.19,1 0.31,0.62 0,0.38 0.38,0.38',
-      fill: '#fffbe6',
-      stroke: '#faad14',
+      fill: '#f0f5ff',
+      stroke: PRIMARY_COLOR,
       strokeWidth: 2,
     },
     label: {

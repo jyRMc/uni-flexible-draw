@@ -48,6 +48,7 @@ export function registerAllShapes(): void {
   NodeRegistry.register(BASIC_SHAPES.TEXT, basic.basicText)
   NodeRegistry.register(BASIC_SHAPES.IMAGE, basic.basicImage)
   NodeRegistry.register(BASIC_SHAPES.SVG, basic.basicSvg)
+  NodeRegistry.register(BASIC_SHAPES.GROUP, basic.basicGroup)
 
   // 流程图
   NodeRegistry.register(FLOWCHART_SHAPES.START_END, flowchart.flowchartStartEnd)

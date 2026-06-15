@@ -1,10 +1,52 @@
 const PRESETS = [
-  '#ff4d4f', '#ff7875', '#ff9c6e', '#ffc069', '#ffd666', '#fff566', '#d3f261', '#95de64',
-  '#52c41a', '#13c2c2', '#1677ff', '#2f54eb', '#722ed1', '#eb2f96', '#f5222d', '#fa8c16',
-  '#fff1f0', '#fff7e6', '#fffbe6', '#f6ffed', '#e6fffb', '#e6f4ff', '#f0f5ff', '#f9f0ff',
-  '#ffa39e', '#ffbb96', '#ffd591', '#ffe58f', '#fffb8f', '#eaff8f', '#b7eb8f', '#87e8de',
-  '#69b1ff', '#85a5ff', '#b37feb', '#ff85c2', '#ff9c6e', '#ffd666', '#b7eb8f', '#87e8de',
-  '#cf1322', '#d46b08', '#ad6800', '#5c8a00', '#006d75', '#0958d9', '#531dab', '#c41d7f',
+  '#ff4d4f',
+  '#ff7875',
+  '#ff9c6e',
+  '#ffc069',
+  '#ffd666',
+  '#fff566',
+  '#d3f261',
+  '#95de64',
+  '#52c41a',
+  '#13c2c2',
+  '#1677ff',
+  '#2f54eb',
+  '#722ed1',
+  '#eb2f96',
+  '#f5222d',
+  '#fa8c16',
+  '#fff1f0',
+  '#fff7e6',
+  '#fffbe6',
+  '#f6ffed',
+  '#e6fffb',
+  '#e6f4ff',
+  '#f0f5ff',
+  '#f9f0ff',
+  '#ffa39e',
+  '#ffbb96',
+  '#ffd591',
+  '#ffe58f',
+  '#fffb8f',
+  '#eaff8f',
+  '#b7eb8f',
+  '#87e8de',
+  '#69b1ff',
+  '#85a5ff',
+  '#b37feb',
+  '#ff85c2',
+  '#ff9c6e',
+  '#ffd666',
+  '#b7eb8f',
+  '#87e8de',
+  '#cf1322',
+  '#d46b08',
+  '#ad6800',
+  '#5c8a00',
+  '#006d75',
+  '#0958d9',
+  '#531dab',
+  '#c41d7f',
 ]
 
 const STYLE_ID = 'uni-draw-native-color-picker-style'
@@ -38,7 +80,8 @@ interface RgbaColor {
 }
 
 function ensureStyles(): void {
-  if (typeof document === 'undefined' || document.getElementById(STYLE_ID)) return
+  if (typeof document === 'undefined' || document.getElementById(STYLE_ID))
+    return
   const style = document.createElement('style')
   style.id = STYLE_ID
   style.textContent = `
@@ -333,12 +376,13 @@ function clamp(value: number, min: number, max: number): number {
 
 function hexToRgba(hex: string): RgbaColor | null {
   const clean = hex.replace('#', '')
-  if (clean.length !== 6 && clean.length !== 8) return null
+  if (clean.length !== 6 && clean.length !== 8)
+    return null
   return {
-    r: parseInt(clean.slice(0, 2), 16),
-    g: parseInt(clean.slice(2, 4), 16),
-    b: parseInt(clean.slice(4, 6), 16),
-    a: clean.length === 8 ? parseInt(clean.slice(6, 8), 16) / 255 : 1,
+    r: Number.parseInt(clean.slice(0, 2), 16),
+    g: Number.parseInt(clean.slice(2, 4), 16),
+    b: Number.parseInt(clean.slice(4, 6), 16),
+    a: clean.length === 8 ? Number.parseInt(clean.slice(6, 8), 16) / 255 : 1,
   }
 }
 
@@ -355,11 +399,14 @@ function rgbToHsv(r: number, g: number, b: number): Omit<HsvaColor, 'a'> {
   const delta = max - min
   let h = 0
   if (delta !== 0) {
-    if (max === rn) h = 60 * (((gn - bn) / delta) % 6)
-    else if (max === gn) h = 60 * ((bn - rn) / delta + 2)
+    if (max === rn)
+      h = 60 * (((gn - bn) / delta) % 6)
+    else if (max === gn)
+      h = 60 * ((bn - rn) / delta + 2)
     else h = 60 * ((rn - gn) / delta + 4)
   }
-  if (h < 0) h += 360
+  if (h < 0)
+    h += 360
   return {
     h,
     s: max === 0 ? 0 : (delta / max) * 100,
@@ -379,19 +426,24 @@ function hsvToRgb(h: number, s: number, v: number): Omit<RgbaColor, 'a'> {
   if (h >= 0 && h < 60) {
     r1 = c
     g1 = x
-  } else if (h < 120) {
+  }
+  else if (h < 120) {
     r1 = x
     g1 = c
-  } else if (h < 180) {
+  }
+  else if (h < 180) {
     g1 = c
     b1 = x
-  } else if (h < 240) {
+  }
+  else if (h < 240) {
     g1 = x
     b1 = c
-  } else if (h < 300) {
+  }
+  else if (h < 300) {
     r1 = x
     b1 = c
-  } else {
+  }
+  else {
     r1 = c
     b1 = x
   }
@@ -403,7 +455,8 @@ function hsvToRgb(h: number, s: number, v: number): Omit<RgbaColor, 'a'> {
 }
 
 function parseColor(value: string): RgbaColor | null {
-  if (!value) return null
+  if (!value)
+    return null
   const rgbaMatch = value.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/i)
   if (rgbaMatch) {
     return {
@@ -506,7 +559,8 @@ export function createNativeColorPicker(options: NativeColorPickerOptions = {}):
     button.title = color
     button.addEventListener('click', () => {
       const parsed = hexToRgba(color)
-      if (!parsed) return
+      if (!parsed)
+        return
       setFromRgba({ ...parsed, a: hsva.a })
       notifyChange()
     })
@@ -551,7 +605,8 @@ export function createNativeColorPicker(options: NativeColorPickerOptions = {}):
     for (const item of swatchButtons) {
       item.button.classList.toggle('active', item.color.toLowerCase() === hex.toLowerCase())
     }
-    if (open) updatePopupPosition()
+    if (open)
+      updatePopupPosition()
   }
 
   function setFromRgba(color: RgbaColor): void {
@@ -578,7 +633,8 @@ export function createNativeColorPicker(options: NativeColorPickerOptions = {}):
 
   function applyHex(): void {
     const parsed = parseColor(hexInput.value)
-    if (!parsed) return
+    if (!parsed)
+      return
     setFromRgba(parsed)
     notifyChange()
   }
@@ -633,40 +689,48 @@ export function createNativeColorPicker(options: NativeColorPickerOptions = {}):
     const rect = root.getBoundingClientRect()
     const width = Math.min(POPUP_WIDTH, Math.max(220, window.innerWidth - POPUP_GUTTER * 2))
     let left = rect.left
-    if (left + width > window.innerWidth - POPUP_GUTTER) left = window.innerWidth - width - POPUP_GUTTER
-    if (left < POPUP_GUTTER) left = POPUP_GUTTER
+    if (left + width > window.innerWidth - POPUP_GUTTER)
+      left = window.innerWidth - width - POPUP_GUTTER
+    if (left < POPUP_GUTTER)
+      left = POPUP_GUTTER
     popup.style.width = `${width}px`
     popup.style.left = `${left}px`
     popup.style.top = `${rect.bottom + 6}px`
   }
 
   function openPopup(): void {
-    if (open || destroyed) return
+    if (open || destroyed)
+      return
     open = true
     document.body.appendChild(popup)
     updatePopupPosition()
   }
 
   function closePopup(): void {
-    if (!open) return
+    if (!open)
+      return
     open = false
     popup.remove()
   }
 
   function togglePopup(): void {
-    if (open) closePopup()
+    if (open)
+      closePopup()
     else openPopup()
   }
 
   function onDocumentMouseDown(event: MouseEvent): void {
     const target = event.target as Node | null
-    if (!target) return
-    if (root.contains(target) || popup.contains(target)) return
+    if (!target)
+      return
+    if (root.contains(target) || popup.contains(target))
+      return
     closePopup()
   }
 
   function onViewportChange(): void {
-    if (open) updatePopupPosition()
+    if (open)
+      updatePopupPosition()
   }
 
   trigger.addEventListener('click', togglePopup)
@@ -689,14 +753,16 @@ export function createNativeColorPicker(options: NativeColorPickerOptions = {}):
     root,
     setValue(value: string) {
       const parsed = parseColor(value)
-      if (!parsed) return
+      if (!parsed)
+        return
       setFromRgba(parsed)
     },
     getValue() {
       return currentValue
     },
     destroy() {
-      if (destroyed) return
+      if (destroyed)
+        return
       destroyed = true
       closePopup()
       removeDragListeners?.()

@@ -1,10 +1,10 @@
 {
   "name": "uni-flexible-draw",
+  "type": "module",
   "version": "0.0.1",
+  "packageManager": "pnpm@9.0.0",
   "description": "基于 Vue3 + AntV X6 的通用绘图组件库",
   "license": "MIT",
-  "type": "module",
-  "packageManager": "pnpm@9.0.0",
   "scripts": {
     "dev": "vite",
     "dev:vue": "vite --config examples/vue/vite.config.ts examples/vue",
@@ -20,6 +20,9 @@
     "test": "vitest run",
     "test:watch": "vitest"
   },
+  "peerDependencies": {
+    "vue": "^3.4.0"
+  },
   "dependencies": {
     "@antv/x6": "^2.18.1",
     "@antv/x6-plugin-history": "^2.1.5",
@@ -30,11 +33,9 @@
     "roughjs": "^4.6.6",
     "vue-json-pretty": "^2.6.0"
   },
-  "peerDependencies": {
-    "vue": "^3.4.0"
-  },
   "devDependencies": {
     "@antfu/eslint-config": "^2.21.0",
+    "@antv/x6-plugin-export": "^2.1.6",
     "@antv/x6-plugin-minimap": "^2.0.7",
     "@types/node": "^20.14.0",
     "@vitejs/plugin-vue": "^5.0.0",

@@ -1,83 +1,5 @@
-﻿<template>
-  <div class="assets-panel">
-    <!-- Type switcher -->
-    <div class="type-tabs">
-      <button v-for="t in TYPE_TABS" :key="t.key"
-        :class="['type-tab', { active: assetType === t.key }]"
-        @click="assetType = t.key; query = '';"
-      >{{ t.label }}</button>
-    </div>
-
-    <!-- Search -->
-    <div class="assets-search">
-      <svg class="search-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      <input v-model="query" :placeholder="searchPlaceholder" class="search-input"
-        @keydown.enter="assetType === 'material' && searchMaterials()" />
-      <button v-if="query" class="search-clear"
-        @click="query = ''; assetType === 'material' && searchMaterials()">×</button>
-    </div>
-
-    <!-- Count hint -->
-    <div class="assets-meta">
-      <span v-if="assetType === 'icon'">{{ iconsLoaded ? filteredIconEntries.length : '...' }} 个图标</span>
-      <span v-else>
-        <template v-if="materialLoading">搜索中...</template>
-        <template v-else-if="materialTotal > 0">约 {{ materialTotal }} 张</template>
-        <template v-else>输入关键词按 Enter 搜索</template>
-      </span>
-    </div>
-
-    <!-- ── 图标 grid (virtual scroll + lazy load) ── -->
-    <div v-if="assetType === 'icon'" class="assets-scroll" ref="iconScrollRef" @scroll="onIconScroll">
-      <div v-if="!iconsLoaded" class="assets-loading">加载图标库...</div>
-      <template v-else>
-        <div v-if="filteredIconEntries.length === 0" class="assets-empty">
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          <p>未找到匹配图标</p>
-        </div>
-        <div v-else class="icon-vscroll-space" :style="{ height: totalIconHeight + 'px' }">
-          <div class="assets-grid icon-vscroll-grid" :style="{ transform: `translateY(${iconOffsetY}px)` }">
-            <div v-for="entry in visibleIconEntries" :key="entry.name"
-              class="asset-cell" :title="entry.label"
-              draggable="true"
-              @dragstart="onIconDragStart($event, entry)"
-              @click="emitIconPick(entry)"
-            >
-              <component :is="entry.component" :size="22" class="asset-icon" />
-            </div>
-          </div>
-        </div>
-      </template>
-    </div>
-
-    <!-- ── 材料 grid (Pixabay) ── -->
-    <div v-else class="assets-scroll" ref="materialScrollRef">
-      <div v-if="!materialItems.length && !materialLoading" class="assets-empty">
-        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#ddd" stroke-width="1.2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21,15 16,10 5,21"/></svg>
-        <p>输入关键词后按 Enter 搜索</p>
-        <span v-if="!pixabayKeySet" class="material-no-key">⚠️ 未配置 VITE_PIXABAY_KEY</span>
-      </div>
-      <template v-else>
-        <div class="material-grid">
-          <div v-for="item in materialItems" :key="item.id"
-            class="material-cell" :title="item.tags"
-            draggable="true"
-            @dragstart="onMaterialDragStart($event, item)"
-          >
-            <img :src="item.previewURL" :alt="item.tags" class="material-thumb" loading="lazy" />
-          </div>
-        </div>
-        <div v-if="materialLoading" class="assets-loading">加载中...</div>
-        <div v-else-if="materialItems.length < materialTotal" class="material-load-more">
-          <button @click="loadMoreMaterials">加载更多</button>
-        </div>
-      </template>
-    </div>
-  </div>
-</template>
-
 <script setup lang="ts">
-import { ref, computed, shallowRef, watch, h, createApp, onMounted, onUnmounted, type Component } from 'vue'
+import { type Component, computed, createApp, h, onMounted, onUnmounted, ref, shallowRef, watch } from 'vue'
 
 // ── Types ─────────────────────────────────────────────────────────────
 interface IconEntry {
@@ -94,18 +16,17 @@ interface PixabayItem {
   tags: string
 }
 
+const emit = defineEmits<{
+  (e: 'pick', item: { key: string, label: string }): void
+}>()
 // ── Type tabs ─────────────────────────────────────────────────────
 const TYPE_TABS = [
-  { key: 'icon',     label: '图标' },
+  { key: 'icon', label: '图标' },
   { key: 'material', label: '材料' },
 ] as const
 type AssetType = typeof TYPE_TABS[number]['key']
 
 const assetType = ref<AssetType>('icon')
-
-const emit = defineEmits<{
-  (e: 'pick', item: { key: string; label: string }): void
-}>()
 
 const query = ref('')
 
@@ -115,7 +36,8 @@ const iconEntries = shallowRef<IconEntry[]>([])
 const svgCache = new Map<string, string>()
 
 async function loadIcons() {
-  if (iconsLoaded.value) return
+  if (iconsLoaded.value)
+    return
   const mod = await import('@vicons/ionicons5') as Record<string, Component>
   iconEntries.value = Object.keys(mod)
     .filter(k => k !== 'default')
@@ -128,7 +50,10 @@ async function loadIcons() {
   iconsLoaded.value = true
 }
 
-watch(() => assetType.value === 'icon', active => { if (active) loadIcons() }, { immediate: true })
+watch(() => assetType.value === 'icon', (active) => {
+  if (active)
+    loadIcons()
+}, { immediate: true })
 
 // ── Virtual scroll ────────────────────────────────────────────────────
 const ICON_COLS = 5
@@ -144,7 +69,8 @@ function onIconScroll() {
 }
 
 onMounted(() => {
-  if (!iconScrollRef.value) return
+  if (!iconScrollRef.value)
+    return
   iconViewportH.value = iconScrollRef.value.clientHeight || 300
   const ro = new ResizeObserver(([e]) => { iconViewportH.value = e.contentRect.height })
   ro.observe(iconScrollRef.value)
@@ -153,7 +79,8 @@ onMounted(() => {
 
 const filteredIconEntries = computed(() => {
   const q = query.value.trim().toLowerCase()
-  if (!q) return iconEntries.value
+  if (!q)
+    return iconEntries.value
   return iconEntries.value.filter(e => e.name.toLowerCase().includes(q))
 })
 
@@ -173,7 +100,8 @@ const iconOffsetY = computed(() => visStartRow.value * ICON_ROW_H)
 
 // ── SVG extraction ────────────────────────────────────────────────────
 function extractIconSvg(name: string, component: Component): string {
-  if (svgCache.has(name)) return svgCache.get(name)!
+  if (svgCache.has(name))
+    return svgCache.get(name)!
   try {
     const div = document.createElement('div')
     const app = createApp({ render: () => h(component as any, { size: 32 }) })
@@ -183,7 +111,8 @@ function extractIconSvg(name: string, component: Component): string {
     div.remove()
     svgCache.set(name, svg)
     return svg
-  } catch { return '' }
+  }
+  catch { return '' }
 }
 
 function emitIconPick(entry: IconEntry) {
@@ -214,13 +143,18 @@ async function searchMaterials(append = false) {
     const json = await res.json()
     materialTotal.value = json.totalHits ?? 0
     const hits: PixabayItem[] = (json.hits ?? []).map((h: any) => ({
-      id: h.id, previewURL: h.previewURL,
-      webformatURL: h.webformatURL, largeImageURL: h.largeImageURL, tags: h.tags,
+      id: h.id,
+      previewURL: h.previewURL,
+      webformatURL: h.webformatURL,
+      largeImageURL: h.largeImageURL,
+      tags: h.tags,
     }))
     materialItems.value = append ? [...materialItems.value, ...hits] : hits
-  } catch (e) {
+  }
+  catch (e) {
     console.error('[AssetsPanel] Pixabay fetch failed', e)
-  } finally {
+  }
+  finally {
     materialLoading.value = false
   }
 }
@@ -228,39 +162,132 @@ async function searchMaterials(append = false) {
 function loadMoreMaterials() { materialPage.value++; searchMaterials(true) }
 
 function onMaterialDragStart(event: DragEvent, item: PixabayItem) {
-  if (event.dataTransfer) event.dataTransfer.effectAllowed = 'copy'
+  if (event.dataTransfer)
+    event.dataTransfer.effectAllowed = 'copy'
   event.dataTransfer?.setData('application/json', JSON.stringify({
     id: `material-${item.id}`,
     name: item.tags.split(',')[0].trim(),
     shape: 'basic-image',
     defaultSize: { width: 160, height: 120 },
-    defaultLabel: '', defaultStyle: {},
+    defaultLabel: '',
+    defaultStyle: {},
     data: { imageHref: item.webformatURL },
   }))
 }
 
 // ── Computed ─────────────────────────────────────────────────────
 const searchPlaceholder = computed(() =>
-  assetType.value === 'icon' ? '搜索图标...' : '搜索素材 (English)...'
+  assetType.value === 'icon' ? '搜索图标...' : '搜索素材 (English)...',
 )
 
 // ── Drag handlers ─────────────────────────────────────────────────────
 function onIconDragStart(event: DragEvent, entry: IconEntry) {
-  if (event.dataTransfer) event.dataTransfer.effectAllowed = 'copy'
+  if (event.dataTransfer)
+    event.dataTransfer.effectAllowed = 'copy'
   const svg = extractIconSvg(entry.name, entry.component)
   const encoded = svg ? encodeURIComponent(svg) : ''
   event.dataTransfer?.setData('application/json', JSON.stringify(
     encoded
-      ? { id: `icon-${entry.name}`, name: entry.label, shape: 'basic-image',
-          defaultSize: { width: 40, height: 40 }, defaultLabel: '',
-          data: { imageHref: `data:image/svg+xml;charset=utf-8,${encoded}` } }
-      : { id: `icon-${entry.name}`, name: entry.label, shape: 'basic-rounded-rect',
-          defaultSize: { width: 80, height: 40 }, defaultLabel: entry.label,
-          defaultStyle: { fill: '#f0f4ff', stroke: '#7166F0', strokeWidth: 1.5 } }
+      ? { id: `icon-${entry.name}`, name: entry.label, shape: 'basic-image', defaultSize: { width: 40, height: 40 }, defaultLabel: '', data: { imageHref: `data:image/svg+xml;charset=utf-8,${encoded}` } }
+      : { id: `icon-${entry.name}`, name: entry.label, shape: 'basic-rounded-rect', defaultSize: { width: 80, height: 40 }, defaultLabel: entry.label, defaultStyle: { fill: '#f0f4ff', stroke: '#7166F0', strokeWidth: 1.5 } },
   ))
 }
-
 </script>
+
+<template>
+  <div class="assets-panel">
+    <!-- Type switcher -->
+    <div class="type-tabs">
+      <button
+        v-for="t in TYPE_TABS" :key="t.key"
+        class="type-tab" :class="[{ active: assetType === t.key }]"
+        @click="assetType = t.key; query = '';"
+      >
+        {{ t.label }}
+      </button>
+    </div>
+
+    <!-- Search -->
+    <div class="assets-search">
+      <svg class="search-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
+      <input
+        v-model="query" :placeholder="searchPlaceholder" class="search-input"
+        @keydown.enter="assetType === 'material' && searchMaterials()"
+      >
+      <button
+        v-if="query" class="search-clear"
+        @click="query = ''; assetType === 'material' && searchMaterials()"
+      >
+        ×
+      </button>
+    </div>
+
+    <!-- Count hint -->
+    <div class="assets-meta">
+      <span v-if="assetType === 'icon'">{{ iconsLoaded ? filteredIconEntries.length : '...' }} 个图标</span>
+      <span v-else>
+        <template v-if="materialLoading">搜索中...</template>
+        <template v-else-if="materialTotal > 0">约 {{ materialTotal }} 张</template>
+        <template v-else>输入关键词按 Enter 搜索</template>
+      </span>
+    </div>
+
+    <!-- ── 图标 grid (virtual scroll + lazy load) ── -->
+    <div v-if="assetType === 'icon'" ref="iconScrollRef" class="assets-scroll" @scroll="onIconScroll">
+      <div v-if="!iconsLoaded" class="assets-loading">
+        加载图标库...
+      </div>
+      <template v-else>
+        <div v-if="filteredIconEntries.length === 0" class="assets-empty">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="1.5"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
+          <p>未找到匹配图标</p>
+        </div>
+        <div v-else class="icon-vscroll-space" :style="{ height: `${totalIconHeight}px` }">
+          <div class="assets-grid icon-vscroll-grid" :style="{ transform: `translateY(${iconOffsetY}px)` }">
+            <div
+              v-for="entry in visibleIconEntries" :key="entry.name"
+              class="asset-cell" :title="entry.label"
+              draggable="true"
+              @dragstart="onIconDragStart($event, entry)"
+              @click="emitIconPick(entry)"
+            >
+              <component :is="entry.component" :size="22" class="asset-icon" />
+            </div>
+          </div>
+        </div>
+      </template>
+    </div>
+
+    <!-- ── 材料 grid (Pixabay) ── -->
+    <div v-else ref="materialScrollRef" class="assets-scroll">
+      <div v-if="!materialItems.length && !materialLoading" class="assets-empty">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#ddd" stroke-width="1.2"><rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="8.5" cy="8.5" r="1.5" /><polyline points="21,15 16,10 5,21" /></svg>
+        <p>输入关键词后按 Enter 搜索</p>
+        <span v-if="!pixabayKeySet" class="material-no-key">⚠️ 未配置 VITE_PIXABAY_KEY</span>
+      </div>
+      <template v-else>
+        <div class="material-grid">
+          <div
+            v-for="item in materialItems" :key="item.id"
+            class="material-cell" :title="item.tags"
+            draggable="true"
+            @dragstart="onMaterialDragStart($event, item)"
+          >
+            <img :src="item.previewURL" :alt="item.tags" class="material-thumb" loading="lazy">
+          </div>
+        </div>
+        <div v-if="materialLoading" class="assets-loading">
+          加载中...
+        </div>
+        <div v-else-if="materialItems.length < materialTotal" class="material-load-more">
+          <button @click="loadMoreMaterials">
+            加载更多
+          </button>
+        </div>
+      </template>
+    </div>
+  </div>
+</template>
 
 <style scoped>
 .assets-panel {
@@ -281,7 +308,10 @@ function onIconDragStart(event: DragEvent, entry: IconEntry) {
   flex-shrink: 0;
 }
 
-.search-icon { color: #aaa; flex-shrink: 0; }
+.search-icon {
+  color: #aaa;
+  flex-shrink: 0;
+}
 
 .search-input {
   flex: 1;
@@ -301,7 +331,6 @@ function onIconDragStart(event: DragEvent, entry: IconEntry) {
   line-height: 1;
   padding: 0 2px;
 }
-
 
 /* ── Meta ── */
 .assets-meta {
@@ -334,11 +363,22 @@ function onIconDragStart(event: DragEvent, entry: IconEntry) {
   transition: background 0.12s;
   user-select: none;
 }
-.asset-cell:hover { background: #eef2ff; }
-.asset-cell:active { cursor: grabbing; background: #dce5ff; }
+.asset-cell:hover {
+  background: #eef2ff;
+}
+.asset-cell:active {
+  cursor: grabbing;
+  background: #dce5ff;
+}
 
-.asset-icon { color: #555; flex-shrink: 0; }
-.asset-cell:hover .asset-icon { color: var(--primary); }
+.asset-icon {
+  color: #555;
+  flex-shrink: 0;
+}
+
+.asset-cell:hover .asset-icon {
+  color: var(--primary);
+}
 
 /* ── Virtual scroll (icon grid) ── */
 .icon-vscroll-space {
@@ -390,32 +430,43 @@ function onIconDragStart(event: DragEvent, entry: IconEntry) {
   border-bottom: 2px solid transparent;
   transition: all 0.15s;
 }
-.type-tab:hover { color: var(--primary); }
-.type-tab.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 600; }
+.type-tab:hover {
+  color: var(--primary);
+}
+
+.type-tab.active {
+  color: var(--primary);
+  border-bottom-color: var(--primary);
+  font-weight: 600;
+}
 
 /* ── Material grid (Pixabay) ── */
 .material-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 4px;
-  padding: 4px 2px;
+  gap: 0;
+  padding: 0;
 }
 
 .material-cell {
   position: relative;
-  border-radius: 6px;
+  border-radius: 0;
   overflow: hidden;
   cursor: grab;
-  border: 1px solid #e8e8e8;
+  border: none;
   background: #f5f5f5;
   transition: box-shadow 0.12s;
 }
-.material-cell:hover { box-shadow: 0 0 0 2px var(--primary); }
-.material-cell:active { cursor: grabbing; }
+.material-cell:hover {
+  box-shadow: inset 0 0 0 2px var(--primary);
+}
+.material-cell:active {
+  cursor: grabbing;
+}
 
 .material-thumb {
   width: 100%;
-  aspect-ratio: 4 / 3;
+  aspect-ratio: 1 / 1;
   object-fit: cover;
   display: block;
 }
@@ -434,7 +485,10 @@ function onIconDragStart(event: DragEvent, entry: IconEntry) {
   color: #555;
   cursor: pointer;
 }
-.material-load-more button:hover { border-color: var(--primary); color: var(--primary); }
+.material-load-more button:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
 
 .material-no-key {
   font-size: 10px;

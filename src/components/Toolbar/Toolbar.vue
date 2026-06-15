@@ -1,3 +1,69 @@
+<script setup lang="ts">
+import {
+  AlignCenterHorizontal,
+  AlignCenterVertical,
+  AlignEndHorizontal,
+  AlignEndVertical,
+  AlignHorizontalSpaceBetween,
+  AlignStartHorizontal,
+  AlignStartVertical,
+  AlignVerticalSpaceBetween,
+  Brush,
+  FileJson,
+  Group,
+  Hand,
+  ImageDown,
+  Maximize2,
+  MousePointer2,
+  PanelLeftClose,
+  PanelLeftOpen,
+  PenLine,
+  Redo2,
+  Trash2,
+  Undo2,
+  Ungroup,
+  ZoomIn,
+  ZoomOut,
+} from 'lucide-vue-next'
+import { useLocale } from '../../locale'
+
+export interface ToolbarProps {
+  zoom?: number
+  canUndo?: boolean
+  canRedo?: boolean
+  leftPanelVisible?: boolean
+  panMode?: boolean
+  sketchMode?: boolean
+  drawMode?: boolean
+  selectionCount?: number
+  canGroup?: boolean
+  canUngroup?: boolean
+}
+
+withDefaults(defineProps<ToolbarProps>(), {
+  zoom: 1,
+  canUndo: false,
+  canRedo: false,
+  leftPanelVisible: true,
+  panMode: false,
+  sketchMode: false,
+  drawMode: false,
+  selectionCount: 0,
+  canGroup: false,
+  canUngroup: false,
+})
+
+const emit = defineEmits<{
+  (e: 'action', action: string): void
+}>()
+
+const t = useLocale()
+
+function emitAction(action: string) {
+  emit('action', action)
+}
+</script>
+
 <template>
   <div class="toolbar-float">
     <button class="tb-btn" :disabled="!canUndo" :title="`${t.toolbar.undo} (Ctrl+Z)`" @click="emitAction('undo')">
@@ -82,53 +148,6 @@
   </div>
 </template>
 
-<script setup lang="ts">
-import {
-  Undo2, Redo2, Hand, ZoomIn, ZoomOut, Maximize2, PenLine, Brush, Trash2, MousePointer2, FileJson, ImageDown, PanelLeftOpen, PanelLeftClose,
-  AlignStartVertical, AlignCenterVertical, AlignEndVertical,
-  AlignStartHorizontal, AlignCenterHorizontal, AlignEndHorizontal,
-  AlignHorizontalSpaceBetween, AlignVerticalSpaceBetween,
-  Group, Ungroup,
-} from 'lucide-vue-next'
-import { useLocale } from '../../locale'
-
-export interface ToolbarProps {
-  zoom?: number
-  canUndo?: boolean
-  canRedo?: boolean
-  leftPanelVisible?: boolean
-  panMode?: boolean
-  sketchMode?: boolean
-  drawMode?: boolean
-  selectionCount?: number
-  canGroup?: boolean
-  canUngroup?: boolean
-}
-
-withDefaults(defineProps<ToolbarProps>(), {
-  zoom: 1,
-  canUndo: false,
-  canRedo: false,
-  leftPanelVisible: true,
-  panMode: false,
-  sketchMode: false,
-  drawMode: false,
-  selectionCount: 0,
-  canGroup: false,
-  canUngroup: false,
-})
-
-const emit = defineEmits<{
-  (e: 'action', action: string): void
-}>()
-
-const t = useLocale()
-
-function emitAction(action: string) {
-  emit('action', action)
-}
-</script>
-
 <style scoped>
 .toolbar-float {
   position: absolute;
@@ -141,7 +160,9 @@ function emitAction(action: string) {
   padding: 6px 10px;
   background: #fff;
   border-radius: 10px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1), 0 1px 4px rgba(0, 0, 0, 0.06);
+  box-shadow:
+    0 4px 16px rgba(0, 0, 0, 0.1),
+    0 1px 4px rgba(0, 0, 0, 0.06);
   user-select: none;
   z-index: 20;
 }

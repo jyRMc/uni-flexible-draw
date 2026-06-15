@@ -1,11 +1,11 @@
-import { useRef, useState, useCallback, useEffect, useMemo } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { CSSProperties } from 'react'
 import { UniDraw, type UniDrawRef } from '@uni-draw/draw/react'
-import AIPanel, { type Message } from './components/AIPanel'
-import TopBar from './components/TopBar'
-import { zhCN, enUS, type AssetItem, type GraphData, type TemplateItem, type UniDrawLocale } from '@uni-draw/draw'
-import { generateGraph, diagnoseAiConnection, type AIConnectionConfig } from '../../vue/src/mocks/aiService'
+import { type AssetItem, type GraphData, type TemplateItem, type UniDrawLocale, enUS, zhCN } from '@uni-draw/draw'
+import { type AIConnectionConfig, diagnoseAiConnection, generateGraph } from '../../vue/src/mocks/aiService'
 import { SCENARIO_TEMPLATES } from '../../vue/src/mocks/templates'
+import TopBar from './components/TopBar'
+import AIPanel, { type Message } from './components/AIPanel'
 
 interface SvgAssetsApiEnvelope {
   items: AssetItem[]
@@ -98,13 +98,15 @@ export default function App() {
       setAssetPage(normalized.page)
       setAssetTotalPages(normalized.totalPages)
       setAssetsPaginated(normalized.paginated)
-    } catch (error) {
+    }
+    catch (error) {
       console.error('[AIDrawExample] Failed to load SVG assets', error)
       setAssets([])
       setAssetPage(1)
       setAssetTotalPages(1)
       setAssetsPaginated(false)
-    } finally {
+    }
+    finally {
       setAssetsLoading(false)
     }
   }, [assetPage, assetsPaginated, normalizeAssetsResponse])
@@ -114,12 +116,14 @@ export default function App() {
   }, [loadAssets])
 
   const goToPreviousAssetPage = useCallback(() => {
-    if (assetsLoading || !assetsPaginated || assetPage <= 1) return
+    if (assetsLoading || !assetsPaginated || assetPage <= 1)
+      return
     void loadAssets(assetPage - 1)
   }, [assetPage, assetsLoading, assetsPaginated, loadAssets])
 
   const goToNextAssetPage = useCallback(() => {
-    if (assetsLoading || !assetsPaginated || assetPage >= assetTotalPages) return
+    if (assetsLoading || !assetsPaginated || assetPage >= assetTotalPages)
+      return
     void loadAssets(assetPage + 1)
   }, [assetPage, assetTotalPages, assetsLoading, assetsPaginated, loadAssets])
 
@@ -131,7 +135,7 @@ export default function App() {
   }, [currentLocale])
 
   const handleToggleAiPanel = useCallback(() => {
-    setAiPanelOpen((prev) => !prev)
+    setAiPanelOpen(prev => !prev)
   }, [])
 
   const handleOpenTemplates = useCallback(() => {
@@ -162,22 +166,25 @@ export default function App() {
   }, [currentLocale])
 
   const handleToggleLanguage = useCallback(() => {
-    setCurrentLanguage((prev) => (prev === 'zh-CN' ? 'en-US' : 'zh-CN'))
+    setCurrentLanguage(prev => (prev === 'zh-CN' ? 'en-US' : 'zh-CN'))
   }, [])
 
   const handleReady = useCallback(async () => {
     const diag = await diagnoseAiConnection(aiConfig)
     setAiMessages([{ role: 'assistant', content: `🔌 API 连通诊断: ${diag}` }])
     setFollowUpQuestions([
-      '如何绘制流程图？', '如何绘制 UML 类图？', '如何绘制实体关系图？',
+      '如何绘制流程图？',
+      '如何绘制 UML 类图？',
+      '如何绘制实体关系图？',
     ])
   }, [aiConfig])
 
   const handleAiGenerate = useCallback(async (prompt: string) => {
     const normalizedPrompt = prompt.trim()
-    if (!normalizedPrompt || aiLoading) return
+    if (!normalizedPrompt || aiLoading)
+      return
     setAiPanelOpen(true)
-    setAiMessages((prev) => [...prev, { role: 'user', content: normalizedPrompt }])
+    setAiMessages(prev => [...prev, { role: 'user', content: normalizedPrompt }])
     setAiLoading(true)
     setFollowUpQuestions([])
     try {
@@ -192,9 +199,11 @@ export default function App() {
       drawRef.current?.setData(data)
       appendAssistantMessage(summary)
       setFollowUpQuestions(followUp)
-    } catch (error) {
+    }
+    catch (error) {
       appendAssistantMessage(`生成失败：${error instanceof Error ? error.message : '未知错误'}`)
-    } finally {
+    }
+    finally {
       setAiLoading(false)
     }
   }, [aiConfig, aiLoading, appendAssistantMessage])

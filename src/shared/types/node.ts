@@ -4,9 +4,9 @@ export interface NodeData {
   /** 图形类型标识 */
   shape: string
   /** 位置 */
-  position: { x: number; y: number }
+  position: { x: number, y: number }
   /** 尺寸 */
-  size: { width: number; height: number }
+  size: { width: number, height: number }
   /** 角度（旋转） */
   angle?: number
   /** Z 层级 */
@@ -21,6 +21,27 @@ export interface NodeData {
   ports?: PortsConfig
   /** 是否锁定 */
   locked?: boolean
+  /** 所属父 Group ID */
+  parent?: string
+  /** 子节点 ID 列表 */
+  children?: string[]
+}
+
+/**
+ * 多区域节点数据
+ * 用于 UML 类图、时序图 fragment、泳道图等含内部区域分隔的节点
+ */
+export interface RegionData {
+  /** 各区域配置 */
+  regions: Array<{
+    id: string
+    label: string
+  }>
+  /** 分隔线位置比例 (0~1) */
+  dividers: Array<{
+    id: string
+    position: number
+  }>
 }
 
 export interface NodeStyle {
@@ -65,7 +86,7 @@ export interface PortsConfig {
 }
 
 export interface PortGroup {
-  position: string | { name: string; args?: Record<string, unknown> }
+  position: string | { name: string, args?: Record<string, unknown> }
   attrs?: Record<string, unknown>
 }
 

@@ -26,16 +26,16 @@ export const flowchartDocument: Node.Config = {
   },
   ports: {
     groups: {
-      top:    { position: 'top',    attrs: { circle: { r: 4, magnet: true, stroke: '#52c41a', fill: '#fff' } } },
+      top: { position: 'top', attrs: { circle: { r: 4, magnet: true, stroke: '#52c41a', fill: '#fff' } } },
       bottom: { position: 'bottom', attrs: { circle: { r: 4, magnet: true, stroke: '#52c41a', fill: '#fff' } } },
-      left:   { position: 'left',   attrs: { circle: { r: 4, magnet: true, stroke: '#52c41a', fill: '#fff' } } },
-      right:  { position: 'right',  attrs: { circle: { r: 4, magnet: true, stroke: '#52c41a', fill: '#fff' } } },
+      left: { position: 'left', attrs: { circle: { r: 4, magnet: true, stroke: '#52c41a', fill: '#fff' } } },
+      right: { position: 'right', attrs: { circle: { r: 4, magnet: true, stroke: '#52c41a', fill: '#fff' } } },
     },
     items: [
-      { id: 'top',    group: 'top'    },
+      { id: 'top', group: 'top' },
       { id: 'bottom', group: 'bottom' },
-      { id: 'left',   group: 'left'   },
-      { id: 'right',  group: 'right'  },
+      { id: 'left', group: 'left' },
+      { id: 'right', group: 'right' },
     ],
   },
 }

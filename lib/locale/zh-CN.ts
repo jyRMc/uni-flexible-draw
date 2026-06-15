@@ -4,6 +4,7 @@ const zhCN: UniDrawLocale = {
   toolbar: {
     undo: '撤销',
     redo: '重做',
+    move: '移动',
     selectAll: '全选',
     panTool: '手形工具',
     zoomOut: '缩小',
@@ -253,6 +254,9 @@ const zhCN: UniDrawLocale = {
       untitled: '未命名图表',
       copiedJson: '已复制 JSON 到剪贴板',
       exitConfirm: '确定要退出吗？',
+      previewTitle: '画布预览',
+      downloadJson: '下载 JSON',
+      close: '关闭',
     },
     topBar: {
       exit: '退出',
@@ -261,6 +265,7 @@ const zhCN: UniDrawLocale = {
       share: '分享',
       templates: '模板',
       edit: '编辑',
+      preview: '预览',
       search: '搜索',
       help: '帮助',
       aiDraw: 'AI 绘图',

@@ -1,52 +1,5 @@
-<template>
-  <div class="tr-root">
-    <div class="tr-header">
-      <span class="tr-title">UniDraw 功能测试</span>
-      <button class="tr-run-btn" :disabled="running" @click="runAll">
-        {{ running ? '运行中…' : '▶ 运行全部' }}
-      </button>
-      <span v-if="done" class="tr-summary">
-        <span class="pass">✓ {{ passed }}</span> /
-        <span class="fail">✗ {{ total - passed }}</span>
-        共 {{ total }}
-      </span>
-    </div>
-
-    <div class="tr-body">
-      <!-- Test result list -->
-      <div class="tr-list">
-        <div
-          v-for="r in results"
-          :key="r.name"
-          class="tr-item"
-          :class="r.status"
-          @click="selected = r"
-        >
-          <span class="tr-icon">{{ r.status === 'pass' ? '✓' : r.status === 'fail' ? '✗' : '○' }}</span>
-          <span class="tr-name">{{ r.name }}</span>
-          <span v-if="r.ms !== undefined" class="tr-dur">{{ r.ms }}ms</span>
-        </div>
-      </div>
-
-      <!-- Detail panel -->
-      <div class="tr-detail">
-        <template v-if="selected">
-          <div class="tr-detail-name" :class="selected.status">{{ selected.name }}</div>
-          <pre v-if="selected.error" class="tr-error">{{ selected.error }}</pre>
-          <pre v-else class="tr-ok">PASSED</pre>
-        </template>
-        <div v-else class="tr-detail-empty">点击左侧测试项查看详情</div>
-
-        <!-- Live canvas for visual inspection -->
-        <div class="tr-canvas-label">实时画布（最后一次测试）</div>
-        <div ref="canvasHost" class="tr-canvas-host" />
-      </div>
-    </div>
-  </div>
-</template>
-
 <script setup lang="ts">
-import { ref, onBeforeUnmount } from 'vue'
+import { onBeforeUnmount, ref } from 'vue'
 import { UniDraw, type UniDrawOptions } from '../../../../lib/UniDraw'
 import { getAllLibraries } from '../../../../lib/materials'
 
@@ -74,7 +27,8 @@ onBeforeUnmount(() => { liveInstance?.destroy(); liveInstance = null })
 // ─── Test helpers ─────────────────────────────────────────────────────────
 
 function assert(condition: boolean, message: string): void {
-  if (!condition) throw new Error(`Assertion failed: ${message}`)
+  if (!condition)
+    throw new Error(`Assertion failed: ${message}`)
 }
 
 function sleep(ms: number): Promise<void> {
@@ -89,15 +43,20 @@ async function withContainer(
 ): Promise<void> {
   const div = document.createElement('div')
   Object.assign(div.style, {
-    position: 'fixed', top: '-9999px', left: '-9999px',
-    width: '800px', height: '600px', overflow: 'hidden',
+    position: 'fixed',
+    top: '-9999px',
+    left: '-9999px',
+    width: '800px',
+    height: '600px',
+    overflow: 'hidden',
   })
   document.body.appendChild(div)
   const ud = new UniDraw(div, opts)
   await sleep(50)
   try {
     await fn(div, ud)
-  } finally {
+  }
+  finally {
     if (!keep) { ud.destroy(); div.remove() }
     else {
       liveInstance?.destroy()
@@ -158,7 +117,8 @@ const TESTS: [string, TestFn][] = [
       // Trigger selection through internal graph API
       const g: any = (ud as any)._graph
       const cell = g.getCellById('n1')
-      if (g.select && cell) g.select(cell)
+      if (g.select && cell)
+        g.select(cell)
       await sleep(50)
       assert(container.querySelector('.ud-properties-card') !== null, '.ud-properties-card should exist after selection')
     }, { showPropertiesPanel: true })
@@ -249,7 +209,8 @@ const TESTS: [string, TestFn][] = [
     await withContainer(async (_c, ud) => {
       ud.setData({
         canvas: { backgroundColor: '#ffffff', grid: { size: 10, visible: true, type: 'dot' as const }, zoom: 1 },
-        nodes: [], edges: [],
+        nodes: [],
+        edges: [],
       })
       await sleep(30)
       const g: any = (ud as any)._graph
@@ -265,7 +226,8 @@ const TESTS: [string, TestFn][] = [
     await withContainer(async (_c, ud) => {
       ud.setData({
         canvas: { backgroundColor: '#ffffff', grid: { size: 10, visible: true, type: 'dot' as const }, zoom: 1.5 },
-        nodes: [], edges: [],
+        nodes: [],
+        edges: [],
       })
       await sleep(30)
       const g: any = (ud as any)._graph
@@ -363,7 +325,8 @@ async function runAll() {
       const ms = Math.round(performance.now() - start)
       results.value[i] = { name, status: 'pass', ms }
       passed.value++
-    } catch (err: unknown) {
+    }
+    catch (err: unknown) {
       const ms = Math.round(performance.now() - start)
       results.value[i] = { name, status: 'fail', error: String(err), ms }
     }
@@ -373,6 +336,59 @@ async function runAll() {
   done.value = true
 }
 </script>
+
+<template>
+  <div class="tr-root">
+    <div class="tr-header">
+      <span class="tr-title">UniDraw 功能测试</span>
+      <button class="tr-run-btn" :disabled="running" @click="runAll">
+        {{ running ? '运行中…' : '▶ 运行全部' }}
+      </button>
+      <span v-if="done" class="tr-summary">
+        <span class="pass">✓ {{ passed }}</span> /
+        <span class="fail">✗ {{ total - passed }}</span>
+        共 {{ total }}
+      </span>
+    </div>
+
+    <div class="tr-body">
+      <!-- Test result list -->
+      <div class="tr-list">
+        <div
+          v-for="r in results"
+          :key="r.name"
+          class="tr-item"
+          :class="r.status"
+          @click="selected = r"
+        >
+          <span class="tr-icon">{{ r.status === 'pass' ? '✓' : r.status === 'fail' ? '✗' : '○' }}</span>
+          <span class="tr-name">{{ r.name }}</span>
+          <span v-if="r.ms !== undefined" class="tr-dur">{{ r.ms }}ms</span>
+        </div>
+      </div>
+
+      <!-- Detail panel -->
+      <div class="tr-detail">
+        <template v-if="selected">
+          <div class="tr-detail-name" :class="selected.status">
+            {{ selected.name }}
+          </div>
+          <pre v-if="selected.error" class="tr-error">{{ selected.error }}</pre>
+          <pre v-else class="tr-ok">PASSED</pre>
+        </template>
+        <div v-else class="tr-detail-empty">
+          点击左侧测试项查看详情
+        </div>
+
+        <!-- Live canvas for visual inspection -->
+        <div class="tr-canvas-label">
+          实时画布（最后一次测试）
+        </div>
+        <div ref="canvasHost" class="tr-canvas-host" />
+      </div>
+    </div>
+  </div>
+</template>
 
 <style scoped>
 .tr-root {
@@ -396,11 +412,15 @@ async function runAll() {
   flex-shrink: 0;
 }
 
-.tr-title { font-weight: 700; font-size: 14px; color: #7166F0; }
+.tr-title {
+  font-weight: 700;
+  font-size: 14px;
+  color: #7166f0;
+}
 
 .tr-run-btn {
   padding: 5px 16px;
-  background: #7166F0;
+  background: #7166f0;
   color: #fff;
   border: none;
   border-radius: 5px;
@@ -408,11 +428,23 @@ async function runAll() {
   font-size: 12px;
   font-weight: 600;
 }
-.tr-run-btn:disabled { opacity: .5; cursor: not-allowed; }
+.tr-run-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
 
-.tr-summary { font-size: 12px; color: #888; }
-.tr-summary .pass { color: #16a34a; font-weight: 600; }
-.tr-summary .fail { color: #dc2626; font-weight: 600; }
+.tr-summary {
+  font-size: 12px;
+  color: #888;
+}
+.tr-summary .pass {
+  color: #16a34a;
+  font-weight: 600;
+}
+.tr-summary .fail {
+  color: #dc2626;
+  font-weight: 600;
+}
 
 .tr-body {
   display: flex;
@@ -437,19 +469,44 @@ async function runAll() {
   padding: 7px 14px;
   cursor: pointer;
   border-left: 3px solid transparent;
-  transition: background .1s;
+  transition: background 0.1s;
 }
-.tr-item:hover { background: #f5f5fa; }
-.tr-item.pass  { border-left-color: #16a34a; }
-.tr-item.fail  { border-left-color: #dc2626; background: #fff5f5; }
-.tr-item.pending { color: #aaa; }
+.tr-item:hover {
+  background: #f5f5fa;
+}
+.tr-item.pass {
+  border-left-color: #16a34a;
+}
+.tr-item.fail {
+  border-left-color: #dc2626;
+  background: #fff5f5;
+}
+.tr-item.pending {
+  color: #aaa;
+}
 
-.tr-icon { font-size: 12px; width: 14px; flex-shrink: 0; }
-.tr-item.pass  .tr-icon { color: #16a34a; }
-.tr-item.fail  .tr-icon { color: #dc2626; }
+.tr-icon {
+  font-size: 12px;
+  width: 14px;
+  flex-shrink: 0;
+}
+.tr-item.pass .tr-icon {
+  color: #16a34a;
+}
+.tr-item.fail .tr-icon {
+  color: #dc2626;
+}
 
-.tr-name { flex: 1; font-size: 12px; line-height: 1.4; }
-.tr-dur  { font-size: 11px; color: #bbb; flex-shrink: 0; }
+.tr-name {
+  flex: 1;
+  font-size: 12px;
+  line-height: 1.4;
+}
+.tr-dur {
+  font-size: 11px;
+  color: #bbb;
+  flex-shrink: 0;
+}
 
 .tr-detail {
   flex: 1;
@@ -466,8 +523,12 @@ async function runAll() {
   padding-bottom: 8px;
   border-bottom: 1px solid #eee;
 }
-.tr-detail-name.pass { color: #16a34a; }
-.tr-detail-name.fail { color: #dc2626; }
+.tr-detail-name.pass {
+  color: #16a34a;
+}
+.tr-detail-name.fail {
+  color: #dc2626;
+}
 
 .tr-error {
   background: #fff0f0;
@@ -489,9 +550,20 @@ async function runAll() {
   border-radius: 6px;
 }
 
-.tr-detail-empty { color: #ccc; font-size: 12px; margin-top: 20px; text-align: center; }
+.tr-detail-empty {
+  color: #ccc;
+  font-size: 12px;
+  margin-top: 20px;
+  text-align: center;
+}
 
-.tr-canvas-label { font-size: 11px; font-weight: 600; color: #aaa; letter-spacing: .05em; text-transform: uppercase; }
+.tr-canvas-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #aaa;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
 
 .tr-canvas-host {
   flex: 1;

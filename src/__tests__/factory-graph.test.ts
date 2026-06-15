@@ -1,11 +1,11 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { beforeEach, describe, expect, it } from 'vitest'
 import { Graph } from '@antv/x6'
 import { NodeFactory } from '../core/node/NodeFactory'
 import { EdgeFactory } from '../core/edge/EdgeFactory'
 import { GraphManager } from '../core/graph/GraphManager'
 import { GraphEventBus } from '../core/event/GraphEventBus'
 import { registerAllShapes } from '../shapes/register'
-import { NodeRegistry, EdgeRegistry } from '../core'
+import { EdgeRegistry, NodeRegistry } from '../core'
 
 function makeContainer(): HTMLDivElement {
   const div = document.createElement('div')
@@ -15,7 +15,7 @@ function makeContainer(): HTMLDivElement {
   return div
 }
 
-describe('NodeFactory', () => {
+describe('nodeFactory', () => {
   let graph: Graph
   let container: HTMLDivElement
 
@@ -139,7 +139,7 @@ describe('NodeFactory', () => {
   })
 })
 
-describe('EdgeFactory', () => {
+describe('edgeFactory', () => {
   let graph: Graph
   let container: HTMLDivElement
 
@@ -194,7 +194,7 @@ describe('EdgeFactory', () => {
   })
 })
 
-describe('GraphManager', () => {
+describe('graphManager', () => {
   let graph: Graph
   let eventBus: GraphEventBus
   let manager: GraphManager
@@ -263,7 +263,8 @@ describe('GraphManager', () => {
   it('should add and remove a node', () => {
     manager.loadData({
       canvas: { backgroundColor: '#fff', grid: { size: 10, visible: true, type: 'dot' } },
-      nodes: [], edges: [],
+      nodes: [],
+      edges: [],
     })
     manager.addNode({ id: 'n1', shape: 'basic-rect', position: { x: 0, y: 0 }, size: { width: 80, height: 40 } })
     expect(graph.getNodes()).toHaveLength(1)

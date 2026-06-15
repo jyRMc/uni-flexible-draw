@@ -1,5 +1,5 @@
-﻿import { PRIMARY_COLOR } from '../theme'
 import type { Node } from '@antv/x6'
+import { PRIMARY_COLOR } from '../theme'
 
 /**
  * 圆柱体 — 真实 3D 圆柱外观
@@ -18,13 +18,13 @@ export const basicCylinder: Node.Config = {
   width: 100,
   height: 70,
   markup: [
-    { tagName: 'rect',    selector: 'body'      },
-    { tagName: 'ellipse', selector: 'bottomCap' },  // 1st: full bottom ellipse
-    { tagName: 'rect',    selector: 'bodyFill'  },  // 2nd: covers upper half of bottomCap
-    { tagName: 'line',    selector: 'leftLine'  },  // 3rd: left wall
-    { tagName: 'line',    selector: 'rightLine' },  // 4th: right wall
-    { tagName: 'ellipse', selector: 'topCap'    },  // 5th: top ellipse on top of all
-    { tagName: 'text',    selector: 'label'     },
+    { tagName: 'rect', selector: 'body' },
+    { tagName: 'ellipse', selector: 'bottomCap' }, // 1st: full bottom ellipse
+    { tagName: 'rect', selector: 'bodyFill' }, // 2nd: covers upper half of bottomCap
+    { tagName: 'line', selector: 'leftLine' }, // 3rd: left wall
+    { tagName: 'line', selector: 'rightLine' }, // 4th: right wall
+    { tagName: 'ellipse', selector: 'topCap' }, // 5th: top ellipse on top of all
+    { tagName: 'text', selector: 'label' },
   ],
   attrs: {
     body: {
@@ -88,16 +88,16 @@ export const basicCylinder: Node.Config = {
   },
   ports: {
     groups: {
-      top:    { position: 'top',    attrs: { circle: { r: 4, magnet: true, stroke: PRIMARY_COLOR, fill: '#fff' } } },
+      top: { position: 'top', attrs: { circle: { r: 4, magnet: true, stroke: PRIMARY_COLOR, fill: '#fff' } } },
       bottom: { position: 'bottom', attrs: { circle: { r: 4, magnet: true, stroke: PRIMARY_COLOR, fill: '#fff' } } },
-      left:   { position: 'left',   attrs: { circle: { r: 4, magnet: true, stroke: PRIMARY_COLOR, fill: '#fff' } } },
-      right:  { position: 'right',  attrs: { circle: { r: 4, magnet: true, stroke: PRIMARY_COLOR, fill: '#fff' } } },
+      left: { position: 'left', attrs: { circle: { r: 4, magnet: true, stroke: PRIMARY_COLOR, fill: '#fff' } } },
+      right: { position: 'right', attrs: { circle: { r: 4, magnet: true, stroke: PRIMARY_COLOR, fill: '#fff' } } },
     },
     items: [
-      { id: 'top',    group: 'top'    },
+      { id: 'top', group: 'top' },
       { id: 'bottom', group: 'bottom' },
-      { id: 'left',   group: 'left'   },
-      { id: 'right',  group: 'right'  },
+      { id: 'left', group: 'left' },
+      { id: 'right', group: 'right' },
     ],
   },
 }

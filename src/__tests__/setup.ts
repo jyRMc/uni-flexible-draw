@@ -24,7 +24,12 @@ if (!globalThis.SVGPathElement) {
 
 // jsdom 缺少 SVGMatrix 支持，X6 2.x 会调用 createSVGMatrix
 const mockMatrix = {
-  a: 1, b: 0, c: 0, d: 1, e: 0, f: 0,
+  a: 1,
+  b: 0,
+  c: 0,
+  d: 1,
+  e: 0,
+  f: 0,
   multiply() { return this },
   inverse() { return this },
   translate() { return this },
@@ -86,9 +91,9 @@ document.createElementNS = (ns: string | null, qualifiedName: string) => {
 HTMLCanvasElement.prototype.getContext = vi.fn(() => ({
   fillRect: vi.fn(),
   clearRect: vi.fn(),
-  getImageData: vi.fn(() => ({ data: new Array(4) })),
+  getImageData: vi.fn(() => ({ data: Array.from({ length: 4 }) })),
   putImageData: vi.fn(),
-  createImageData: vi.fn(() => ({ data: new Array(4) })),
+  createImageData: vi.fn(() => ({ data: Array.from({ length: 4 }) })),
   setTransform: vi.fn(),
   drawImage: vi.fn(),
   save: vi.fn(),

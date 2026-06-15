@@ -25,24 +25,27 @@ export class ShortcutManager {
   }
 
   private dispatch(action: ShortcutAction): void {
-    this.actions.get(action)?.();
+    this.actions.get(action)?.()
   }
 
   /** 当前活动元素是否为文本输入区域（此时不拦截键盘事件） */
   private isEditingText(): boolean {
     const el = document.activeElement as HTMLElement | null
-    if (!el) return false
+    if (!el)
+      return false
     const tag = el.tagName
     return tag === 'INPUT' || tag === 'TEXTAREA' || el.isContentEditable
   }
 
   bind(): void {
-    if (this.bound) return
+    if (this.bound)
+      return
     this.bound = true
 
     this.keydownHandler = (e: KeyboardEvent) => {
       // 正在输入文字时，所有快捷键均不拦截
-      if (this.isEditingText()) return
+      if (this.isEditingText())
+        return
 
       const ctrlOrCmd = e.ctrlKey || e.metaKey
       const shift = e.shiftKey
@@ -174,7 +177,8 @@ export class ShortcutManager {
           ? this.graph.getSelectedCells()
           : []
         ).filter((c: any) => c.isNode?.())
-        if (nodes.length === 0) return
+        if (nodes.length === 0)
+          return
         e.preventDefault()
         const step = shift ? 10 : 1
         const dx = key === 'arrowleft' ? -step : key === 'arrowright' ? step : 0
@@ -183,7 +187,6 @@ export class ShortcutManager {
           const { x, y } = n.getPosition()
           n.setPosition(x + dx, y + dy)
         })
-        return
       }
     }
 
@@ -191,7 +194,8 @@ export class ShortcutManager {
   }
 
   unbind(): void {
-    if (!this.bound) return
+    if (!this.bound)
+      return
     this.bound = false
 
     if (this.keydownHandler) {

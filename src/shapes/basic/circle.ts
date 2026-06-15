@@ -1,5 +1,5 @@
-﻿import { PRIMARY_COLOR } from '../theme'
 import type { Node } from '@antv/x6'
+import { PRIMARY_COLOR } from '../theme'
 
 export const basicCircle: Node.Config = {
   inherit: 'ellipse',

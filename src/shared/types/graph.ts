@@ -28,7 +28,7 @@ export interface CanvasConfig {
   /** 初始缩放 */
   zoom?: number
   /** 初始偏移 */
-  offset?: { x: number; y: number }
+  offset?: { x: number, y: number }
 }
 
 export interface GraphMeta {
