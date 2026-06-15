@@ -12,10 +12,9 @@ import type { AssetItem, EdgeData, GraphData, MaterialItem, NodeData, TemplateIt
 import zhCN from './locale/zh-CN'
 import type { UniDrawLocale } from './locale'
 import { PRIMARY_COLOR } from './shared/constants/theme'
-import { getEdgeLineConfig, getEdgeLineType, getEdgeLineTypeOptions, getEdgeLineVertices } from './shared'
-import { shortId } from './shared/utils/id'
-import { NodeFactory } from './core/node/NodeFactory'
+import { getConnectorConfig, getConnectorOptions, getEdgeLabelPosition, getMarkerOptions, getRouterConfig, getRouterOptions, getStrokeDasharray, getStrokeStyleOptions, inferConnectorName, inferEdgeLabelPosition, inferMarkerName, inferRouterName, inferStrokeStyleName } from './shared'
 import { type NativeColorPickerInstance, createNativeColorPicker } from './components/ColorPicker/native'
+import { icons } from './assets/icons'
 
 // ─── Public types ──────────────────────────────────────────────────────────
 
@@ -67,24 +66,20 @@ export interface UniDrawOptions {
   uploadApi?: (file: File) => string | Promise<string>
 }
 
-// ─── Tiny SVG icon helper ──────────────────────────────────────────────────
-
-function svg(path: string, size = 16): string {
-  return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${path}</svg>`
-}
+// ─── SVG icon references ──────────────────────────────────────────────────
 
 const ICONS = {
-  undo: svg('<path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/>'),
-  redo: svg('<path d="M21 7v6h-6"/><path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3l3 2.7"/>'),
-  zoomIn: svg('<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/>'),
-  zoomOut: svg('<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="8" y1="11" x2="14" y2="11"/>'),
-  zoomFit: svg('<path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>'),
-  panelLeftClose: svg('<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/><path d="m16 9-3 3 3 3"/>'),
-  panelLeftOpen: svg('<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/><path d="m14 9 3 3-3 3"/>'),
-  trash: svg('<polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>'),
-  download: svg('<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>'),
-  json: svg('<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>'),
-  close: svg('<path d="M18 6 6 18"/><path d="m6 6 12 12"/>', 14),
+  undo: icons['toolbar/undo'],
+  redo: icons['toolbar/redo'],
+  zoomIn: icons['toolbar/zoom-in'],
+  zoomOut: icons['toolbar/zoom-out'],
+  zoomFit: icons['toolbar/zoom-fit'],
+  panelLeftClose: icons['toolbar/panel-left-close'],
+  panelLeftOpen: icons['toolbar/panel-left-open'],
+  trash: icons['toolbar/trash'],
+  download: icons['toolbar/download'],
+  json: icons['toolbar/json'],
+  close: icons['toolbar/close'],
 }
 
 // ─── DOM helpers ────────────────────────────────────────────────────────────
@@ -95,10 +90,12 @@ function el<K extends keyof HTMLElementTagNameMap>(
   html = '',
 ): HTMLElementTagNameMap[K] {
   const e = document.createElement(tag)
-  if (cls)
+  if (cls) {
     e.className = cls
-  if (html)
+  }
+  if (html) {
     e.innerHTML = html
+  }
   return e
 }
 
@@ -130,112 +127,75 @@ function materialPreviewSvg(shape: string): string {
     return { fill: '#eef1f8', stroke: '#5b6b88' }
   })()
 
-  const ba = `fill="${palette.fill}" stroke="${palette.stroke}" stroke-width="1.8"`
-  const ln = `fill="none" stroke="${palette.stroke}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"`
-  const wrap = (viewBox: string, body: string) => `<svg class="ud-shape-preview-svg" viewBox="${viewBox}" xmlns="http://www.w3.org/2000/svg">${body}</svg>`
-
-  switch (shape) {
-    case 'basic-rect':
-    case 'flowchart-process':
-    case 'uml-class':
-    case 'er-entity':
-      return wrap('0 0 44 32', `<rect x="4" y="5" width="36" height="22" ${ba}/>`)
-    case 'basic-rounded-rect':
-    case 'state-simple':
-      return wrap('0 0 44 32', `<rect x="4" y="5" width="36" height="22" rx="7" ${ba}/>`)
-    case 'basic-circle':
-    case 'flowchart-connector':
-    case 'dfd-process':
-      return wrap('0 0 32 32', `<circle cx="16" cy="16" r="11" ${ba}/>`)
-    case 'basic-diamond':
-    case 'flowchart-decision':
-    case 'er-relationship':
-    case 'state-choice':
-      return wrap('0 0 36 32', `<polygon points="18,3 33,16 18,29 3,16" ${ba}/>`)
-    case 'basic-triangle':
-    case 'flowchart-merge':
-      return wrap('0 0 36 32', `<polygon points="18,4 32,28 4,28" ${ba}/>`)
-    case 'basic-parallelogram':
-    case 'flowchart-input-output':
-      return wrap('0 0 44 32', `<polygon points="10,26 40,26 34,6 4,6" ${ba}/>`)
-    case 'basic-trapezoid':
-      return wrap('0 0 44 32', `<polygon points="6,26 38,26 32,6 12,6" ${ba}/>`)
-    case 'basic-hexagon':
-      return wrap('0 0 40 32', `<polygon points="20,3 33,10 33,22 20,29 7,22 7,10" ${ba}/>`)
-    case 'basic-pentagon':
-      return wrap('0 0 36 32', `<polygon points="18,3 31,12 26,28 10,28 5,12" ${ba}/>`)
-    case 'basic-octagon':
-      return wrap('0 0 36 36', `<polygon points="11,3 25,3 33,11 33,25 25,33 11,33 3,25 3,11" ${ba}/>`)
-    case 'basic-star':
-      return wrap('0 0 36 36', `<polygon points="18,3 21.6,13 33,13 23.5,19.8 27,31 18,24.2 9,31 12.5,19.8 3,13 14.4,13" ${ba}/>`)
-    case 'basic-cross':
-      return wrap('0 0 36 36', `<polygon points="12,3 24,3 24,12 33,12 33,24 24,24 24,33 12,33 12,24 3,24 3,12 12,12" ${ba}/>`)
-    case 'basic-cylinder':
-    case 'flowchart-database':
-      return wrap('0 0 36 36', `<rect x="6" y="10" width="24" height="16" fill="${palette.fill}" stroke="none"/><ellipse cx="18" cy="10" rx="12" ry="4" ${ba}/><ellipse cx="18" cy="26" rx="12" ry="4" fill="${palette.fill}" stroke="${palette.stroke}" stroke-width="1.8"/><line x1="6" y1="10" x2="6" y2="26" ${ln}/><line x1="30" y1="10" x2="30" y2="26" ${ln}/>`)
-    case 'basic-cloud':
-      return wrap('0 0 44 32', `<path d="M10,27 Q5,27 5,21 Q5,16 11,15 Q11,8 18,8 Q22,8 24,12 Q27,8 32,8 Q39,8 39,15 Q43,16 43,21 Q43,27 36,27 Z" ${ba}/>`)
-    case 'basic-document':
-    case 'flowchart-document':
-    case 'uml-note':
-      return wrap('0 0 34 36', `<path d="M4,4 L22,4 L30,12 L30,32 L4,32 Z" ${ba}/><polyline points="22,4 22,12 30,12" ${ln}/>`)
-    case 'basic-table':
-      return wrap('0 0 40 32', `<rect x="4" y="4" width="32" height="24" ${ba}/><line x1="14.7" y1="4" x2="14.7" y2="28" ${ln}/><line x1="25.3" y1="4" x2="25.3" y2="28" ${ln}/><line x1="4" y1="12" x2="36" y2="12" ${ln}/><line x1="4" y1="20" x2="36" y2="20" ${ln}/>`)
-    case 'basic-text':
-      return wrap('0 0 44 32', `<line x1="6" y1="10" x2="38" y2="10" ${ln}/><line x1="6" y1="17" x2="30" y2="17" ${ln}/><line x1="6" y1="24" x2="24" y2="24" ${ln}/>`)
-    case 'basic-image':
-      return wrap('0 0 38 32', `<rect x="3" y="4" width="32" height="24" rx="3" ${ba}/><circle cx="12" cy="12" r="3" fill="${palette.stroke}" opacity="0.45"/><polyline points="5,24 14,16 20,21 27,13 33,22" ${ln}/>`)
-    case 'edge-line':
-      return wrap('0 0 44 16', `<line x1="4" y1="8" x2="40" y2="8" ${ln}/>`)
-    case 'edge-sketch':
-      return wrap('0 0 44 16', `<path d="M4,8 C6.5,4.9 9.5,10.6 13,7.5 C17,4.1 21,11 25,7.3 C29,4.3 33,9.8 36.5,6.9 C38.2,5.5 39.2,8.8 40,8" ${ln}/>`)
-    case 'edge-dashed':
-      return wrap('0 0 44 16', `<line x1="4" y1="8" x2="40" y2="8" ${ln} stroke-dasharray="5 3"/>`)
-    case 'edge-arrow':
-      return wrap('0 0 44 16', `<line x1="4" y1="8" x2="31" y2="8" ${ln}/><polygon points="31,4 40,8 31,12" fill="${palette.stroke}"/>`)
-    case 'edge-double-arrow':
-      return wrap('0 0 44 16', `<line x1="12" y1="8" x2="32" y2="8" ${ln}/><polygon points="12,4 4,8 12,12" fill="${palette.stroke}"/><polygon points="32,4 40,8 32,12" fill="${palette.stroke}"/>`)
-    case 'edge-curve':
-      return wrap('0 0 44 22', `<path d="M4,7 C11,7 11,17 22,17 C33,17 33,7 40,7" ${ln}/>`)
-    case 'edge-orthogonal':
-      return wrap('0 0 44 28', `<path d="M4,22 L18,22 Q21,22 21,19 L21,9 Q21,6 24,6 L40,6" ${ln}/>`)
-    case 'uml-actor':
-    case 'sequence-actor':
-      return wrap('0 0 24 36', `<circle cx="12" cy="7" r="5" ${ba}/><line x1="12" y1="12" x2="12" y2="24" ${ln}/><line x1="4" y1="17" x2="20" y2="17" ${ln}/><line x1="12" y1="24" x2="4" y2="32" ${ln}/><line x1="12" y1="24" x2="20" y2="32" ${ln}/>`)
-    case 'uml-use-case':
-    case 'er-attribute':
-      return wrap('0 0 44 28', `<ellipse cx="22" cy="14" rx="18" ry="10" ${ba}/>`)
-    case 'uml-package':
-      return wrap('0 0 44 36', `<rect x="3" y="10" width="38" height="22" ${ba}/><rect x="3" y="5" width="14" height="8" ${ba}/>`)
-    case 'er-weak-entity':
-    case 'dfd-external-entity':
-      return wrap('0 0 44 32', `<rect x="4" y="5" width="36" height="22" ${ba}/><rect x="8" y="9" width="28" height="14" fill="none" stroke="${palette.stroke}" stroke-width="1.2"/>`)
-    case 'er-key-attribute':
-      return wrap('0 0 44 28', `<ellipse cx="22" cy="14" rx="18" ry="10" ${ba}/><line x1="9" y1="21" x2="35" y2="21" ${ln}/>`)
-    case 'er-multivalued':
-      return wrap('0 0 44 28', `<ellipse cx="22" cy="14" rx="18" ry="10" ${ba}/><ellipse cx="22" cy="14" rx="14" ry="7" fill="none" stroke="${palette.stroke}" stroke-width="1.2"/>`)
-    case 'state-initial':
-      return wrap('0 0 28 28', `<circle cx="14" cy="14" r="10" fill="${palette.stroke}"/>`)
-    case 'state-final':
-      return wrap('0 0 28 28', `<circle cx="14" cy="14" r="10" fill="none" stroke="${palette.stroke}" stroke-width="2"/><circle cx="14" cy="14" r="6" fill="${palette.stroke}"/>`)
-    case 'state-fork':
-    case 'state-join':
-      return wrap('0 0 12 32', `<rect x="2" y="3" width="8" height="26" rx="1" fill="${palette.stroke}"/>`)
-    case 'dfd-data-store':
-      return wrap('0 0 44 28', `<line x1="4" y1="6" x2="40" y2="6" ${ln}/><line x1="4" y1="22" x2="40" y2="22" ${ln}/>`)
-    case 'swimlane-horizontal':
-      return wrap('0 0 44 30', `<rect x="3" y="3" width="38" height="24" ${ba}/><line x1="3" y1="11" x2="41" y2="11" ${ln}/><line x1="3" y1="19" x2="41" y2="19" ${ln}/>`)
-    case 'swimlane-vertical':
-      return wrap('0 0 44 30', `<rect x="3" y="3" width="38" height="24" ${ba}/><line x1="16" y1="3" x2="16" y2="27" ${ln}/><line x1="28" y1="3" x2="28" y2="27" ${ln}/>`)
-    case 'swimlane-pool':
-      return wrap('0 0 44 30', `<rect x="3" y="3" width="38" height="24" ${ba}/><line x1="3" y1="11" x2="41" y2="11" ${ln}/>`)
-    case 'sequence-lifeline':
-      return wrap('0 0 44 30', `<rect x="12" y="4" width="20" height="8" ${ba}/><line x1="22" y1="12" x2="22" y2="28" ${ln} stroke-dasharray="4 2"/>`)
-    case 'sequence-activation':
-      return wrap('0 0 24 32', `<rect x="10" y="4" width="4" height="24" fill="${palette.stroke}" rx="1"/>`)
-    default:
-      return wrap('0 0 44 32', `<rect x="4" y="5" width="36" height="22" rx="5" ${ba}/>`)
+  const SHAPE_MAP: Record<string, string> = {
+    'basic-rect': 'rect',
+    'basic-rounded-rect': 'rounded-rect',
+    'basic-circle': 'circle',
+    'basic-diamond': 'diamond',
+    'basic-triangle': 'triangle',
+    'basic-parallelogram': 'parallelogram',
+    'basic-trapezoid': 'trapezoid',
+    'basic-hexagon': 'hexagon',
+    'basic-pentagon': 'pentagon',
+    'basic-octagon': 'octagon',
+    'basic-star': 'star',
+    'basic-cross': 'cross',
+    'basic-cylinder': 'cylinder',
+    'basic-cloud': 'cloud',
+    'basic-document': 'document',
+    'basic-table': 'table',
+    'basic-text': 'text-lines',
+    'basic-image': 'image',
+    'flowchart-process': 'rect',
+    'flowchart-connector': 'circle',
+    'flowchart-decision': 'diamond',
+    'flowchart-merge': 'triangle',
+    'flowchart-input-output': 'parallelogram',
+    'flowchart-database': 'cylinder',
+    'flowchart-document': 'document',
+    'uml-class': 'rect',
+    'uml-actor': 'actor',
+    'uml-use-case': 'ellipse',
+    'uml-package': 'package',
+    'uml-note': 'document',
+    'er-entity': 'rect',
+    'er-relationship': 'diamond',
+    'er-attribute': 'ellipse',
+    'er-weak-entity': 'double-rect',
+    'er-key-attribute': 'underline-ellipse',
+    'er-multivalued': 'double-ellipse',
+    'state-simple': 'rounded-rect',
+    'state-choice': 'diamond',
+    'state-initial': 'filled-circle',
+    'state-final': 'bullseye',
+    'state-fork': 'bar',
+    'state-join': 'bar',
+    'dfd-process': 'circle',
+    'dfd-external-entity': 'double-rect',
+    'dfd-data-store': 'parallel-lines-h',
+    'swimlane-horizontal': 'swimlane-h',
+    'swimlane-vertical': 'swimlane-v',
+    'swimlane-pool': 'swimlane-pool',
+    'sequence-actor': 'actor',
+    'sequence-lifeline': 'sequence-lifeline',
+    'sequence-activation': 'sequence-activation',
+    'edge-line': 'edge-line',
+    'edge-sketch': 'edge-sketch',
+    'edge-dashed': 'edge-dashed',
+    'edge-arrow': 'edge-arrow',
+    'edge-double-arrow': 'edge-double-arrow',
+    'edge-curve': 'edge-curve',
+    'edge-orthogonal': 'edge-orthogonal',
   }
+
+  const templateName = SHAPE_MAP[shape] ?? 'default'
+  const template = icons[`shape-preview/${templateName}`]
+  if (!template) {
+    return ''
+  }
+  return template
+    .replace(/__FILL__/g, palette.fill)
+    .replace(/__STROKE__/g, palette.stroke)
 }
 
 // ─── Main class ─────────────────────────────────────────────────────────────
@@ -834,17 +794,29 @@ export class UniDraw {
     const center = position ?? this.getCanvasCenterPosition()
     const x = center.x - item.defaultSize.width / 2 + (position ? 0 : (Math.random() * 40 - 20))
     const y = center.y - item.defaultSize.height / 2 + (position ? 0 : (Math.random() * 40 - 20))
-    const nodeData: NodeData = {
-      id: shortId('node'),
+    const imageHref = typeof item.data?.imageHref === 'string' ? item.data.imageHref : ''
+    graph.addNode({
       shape: item.shape,
-      position: { x, y },
-      size: { width: item.defaultSize.width, height: item.defaultSize.height },
+      x,
+      y,
+      width: item.defaultSize.width,
+      height: item.defaultSize.height,
       label: item.defaultLabel ?? item.name,
-      style: item.defaultStyle,
-      data: item.data,
-    }
-    const node = NodeFactory.createNode(graph, nodeData)
-    graph.addNode(node)
+      attrs: {
+        ...(imageHref
+          ? { image: { 'xlink:href': imageHref, 'refWidth': '100%', 'refHeight': '100%', 'x': 0, 'y': 0 } }
+          : {
+              body: {
+                fill: item.defaultStyle?.fill ?? '#fff',
+                stroke: item.defaultStyle?.stroke ?? PRIMARY_COLOR,
+                strokeWidth: item.defaultStyle?.strokeWidth ?? 1.5,
+              },
+            }),
+        label: { fill: '#333', fontSize: 12 },
+      },
+      ports: item.defaultPorts,
+      ...(item.data ? { data: { ...item.data } } : {}),
+    })
     this.opts.onDataChange?.(this.getData())
   }
 
@@ -1110,18 +1082,70 @@ export class UniDraw {
       this.propertiesTitleEl.textContent = t.properties.edgeTitle
     const line = edge.getAttrs?.()?.line ?? {}
     const labels = edge.getLabels?.() ?? []
-    const label = labels[0]?.attrs?.label?.text ?? ''
+    const label = labels[0]?.attrs?.text?.text ?? ''
+    const labelPosition = labels[0]?.position
+      ? (typeof labels[0].position === 'number'
+          ? 'center'
+          : inferEdgeLabelPosition(labels[0].position as Record<string, any>))
+      : 'center'
     const router = edge.getRouter?.()
     const connector = edge.getConnector?.()
-    const lineType = getEdgeLineType(router, connector, edge.getData?.())
-    const sourceMarker = line.sourceMarker?.name ?? 'none'
-    const targetMarker = line.targetMarker?.name ?? 'none'
+    const routerName = inferRouterName(router)
+    const connectorName = inferConnectorName(connector)
+    const sourceMarker = inferMarkerName(line.sourceMarker)
+    const targetMarker = inferMarkerName(line.targetMarker)
+    const strokeStyle = inferStrokeStyleName(line.strokeDasharray as string | undefined)
 
     this.propertiesBody.appendChild(el('div', 'ud-properties-section-title', t.properties.edgeTitle))
+    // Router 路由
+    if (edge.shape !== 'edge-sketch') {
+      appendIconButtonGroup(t.properties.router ?? 'Router', routerName, getRouterOptions({
+        normal: t.properties.routerNormal ?? 'Default',
+        orth: t.properties.routerOrth ?? 'Orth',
+        manhattan: t.properties.routerManhattan ?? 'Manhattan',
+        er: t.properties.routerEr ?? 'ER',
+        metro: t.properties.routerMetro ?? 'Metro',
+        oneSide: t.properties.routerOneSide ?? 'One Side',
+      }), (next) => {
+        const nextRouter = getRouterConfig(next as any)
+        edge.setRouter?.(nextRouter)
+        edge.setData?.({ ...(edge.getData?.() ?? {}), routerName: next })
+        this.opts.onDataChange?.(this.getData())
+      })
+    }
+    // Connector 连接器
+    if (edge.shape !== 'edge-sketch') {
+      appendIconButtonGroup(t.properties.connector ?? 'Connector', connectorName, getConnectorOptions({
+        normal: t.properties.connectorNormal ?? 'Straight',
+        smooth: t.properties.connectorSmooth ?? 'Smooth',
+        rounded: t.properties.connectorRounded ?? 'Rounded',
+        quadratic: t.properties.connectorQuadratic ?? 'Quadratic',
+        jumpover: t.properties.connectorJumpover ?? 'Jumpover',
+        wobble: t.properties.connectorWobble ?? 'Wobble',
+      }), (next) => {
+        const nextConnector = getConnectorConfig(next as any)
+        edge.setConnector?.(nextConnector)
+        edge.setData?.({ ...(edge.getData?.() ?? {}), connectorName: next })
+        this.opts.onDataChange?.(this.getData())
+      })
+    }
     appendTextInput(t.properties.label, label, (next) => {
       if (next)
-        edge.setLabels?.([{ attrs: { label: { text: next } } }])
+        edge.setLabels?.([{ attrs: { text: { text: next } } }])
       else edge.setLabels?.([])
+      this.opts.onDataChange?.(this.getData())
+    })
+    appendSelectInput(t.quickAction.position, labelPosition, [
+      { label: t.quickAction.labelCenter, value: 'center' },
+      { label: t.quickAction.labelTop, value: 'top' },
+      { label: t.quickAction.labelBottom, value: 'bottom' },
+      { label: t.quickAction.labelNearSource, value: 'near-source' },
+      { label: t.quickAction.labelNearTarget, value: 'near-target' },
+    ], (next) => {
+      const pos = getEdgeLabelPosition(next)
+      const currentLabels = edge.getLabels?.() ?? []
+      const currentText = currentLabels[0]?.attrs?.text?.text ?? ''
+      edge.setLabels?.([{ attrs: { text: { text: currentText } }, position: pos }])
       this.opts.onDataChange?.(this.getData())
     })
     appendNumberInput(t.properties.strokeWidth, Number(line.strokeWidth) || 2, (next) => {
@@ -1132,52 +1156,42 @@ export class UniDraw {
       edge.setAttrs?.({ line: { stroke: next } })
       this.opts.onDataChange?.(this.getData())
     })
-    if (edge.shape !== 'edge-sketch') {
-      appendIconButtonGroup(t.properties.lineType, lineType, getEdgeLineTypeOptions({
-        straight: t.properties.straight,
-        curve: t.properties.curve,
-        rounded: t.properties.rounded,
-        orthogonal: t.properties.orthogonal,
-        manhattan: t.properties.manhattan,
-        jumpover: t.properties.jumpover,
-      }), (next) => {
-        const { router: nextRouter, connector: nextConnector } = getEdgeLineConfig(next)
-        const vertices = getEdgeLineVertices(next, edge.getSourcePoint?.(), edge.getTargetPoint?.())
-        edge.setData?.({ ...(edge.getData?.() ?? {}), lineType: next })
-        edge.setRouter?.(nextRouter)
-        edge.setConnector?.(nextConnector)
-        edge.setVertices?.(vertices)
-        this.opts.onDataChange?.(this.getData())
-      })
-    }
-    appendSelectInput(t.properties.lineStyle, line.strokeDasharray ?? '', [
-      { label: t.properties.solidLine, value: '' },
-      { label: t.properties.dashedLine, value: '5 5' },
-      { label: t.properties.dottedLine, value: '2 4' },
-    ], (next) => {
-      edge.setAttrs?.({ line: { strokeDasharray: next || null } })
+    // StrokeStyle 线样式
+    appendIconButtonGroup(t.properties.lineStyle, strokeStyle, getStrokeStyleOptions({
+      solid: t.properties.solidLine,
+      dashed: t.properties.dashedLine,
+      dotted: t.properties.dottedLine,
+      dashdot: t.properties.dashdotLine ?? 'DashDot',
+    }), (next) => {
+      const dasharray = getStrokeDasharray(next as any)
+      edge.setAttrs?.({ line: { strokeDasharray: dasharray || null } })
+      edge.setData?.({ ...(edge.getData?.() ?? {}), strokeStyle: next })
       this.opts.onDataChange?.(this.getData())
     })
-    appendSelectInput(t.properties.sourceMarker, sourceMarker, [
-      { label: t.properties.markerNone, value: 'none' },
-      { label: t.properties.markerClassic, value: 'classic' },
-      { label: t.properties.markerBlock, value: 'block' },
-      { label: t.properties.markerOpen, value: 'open' },
-      { label: t.properties.markerDiamond, value: 'diamond' },
-      { label: t.properties.markerCircle, value: 'circle' },
-    ], (next) => {
-      edge.attr?.('line/sourceMarker', next === 'none' ? null : { name: next })
+    // Source Marker 起点箭头
+    appendIconButtonGroup(t.properties.sourceMarker, sourceMarker, getMarkerOptions({
+      none: t.properties.markerNone,
+      classic: t.properties.markerClassic,
+      block: t.properties.markerBlock,
+      diamond: t.properties.markerDiamond,
+      circle: t.properties.markerCircle,
+      cross: t.properties.markerCross ?? 'Cross',
+      async: t.properties.markerAsync ?? 'Async',
+    }), (next) => {
+      edge.setAttrs?.({ line: { sourceMarker: next === 'none' ? null : { name: next } } })
       this.opts.onDataChange?.(this.getData())
     })
-    appendSelectInput(t.properties.targetMarker, targetMarker, [
-      { label: t.properties.markerNone, value: 'none' },
-      { label: t.properties.markerClassic, value: 'classic' },
-      { label: t.properties.markerBlock, value: 'block' },
-      { label: t.properties.markerOpen, value: 'open' },
-      { label: t.properties.markerDiamond, value: 'diamond' },
-      { label: t.properties.markerCircle, value: 'circle' },
-    ], (next) => {
-      edge.attr?.('line/targetMarker', next === 'none' ? null : { name: next })
+    // Target Marker 终点箭头
+    appendIconButtonGroup(t.properties.targetMarker, targetMarker, getMarkerOptions({
+      none: t.properties.markerNone,
+      classic: t.properties.markerClassic,
+      block: t.properties.markerBlock,
+      diamond: t.properties.markerDiamond,
+      circle: t.properties.markerCircle,
+      cross: t.properties.markerCross ?? 'Cross',
+      async: t.properties.markerAsync ?? 'Async',
+    }), (next) => {
+      edge.setAttrs?.({ line: { targetMarker: next === 'none' ? null : { name: next } } })
       this.opts.onDataChange?.(this.getData())
     })
   }

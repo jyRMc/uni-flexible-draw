@@ -1,7 +1,161 @@
+<template>
+  <div class="uni-draw" :style="cssVars">
+    <!-- ── Body ─────────────────────────────────────────────── -->
+    <div class="ud-body">
+
+      <!-- Left panel -->
+      <aside v-if="showShapePanel !== false && leftPanelVisible" class="ud-left-panel">
+        <div class="ud-panel-header">
+          <div class="ud-panel-tabs">
+            <button :class="['ud-tab', { active: leftTab === 'shapes' }]" @click="openLeftTab('shapes')">{{ t.panel.shapes }}</button>
+            <button
+              v-if="showAssetsPanel !== false"
+              :class="['ud-tab', { active: leftTab === 'assets' }]"
+              @click="openLeftTab('assets')"
+            >{{ t.panel.assets }}</button>
+          </div>
+          <button
+            class="ud-panel-close"
+            :title="t.panel.close"
+            :aria-label="t.panel.close"
+            @click="closeLeftPanel"
+          >
+            <XIcon :size="14" />
+          </button>
+        </div>
+
+        <div class="ud-panel-content">
+          <!-- Shapes -->
+          <ShapePanel
+            v-show="leftTab === 'shapes'"
+            :libraries="libraries"
+            @select="onShapeAdd"
+            @dragstart="onShapeDragStart"
+          />
+
+          <!-- External assets -->
+          <div v-if="leftTab === 'assets'" class="ud-assets-panel">
+            <div class="ud-assets-grid">
+              <div
+                v-for="asset in assets"
+                :key="asset.id"
+                class="ud-asset-cell"
+                draggable="true"
+                @click="onAssetAdd(asset)"
+                @dragstart="onAssetDragStart($event, asset)"
+              >
+                <!-- eslint-disable-next-line vue/no-v-html -->
+                <div v-if="asset.type === 'svg'" class="ud-asset-icon-wrap" v-html="asset.content" />
+                <img v-else class="ud-asset-icon-image" :src="asset.content" :alt="asset.name" />
+              </div>
+              <div v-if="!assets || assets.length === 0" class="ud-assets-empty">{{ t.panel.noAssets }}</div>
+            </div>
+            <div v-if="showAssetPagination" class="ud-assets-pagination">
+              <button class="ud-assets-page-btn" :disabled="!canGoPrevAssets || assetPageLoading" @click="emit('assets:prev-page')">{{ t.panel.previousPage }}</button>
+              <span class="ud-assets-page-indicator">{{ assetPage }} / {{ assetTotalPages }}</span>
+              <button class="ud-assets-page-btn" :disabled="!canGoNextAssets || assetPageLoading" @click="emit('assets:next-page')">{{ t.panel.nextPage }}</button>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Template modal -->
+      <TemplatePanel
+        :visible="templateOpen"
+        :templates="templates"
+        @apply="onTemplateApply"
+        @close="templateOpen = false"
+      />
+
+      <!-- Canvas area -->
+      <main class="ud-canvas-area">
+        <FlexibleDraw
+          ref="canvasRef"
+          v-model="graphData"
+          class="ud-canvas"
+          :grid="grid !== false"
+          :snapline="snapline !== false"
+          :readonly="readonly"
+          :minimap="showMinimap !== false"
+          @selection:change="onSelectionChange"
+          @add-to-materials="onAddToMaterials"
+        />
+
+        <!-- Quick action bar -->
+        <QuickActionBar
+          v-if="(selectedNode || selectedEdge) && !qabClosed"
+          :selected-node="selectedNode"
+          :selected-edge="selectedEdge"
+          :sketch-mode="sketchMode"
+          :element-sketch-ids="elementSketchIds"
+          :upload-api="uploadApi"
+          @update-style="onUpdateStyle"
+          @update-edge-style="onUpdateEdgeStyle"
+          @change-edge-type="onChangeEdgeType"
+          @change-edge-marker="onChangeEdgeMarker"
+          @change-edge-label-position="onChangeEdgeLabelPosition"
+          @resize="onResizeNode"
+          @add-row="onAddTableRow"
+          @add-column="onAddTableColumn"
+          @delete-row="onDeleteTableRow"
+          @delete-column="onDeleteTableColumn"
+          @update-cell="onUpdateTableCell"
+          @close="qabClosed = true"
+          @toggle-sketch="onToggleSketch"
+          @toggle-element-sketch="onToggleElementSketch"
+        />
+
+        <!-- Toolbar -->
+        <Toolbar
+          v-if="showToolbar !== false"
+          :zoom="canvasRef?.zoom ?? 1"
+          :can-undo="canvasRef?.canUndo ?? false"
+          :can-redo="canvasRef?.canRedo ?? false"
+          :left-panel-visible="leftPanelVisible"
+          :pan-mode="canvasRef?.panMode ?? false"
+          :sketch-mode="sketchMode"
+          :draw-mode="drawMode"
+          :selection-count="canvasRef?.selectionCount ?? 0"
+          :can-group="canvasRef?.canGroup ?? false"
+          :can-ungroup="canvasRef?.canUngroup ?? false"
+          @action="onToolbarAction"
+        />
+      </main>
+    </div>
+
+    <!-- JSON preview modal -->
+    <Teleport to="body">
+      <div v-if="jsonModalOpen" class="ud-modal-backdrop" @click.self="jsonModalOpen = false">
+        <div class="ud-modal">
+          <div class="ud-modal-header">
+            <span>{{ t.jsonPreview.title }}</span>
+            <div class="ud-modal-actions">
+              <button class="ud-icon-btn" :title="copyDone ? t.jsonPreview.copied : t.jsonPreview.copy" @click="copyJson">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="9" y="9" width="13" height="13" rx="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                </svg>
+              </button>
+              <button class="ud-icon-btn" :title="t.jsonPreview.download" @click="downloadJson">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" />
+                </svg>
+              </button>
+              <button class="ud-icon-btn" @click="jsonModalOpen = false">✕</button>
+            </div>
+          </div>
+          <div class="ud-modal-body">
+            <pre class="ud-json-pre">{{ jsonPreviewText }}</pre>
+          </div>
+        </div>
+      </div>
+    </Teleport>
+  </div>
+</template>
+
 <script setup lang="ts">
-import { computed, onMounted, provide, reactive, ref, watch } from 'vue'
+import { ref, computed, watch, provide, onMounted, reactive } from 'vue'
 import { XIcon } from 'lucide-vue-next'
-import type { AssetItem, GraphData, MaterialItem, NodeData, TemplateItem, UniDrawTheme } from '../../shared'
+import type { GraphData, NodeData, AssetItem, TemplateItem, UniDrawTheme } from '../../shared'
 import { LOCALE_KEY } from '../../locale'
 import zhCN from '../../locale/zh-CN'
 import type { UniDrawLocale } from '../../locale'
@@ -12,6 +166,7 @@ import ShapePanel from '../ShapePanel/ShapePanel.vue'
 import Toolbar from '../Toolbar/Toolbar.vue'
 import QuickActionBar from '../QuickActionBar/QuickActionBar.vue'
 import TemplatePanel from '../../views/TemplatePanel.vue'
+import type { MaterialItem } from '../../shared'
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Props
@@ -91,26 +246,25 @@ const t = providedLocale
 
 const cssVars = computed(() => {
   const t = props.theme
-  if (!t)
-    return {}
+  if (!t) return {}
   const map: Record<string, string> = {
-    '--uni-draw-primary': t.primaryColor ?? '',
-    '--uni-draw-primary-bg': t.primaryBg ?? '',
+    '--uni-draw-primary':          t.primaryColor ?? '',
+    '--uni-draw-primary-bg':       t.primaryBg ?? '',
     '--uni-draw-primary-bg-light': t.primaryBgLight ?? '',
-    '--uni-draw-canvas-bg': t.canvasBg ?? '',
-    '--uni-draw-panel-bg': t.panelBg ?? '',
-    '--uni-draw-panel-bg-alt': t.panelBgAlt ?? '',
-    '--uni-draw-panel-border': t.borderColor ?? '',
-    '--uni-draw-text': t.textColor ?? '',
-    '--uni-draw-text-secondary': t.textSecondary ?? '',
-    '--uni-draw-text-muted': t.textMuted ?? '',
-    '--uni-draw-hover-bg': t.hoverBg ?? '',
-    '--uni-draw-shadow-sm': t.shadowSm ?? '',
-    '--uni-draw-shadow-md': t.shadowMd ?? '',
-    '--uni-draw-radius-sm': t.radiusSm ?? '',
-    '--uni-draw-radius-md': t.radiusMd ?? '',
-    '--uni-draw-radius-lg': t.radiusLg ?? '',
-    '--uni-draw-panel-width': t.panelWidth ?? '',
+    '--uni-draw-canvas-bg':        t.canvasBg ?? '',
+    '--uni-draw-panel-bg':         t.panelBg ?? '',
+    '--uni-draw-panel-bg-alt':     t.panelBgAlt ?? '',
+    '--uni-draw-panel-border':     t.borderColor ?? '',
+    '--uni-draw-text':             t.textColor ?? '',
+    '--uni-draw-text-secondary':   t.textSecondary ?? '',
+    '--uni-draw-text-muted':       t.textMuted ?? '',
+    '--uni-draw-hover-bg':         t.hoverBg ?? '',
+    '--uni-draw-shadow-sm':        t.shadowSm ?? '',
+    '--uni-draw-shadow-md':        t.shadowMd ?? '',
+    '--uni-draw-radius-sm':        t.radiusSm ?? '',
+    '--uni-draw-radius-md':        t.radiusMd ?? '',
+    '--uni-draw-radius-lg':        t.radiusLg ?? '',
+    '--uni-draw-panel-width':      t.panelWidth ?? '',
   }
   return Object.fromEntries(Object.entries(map).filter(([, v]) => v !== ''))
 })
@@ -132,8 +286,7 @@ const graphData = ref<GraphData>(
 )
 
 watch(() => props.modelValue, (val) => {
-  if (val)
-    graphData.value = val
+  if (val) graphData.value = val
 })
 
 watch(graphData, (val) => {
@@ -153,7 +306,7 @@ const sketchMode = ref(false)
 const drawMode = ref(false)
 const elementSketchIds = ref(new Set<string>())
 const selectedNode = ref<NodeData | null>(null)
-const selectedEdge = ref<{ id: string, shape: string, stroke: string, strokeWidth: number, strokeDasharray: string, lineType: string, label?: string, sourceMarker?: string, targetMarker?: string } | null>(null)
+const selectedEdge = ref<{ id: string; shape: string; stroke: string; strokeWidth: number; strokeDasharray: string; routerName: string; connectorName: string; labelPosition: string; sourceMarker?: string; targetMarker?: string; strokeStyle?: string; label?: string; lineType?: string } | null>(null)
 const qabClosed = ref(false)
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -254,8 +407,7 @@ function toggleLeftPanel() {
 function onSelectionChange(nodes: NodeData[], edges: any[] = []) {
   selectedNode.value = nodes.length > 0 ? nodes[0] : null
   selectedEdge.value = edges.length > 0 ? edges[0] : null
-  if (nodes.length > 0 || edges.length > 0)
-    qabClosed.value = false
+  if (nodes.length > 0 || edges.length > 0) qabClosed.value = false
   emit('selection:change', nodes, edges)
 }
 
@@ -264,24 +416,20 @@ function onAddToMaterials(node: NodeData) {
 }
 
 watch(() => canvasRef.value?.selectedNodeData, (data) => {
-  if (data)
-    selectedNode.value = { ...data }
+  if (data) selectedNode.value = { ...data }
 }, { deep: true })
 
 watch(() => canvasRef.value?.selectedEdgeData, (data) => {
   selectedEdge.value = data ? { ...data } : null
-  if (data)
-    qabClosed.value = false
+  if (data) qabClosed.value = false
 }, { deep: true })
 
 watch(() => canvasRef.value?.sketchMode, (val) => {
-  if (val !== undefined)
-    sketchMode.value = val
+  if (val !== undefined) sketchMode.value = val
 })
 
 watch(() => canvasRef.value?.sketchElementIds, (ids) => {
-  if (ids)
-    elementSketchIds.value = ids
+  if (ids) elementSketchIds.value = ids
 }, { deep: true })
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -296,6 +444,12 @@ function onUpdateEdgeStyle(id: string, style: Record<string, unknown>) {
 }
 function onChangeEdgeType(id: string, lineType: string) {
   canvasRef.value?.changeEdgeType(id, lineType)
+}
+function onChangeEdgeMarker(id: string, side: 'source' | 'target', markerName: string) {
+  canvasRef.value?.changeEdgeMarker(id, side, markerName)
+}
+function onChangeEdgeLabelPosition(id: string, position: string) {
+  canvasRef.value?.changeEdgeLabelPosition(id, position)
 }
 function onResizeNode(id: string, w: number, h: number) {
   canvasRef.value?.resizeNode(id, w, h)
@@ -332,8 +486,7 @@ function onToolbarAction(action: string) {
     return
   }
   const c = canvasRef.value
-  if (!c)
-    return
+  if (!c) return
   switch (action) {
     case 'undo': c.undo(); break
     case 'redo': c.redo(); break
@@ -350,8 +503,7 @@ function onToolbarAction(action: string) {
     case 'group': c.groupNodes(); break
     case 'ungroup': c.ungroupNodes(); break
     default:
-      if (action.startsWith('align:'))
-        c.alignNodes(action.slice(6))
+      if (action.startsWith('align:')) c.alignNodes(action.slice(6))
   }
 }
 
@@ -361,8 +513,7 @@ function onToolbarAction(action: string) {
 
 async function onExportPNG() {
   const url = await canvasRef.value?.toPNG()
-  if (!url)
-    return
+  if (!url) return
   const a = document.createElement('a')
   a.href = url
   a.download = `${graphData.value.meta?.title ?? 'diagram'}.png`
@@ -425,169 +576,6 @@ defineExpose({
 })
 </script>
 
-<template>
-  <div class="uni-draw" :style="cssVars">
-    <!-- ── Body ─────────────────────────────────────────────── -->
-    <div class="ud-body">
-      <!-- Left panel -->
-      <aside v-if="showShapePanel !== false && leftPanelVisible" class="ud-left-panel">
-        <div class="ud-panel-header">
-          <div class="ud-panel-tabs">
-            <button class="ud-tab" :class="[{ active: leftTab === 'shapes' }]" @click="openLeftTab('shapes')">
-              {{ t.panel.shapes }}
-            </button>
-            <button
-              v-if="showAssetsPanel !== false"
-              class="ud-tab" :class="[{ active: leftTab === 'assets' }]"
-              @click="openLeftTab('assets')"
-            >
-              {{ t.panel.assets }}
-            </button>
-          </div>
-          <button
-            class="ud-panel-close"
-            :title="t.panel.close"
-            :aria-label="t.panel.close"
-            @click="closeLeftPanel"
-          >
-            <XIcon :size="14" />
-          </button>
-        </div>
-
-        <div class="ud-panel-content">
-          <!-- Shapes -->
-          <ShapePanel
-            v-show="leftTab === 'shapes'"
-            :libraries="libraries"
-            @select="onShapeAdd"
-            @dragstart="onShapeDragStart"
-          />
-
-          <!-- External assets -->
-          <div v-if="leftTab === 'assets'" class="ud-assets-panel">
-            <div class="ud-assets-grid">
-              <div
-                v-for="asset in assets"
-                :key="asset.id"
-                class="ud-asset-cell"
-                draggable="true"
-                @click="onAssetAdd(asset)"
-                @dragstart="onAssetDragStart($event, asset)"
-              >
-                <!-- eslint-disable-next-line vue/no-v-html -->
-                <div v-if="asset.type === 'svg'" class="ud-asset-icon-wrap" v-html="asset.content" />
-                <img v-else class="ud-asset-icon-image" :src="asset.content" :alt="asset.name">
-              </div>
-              <div v-if="!assets || assets.length === 0" class="ud-assets-empty">
-                {{ t.panel.noAssets }}
-              </div>
-            </div>
-            <div v-if="showAssetPagination" class="ud-assets-pagination">
-              <button class="ud-assets-page-btn" :disabled="!canGoPrevAssets || assetPageLoading" @click="emit('assets:prev-page')">
-                {{ t.panel.previousPage }}
-              </button>
-              <span class="ud-assets-page-indicator">{{ assetPage }} / {{ assetTotalPages }}</span>
-              <button class="ud-assets-page-btn" :disabled="!canGoNextAssets || assetPageLoading" @click="emit('assets:next-page')">
-                {{ t.panel.nextPage }}
-              </button>
-            </div>
-          </div>
-        </div>
-      </aside>
-
-      <!-- Template modal -->
-      <TemplatePanel
-        :visible="templateOpen"
-        :templates="templates"
-        @apply="onTemplateApply"
-        @close="templateOpen = false"
-      />
-
-      <!-- Canvas area -->
-      <main class="ud-canvas-area">
-        <FlexibleDraw
-          ref="canvasRef"
-          v-model="graphData"
-          class="ud-canvas"
-          :grid="grid !== false"
-          :snapline="snapline !== false"
-          :readonly="readonly"
-          :minimap="showMinimap !== false"
-          @selection:change="onSelectionChange"
-          @add-to-materials="onAddToMaterials"
-        />
-
-        <!-- Quick action bar -->
-        <QuickActionBar
-          v-if="(selectedNode || selectedEdge) && !qabClosed"
-          :selected-node="selectedNode"
-          :selected-edge="selectedEdge"
-          :sketch-mode="sketchMode"
-          :element-sketch-ids="elementSketchIds"
-          :upload-api="uploadApi"
-          @update-style="onUpdateStyle"
-          @update-edge-style="onUpdateEdgeStyle"
-          @change-edge-type="onChangeEdgeType"
-          @resize="onResizeNode"
-          @add-row="onAddTableRow"
-          @add-column="onAddTableColumn"
-          @delete-row="onDeleteTableRow"
-          @delete-column="onDeleteTableColumn"
-          @update-cell="onUpdateTableCell"
-          @close="qabClosed = true"
-          @toggle-sketch="onToggleSketch"
-          @toggle-element-sketch="onToggleElementSketch"
-        />
-
-        <!-- Toolbar -->
-        <Toolbar
-          v-if="showToolbar !== false"
-          :zoom="canvasRef?.zoom ?? 1"
-          :can-undo="canvasRef?.canUndo ?? false"
-          :can-redo="canvasRef?.canRedo ?? false"
-          :left-panel-visible="leftPanelVisible"
-          :pan-mode="canvasRef?.panMode ?? false"
-          :sketch-mode="sketchMode"
-          :draw-mode="drawMode"
-          :selection-count="canvasRef?.selectionCount ?? 0"
-          :can-group="canvasRef?.canGroup ?? false"
-          :can-ungroup="canvasRef?.canUngroup ?? false"
-          @action="onToolbarAction"
-        />
-      </main>
-    </div>
-
-    <!-- JSON preview modal -->
-    <Teleport to="body">
-      <div v-if="jsonModalOpen" class="ud-modal-backdrop" @click.self="jsonModalOpen = false">
-        <div class="ud-modal">
-          <div class="ud-modal-header">
-            <span>{{ t.jsonPreview.title }}</span>
-            <div class="ud-modal-actions">
-              <button class="ud-icon-btn" :title="copyDone ? t.jsonPreview.copied : t.jsonPreview.copy" @click="copyJson">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <rect x="9" y="9" width="13" height="13" rx="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-                </svg>
-              </button>
-              <button class="ud-icon-btn" :title="t.jsonPreview.download" @click="downloadJson">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" />
-                </svg>
-              </button>
-              <button class="ud-icon-btn" @click="jsonModalOpen = false">
-                ✕
-              </button>
-            </div>
-          </div>
-          <div class="ud-modal-body">
-            <pre class="ud-json-pre">{{ jsonPreviewText }}</pre>
-          </div>
-        </div>
-      </div>
-    </Teleport>
-  </div>
-</template>
-
 <style scoped>
 /* ── Root ─────────────────────────────────────────────────── */
 .uni-draw {
@@ -623,9 +611,7 @@ defineExpose({
   background: var(--uni-draw-panel-bg, #fff);
   border: none;
   border-radius: 10px;
-  box-shadow:
-    0 4px 16px rgba(0, 0, 0, 0.1),
-    0 1px 4px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1), 0 1px 4px rgba(0, 0, 0, 0.06);
   overflow: hidden;
 }
 
@@ -664,14 +650,14 @@ defineExpose({
   border: none;
   border-radius: 8px;
   cursor: pointer;
-  transition: all 0.15s;
+  transition: all .15s;
 }
 .ud-tab:hover {
   color: #333;
   background: #f0f0f0;
 }
 .ud-tab.active {
-  color: var(--uni-draw-primary, #7166f0);
+  color: var(--uni-draw-primary, #7166F0);
   background: var(--uni-draw-primary-bg-light, #f4f3fe);
 }
 
@@ -700,10 +686,9 @@ defineExpose({
   overflow-y: auto;
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 0;
-  padding: 0;
+  gap: 12px;
+  padding: 4px 4px 12px;
   align-content: start;
-  grid-auto-rows: 51px;
 }
 
 .ud-assets-panel {
@@ -718,22 +703,17 @@ defineExpose({
   align-items: center;
   justify-content: center;
   aspect-ratio: 1 / 1;
-  padding: 0;
-  border: none;
-  border-radius: 0;
+  padding: 8px;
+  border: 1px solid var(--uni-draw-panel-border, #e0e0e0);
+  border-radius: var(--uni-draw-radius-sm, 4px);
   background: var(--uni-draw-panel-bg, #fff);
   cursor: pointer;
-  border-left: 1px solid rgba(0, 0, 0, 0.25);
-  border-top: 1px solid rgba(0, 0, 0, 0.25);
-  transition:
-    border-color 0.15s,
-    box-shadow 0.15s,
-    background 0.15s;
+  transition: border-color .15s, box-shadow .15s, background .15s;
   overflow: hidden;
 }
 .ud-asset-cell:hover,
 .ud-asset-cell:focus-visible {
-  border-color: var(--uni-draw-primary, #7166f0);
+  border-color: var(--uni-draw-primary, #7166F0);
   box-shadow: 0 0 0 3px rgba(113, 102, 240, 0.14);
   background: var(--uni-draw-primary-bg-light, #f4f3fe);
   outline: none;
@@ -749,7 +729,7 @@ defineExpose({
   min-width: 0;
   min-height: 0;
   overflow: hidden;
-  border-radius: 0;
+  border-radius: var(--uni-draw-radius-sm, 4px);
   background: var(--uni-draw-panel-bg, #fff);
 }
 
@@ -757,7 +737,7 @@ defineExpose({
   display: block;
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   pointer-events: none;
 }
 
@@ -800,15 +780,12 @@ defineExpose({
   color: var(--uni-draw-text-secondary, #555);
   cursor: pointer;
   font-size: 12px;
-  transition:
-    border-color 0.15s,
-    color 0.15s,
-    opacity 0.15s;
+  transition: border-color .15s, color .15s, opacity .15s;
 }
 
 .ud-assets-page-btn:hover:not(:disabled) {
-  border-color: var(--uni-draw-primary, #7166f0);
-  color: var(--uni-draw-primary, #7166f0);
+  border-color: var(--uni-draw-primary, #7166F0);
+  color: var(--uni-draw-primary, #7166F0);
 }
 
 .ud-assets-page-btn:disabled {
@@ -832,75 +809,34 @@ defineExpose({
   min-width: 0;
 }
 
-.ud-canvas {
-  width: 100%;
-  height: 100%;
-}
+.ud-canvas { width: 100%; height: 100%; }
 /* ── JSON modal ───────────────────────────────────────────── */
 .ud-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.4);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
+  position: fixed; inset: 0; background: rgba(0,0,0,.4);
+  display: flex; align-items: center; justify-content: center; z-index: 1000;
 }
 .ud-modal {
   background: var(--uni-draw-panel-bg, #fff);
   border-radius: var(--uni-draw-radius-md, 8px);
-  box-shadow: var(--uni-draw-shadow-md, 0 4px 12px rgba(0, 0, 0, 0.12));
-  width: 620px;
-  max-width: 90vw;
-  max-height: 80vh;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
+  box-shadow: var(--uni-draw-shadow-md, 0 4px 12px rgba(0,0,0,.12));
+  width: 620px; max-width: 90vw; max-height: 80vh;
+  display: flex; flex-direction: column; overflow: hidden;
 }
 .ud-modal-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--uni-draw-panel-border, #e0e0e0);
-  font-size: 14px;
-  font-weight: 600;
-  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 16px; border-bottom: 1px solid var(--uni-draw-panel-border, #e0e0e0);
+  font-size: 14px; font-weight: 600; flex-shrink: 0;
 }
-.ud-modal-actions {
-  display: flex;
-  gap: 4px;
-}
+.ud-modal-actions { display: flex; gap: 4px; }
 .ud-icon-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  border: none;
-  border-radius: var(--uni-draw-radius-sm, 4px);
-  background: none;
-  cursor: pointer;
-  color: var(--uni-draw-text-muted, #999);
-  transition: all 0.15s;
-  font-size: 14px;
+  display: flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px; border: none; border-radius: var(--uni-draw-radius-sm, 4px);
+  background: none; cursor: pointer; color: var(--uni-draw-text-muted, #999); transition: all .15s; font-size: 14px;
 }
-.ud-icon-btn:hover {
-  background: var(--uni-draw-hover-bg, #f0f0f0);
-  color: var(--uni-draw-text, #1a1a1a);
-}
-.ud-modal-body {
-  flex: 1;
-  overflow: auto;
-  padding: 16px;
-}
+.ud-icon-btn:hover { background: var(--uni-draw-hover-bg, #f0f0f0); color: var(--uni-draw-text, #1a1a1a); }
+.ud-modal-body { flex: 1; overflow: auto; padding: 16px; }
 .ud-json-pre {
-  margin: 0;
-  font-size: 12px;
-  line-height: 1.6;
-  white-space: pre-wrap;
-  word-break: break-all;
-  color: var(--uni-draw-text, #1a1a1a);
-  font-family: 'Consolas', 'Monaco', monospace;
+  margin: 0; font-size: 12px; line-height: 1.6; white-space: pre-wrap; word-break: break-all;
+  color: var(--uni-draw-text, #1a1a1a); font-family: 'Consolas', 'Monaco', monospace;
 }
 </style>

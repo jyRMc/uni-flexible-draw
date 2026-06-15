@@ -5,7 +5,6 @@
   "icon": "",
   "items": [
     { "id": "state-simple", "name": "状态", "shape": "state-simple", "defaultSize": { "width": 140, "height": 70 }, "defaultLabel": "State" },
-    { "id": "state-composite", "name": "复合状态", "shape": "state-composite", "defaultSize": { "width": 200, "height": 120 }, "defaultLabel": "Processing" },
     { "id": "state-submachine", "name": "子状态机", "shape": "state-submachine", "defaultSize": { "width": 160, "height": 70 }, "defaultLabel": "AuthFlow" },
     { "id": "state-initial", "name": "初始状态", "shape": "state-initial", "defaultSize": { "width": 40, "height": 40 }, "defaultLabel": "" },
     { "id": "state-final", "name": "最终状态", "shape": "state-final", "defaultSize": { "width": 40, "height": 40 }, "defaultLabel": "" },

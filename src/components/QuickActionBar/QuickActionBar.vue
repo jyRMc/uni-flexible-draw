@@ -11,12 +11,12 @@ import {
 import ColorPicker from '../ColorPicker/ColorPicker.vue'
 import { PRIMARY_COLOR } from '../../styles/vars'
 import { useLocale } from '../../locale'
-import { getEdgeLineTypeOptions } from '../../shared'
+import { getLineTypeOptions } from '../../shared'
 import type { NodeData } from '../../shared'
 
 export interface QuickActionBarProps {
   selectedNode: NodeData | null
-  selectedEdge: { id: string, shape: string, stroke: string, strokeWidth: number, strokeDasharray: string, lineType: string, label?: string, sourceMarker?: string, targetMarker?: string } | null
+  selectedEdge: { id: string, shape: string, stroke: string, strokeWidth: number, strokeDasharray: string, routerName: string, connectorName: string, labelPosition?: string, sourceMarker?: string, targetMarker?: string, strokeStyle?: string, label?: string, lineType?: string } | null
   sketchMode: boolean
   elementSketchIds: Set<string>
   uploadApi?: (file: File) => string | Promise<string>
@@ -28,6 +28,8 @@ const emit = defineEmits<{
   (e: 'update-style', id: string, style: Record<string, unknown>): void
   (e: 'update-edge-style', id: string, style: Record<string, unknown>): void
   (e: 'change-edge-type', id: string, lineType: string): void
+  (e: 'change-edge-marker', id: string, side: 'source' | 'target', markerName: string): void
+  (e: 'change-edge-label-position', id: string, position: string): void
   (e: 'resize', id: string, width: number, height: number): void
   (e: 'add-row', id: string): void
   (e: 'add-column', id: string): void
@@ -122,7 +124,7 @@ const rxSupported = computed(() => {
 
 // 节点状态
 const t = useLocale()
-const edgeLineTypeOptions = computed(() => getEdgeLineTypeOptions({
+const edgeLineTypeOptions = computed(() => getLineTypeOptions({
   straight: t.quickAction.straight,
   curve: t.quickAction.curve,
   rounded: t.quickAction.rounded,
@@ -153,8 +155,9 @@ const currentImageFit = ref<'contain' | 'cover' | 'fill'>('contain')
 const edgeStroke = ref(PRIMARY_COLOR)
 const edgeStrokeWidth = ref(2)
 const edgeStrokeDash = ref('')
-const edgeLineType = ref('straight')
+const edgeLineType = ref<string>('straight')
 const edgeLabel = ref('')
+const edgeLabelPosition = ref<string>('center')
 const edgeSourceMarker = ref('none')
 const edgeTargetMarker = ref('block')
 
@@ -194,8 +197,9 @@ watch(
     edgeStroke.value = e.stroke
     edgeStrokeWidth.value = e.strokeWidth
     edgeStrokeDash.value = e.strokeDasharray
-    edgeLineType.value = e.lineType
+    edgeLineType.value = e.lineType ?? inferLineType(e.routerName, e.connectorName)
     edgeLabel.value = e.label ?? ''
+    edgeLabelPosition.value = e.labelPosition ?? 'center'
     edgeSourceMarker.value = e.sourceMarker ?? 'none'
     edgeTargetMarker.value = e.targetMarker ?? 'block'
   },
@@ -341,6 +345,16 @@ function updateCell(row: number, col: number, ev: Event) {
   emit('update-cell', props.selectedNode.id, row, col, (ev.target as HTMLInputElement).value)
 }
 
+/** 从 router + connector 名称推断 lineType */
+function inferLineType(routerName?: string, connectorName?: string): string {
+  if (connectorName === 'smooth') return 'curve'
+  if (connectorName === 'rounded') return 'rounded'
+  if (connectorName === 'jumpover') return 'jumpover'
+  if (routerName === 'orth') return 'orthogonal'
+  if (routerName === 'manhattan') return 'manhattan'
+  return 'straight'
+}
+
 // ===== 边操作 =====
 function setEdgeLineType(val: string) {
   if (!props.selectedEdge)
@@ -349,6 +363,21 @@ function setEdgeLineType(val: string) {
     return
   edgeLineType.value = val
   emit('change-edge-type', props.selectedEdge.id, val)
+}
+
+function setEdgeStrokeDash(val: string) {
+  if (!props.selectedEdge)
+    return
+  edgeStrokeDash.value = val
+  emit('update-edge-style', props.selectedEdge.id, { strokeDasharray: val })
+}
+
+function onLabelPositionChange(ev: Event) {
+  if (!props.selectedEdge)
+    return
+  const val = (ev.target as HTMLSelectElement).value
+  edgeLabelPosition.value = val
+  emit('change-edge-label-position', props.selectedEdge.id, val)
 }
 
 function onEdgeLabel(ev: Event) {
@@ -362,21 +391,14 @@ function setSourceMarker(val: string) {
   if (!props.selectedEdge)
     return
   edgeSourceMarker.value = val
-  emit('update-edge-style', props.selectedEdge.id, { sourceMarker: val })
+  emit('change-edge-marker', props.selectedEdge.id, 'source', val)
 }
 
 function setTargetMarker(val: string) {
   if (!props.selectedEdge)
     return
   edgeTargetMarker.value = val
-  emit('update-edge-style', props.selectedEdge.id, { targetMarker: val })
-}
-
-function setEdgeStrokeDash(val: string) {
-  if (!props.selectedEdge)
-    return
-  edgeStrokeDash.value = val
-  emit('update-edge-style', props.selectedEdge.id, { strokeDasharray: val })
+  emit('change-edge-marker', props.selectedEdge.id, 'target', val)
 }
 
 function onEdgeColorChange(val: string) {
@@ -650,10 +672,9 @@ function onEdgeWidth(ev: Event) {
 
       <!-- ===== 边属性 ===== -->
       <template v-else>
+        <!-- 线型 LineType -->
         <div v-if="!isSketchEdgeShape" class="qab-section">
-          <div class="qab-section-title">
-            {{ t.quickAction.lineType }}
-          </div>
+          <div class="qab-section-title">{{ t.quickAction.lineType }}</div>
           <div class="qab-row">
             <label>{{ t.quickAction.type }}</label>
             <div class="qab-icon-row qab-line-type-row">
@@ -673,87 +694,79 @@ function onEdgeWidth(ev: Event) {
 
         <div v-if="!isSketchEdgeShape" class="qab-divider" />
 
+        <!-- Label 标签 -->
         <div class="qab-section">
-          <div class="qab-section-title">
-            {{ t.quickAction.label }}
-          </div>
+          <div class="qab-section-title">{{ t.quickAction.label }}</div>
           <div class="qab-row">
             <label>{{ t.quickAction.text }}</label>
             <input type="text" :value="edgeLabel" :placeholder="t.quickAction.inputLabelPlaceholder" @input="onEdgeLabel($event)">
+          </div>
+          <div class="qab-row">
+            <label>{{ t.quickAction.position }}</label>
+            <select class="qab-select" :value="edgeLabelPosition" @change="onLabelPositionChange($event)">
+              <option value="center">{{ t.quickAction.labelCenter }}</option>
+              <option value="top">{{ t.quickAction.labelTop }}</option>
+              <option value="bottom">{{ t.quickAction.labelBottom }}</option>
+              <option value="near-source">{{ t.quickAction.labelNearSource }}</option>
+              <option value="near-target">{{ t.quickAction.labelNearTarget }}</option>
+            </select>
           </div>
         </div>
 
         <div class="qab-divider" />
 
+        <!-- 箭头 Marker -->
         <div class="qab-section">
-          <div class="qab-section-title">
-            {{ t.quickAction.arrow }}
-          </div>
+          <div class="qab-section-title">{{ t.quickAction.arrow }}</div>
           <div class="qab-row">
             <label>{{ t.quickAction.source }}</label>
             <div class="qab-icon-row">
-              <button class="qab-icon-btn qab-chip" :class="{ active: edgeSourceMarker === 'none' }" :title="t.quickAction.markerNone" @click="setSourceMarker('none')">
-                —
-              </button>
-              <button class="qab-icon-btn qab-chip" :class="{ active: edgeSourceMarker === 'classic' }" :title="t.quickAction.markerClassic" @click="setSourceMarker('classic')">
-                →
-              </button>
-              <button class="qab-icon-btn qab-chip" :class="{ active: edgeSourceMarker === 'block' }" :title="t.quickAction.markerBlock" @click="setSourceMarker('block')">
-                ▶
-              </button>
-              <button class="qab-icon-btn qab-chip" :class="{ active: edgeSourceMarker === 'open' }" :title="t.quickAction.markerOpen" @click="setSourceMarker('open')">
-                ▷
-              </button>
-              <button class="qab-icon-btn qab-chip" :class="{ active: edgeSourceMarker === 'diamond' }" :title="t.quickAction.markerDiamond" @click="setSourceMarker('diamond')">
-                ◇
-              </button>
-              <button class="qab-icon-btn qab-chip" :class="{ active: edgeSourceMarker === 'circle' }" :title="t.quickAction.markerCircle" @click="setSourceMarker('circle')">
-                ○
-              </button>
+              <button class="qab-icon-btn qab-chip" :class="{ active: edgeSourceMarker === 'none' }" :title="t.quickAction.markerNone" @click="setSourceMarker('none')">—</button>
+              <button class="qab-icon-btn qab-chip" :class="{ active: edgeSourceMarker === 'classic' }" :title="t.quickAction.markerClassic" @click="setSourceMarker('classic')">→</button>
+              <button class="qab-icon-btn qab-chip" :class="{ active: edgeSourceMarker === 'block' }" :title="t.quickAction.markerBlock" @click="setSourceMarker('block')">▶</button>
+              <button class="qab-icon-btn qab-chip" :class="{ active: edgeSourceMarker === 'diamond' }" :title="t.quickAction.markerDiamond" @click="setSourceMarker('diamond')">◆</button>
+              <button class="qab-icon-btn qab-chip" :class="{ active: edgeSourceMarker === 'circle' }" :title="t.quickAction.markerCircle" @click="setSourceMarker('circle')">●</button>
+              <button class="qab-icon-btn qab-chip" :class="{ active: edgeSourceMarker === 'circlePlus' }" :title="t.quickAction.markerCirclePlus" @click="setSourceMarker('circlePlus')">⊕</button>
+              <button class="qab-icon-btn qab-chip" :class="{ active: edgeSourceMarker === 'ellipse' }" :title="t.quickAction.markerEllipse" @click="setSourceMarker('ellipse')">⬮</button>
+              <button class="qab-icon-btn qab-chip" :class="{ active: edgeSourceMarker === 'cross' }" :title="t.quickAction.markerCross" @click="setSourceMarker('cross')">✕</button>
+              <button class="qab-icon-btn qab-chip" :class="{ active: edgeSourceMarker === 'async' }" :title="t.quickAction.markerAsync" @click="setSourceMarker('async')">▷</button>
             </div>
           </div>
           <div class="qab-row">
             <label>{{ t.quickAction.target }}</label>
             <div class="qab-icon-row">
-              <button class="qab-icon-btn qab-chip" :class="{ active: edgeTargetMarker === 'none' }" :title="t.quickAction.markerNone" @click="setTargetMarker('none')">
-                —
-              </button>
-              <button class="qab-icon-btn qab-chip" :class="{ active: edgeTargetMarker === 'classic' }" :title="t.quickAction.markerClassic" @click="setTargetMarker('classic')">
-                →
-              </button>
-              <button class="qab-icon-btn qab-chip" :class="{ active: edgeTargetMarker === 'block' }" :title="t.quickAction.markerBlock" @click="setTargetMarker('block')">
-                ▶
-              </button>
-              <button class="qab-icon-btn qab-chip" :class="{ active: edgeTargetMarker === 'open' }" :title="t.quickAction.markerOpen" @click="setTargetMarker('open')">
-                ▷
-              </button>
-              <button class="qab-icon-btn qab-chip" :class="{ active: edgeTargetMarker === 'diamond' }" :title="t.quickAction.markerDiamond" @click="setTargetMarker('diamond')">
-                ◇
-              </button>
-              <button class="qab-icon-btn qab-chip" :class="{ active: edgeTargetMarker === 'circle' }" :title="t.quickAction.markerCircle" @click="setTargetMarker('circle')">
-                ○
-              </button>
+              <button class="qab-icon-btn qab-chip" :class="{ active: edgeTargetMarker === 'none' }" :title="t.quickAction.markerNone" @click="setTargetMarker('none')">—</button>
+              <button class="qab-icon-btn qab-chip" :class="{ active: edgeTargetMarker === 'classic' }" :title="t.quickAction.markerClassic" @click="setTargetMarker('classic')">→</button>
+              <button class="qab-icon-btn qab-chip" :class="{ active: edgeTargetMarker === 'block' }" :title="t.quickAction.markerBlock" @click="setTargetMarker('block')">▶</button>
+              <button class="qab-icon-btn qab-chip" :class="{ active: edgeTargetMarker === 'diamond' }" :title="t.quickAction.markerDiamond" @click="setTargetMarker('diamond')">◆</button>
+              <button class="qab-icon-btn qab-chip" :class="{ active: edgeTargetMarker === 'circle' }" :title="t.quickAction.markerCircle" @click="setTargetMarker('circle')">●</button>
+              <button class="qab-icon-btn qab-chip" :class="{ active: edgeTargetMarker === 'circlePlus' }" :title="t.quickAction.markerCirclePlus" @click="setTargetMarker('circlePlus')">⊕</button>
+              <button class="qab-icon-btn qab-chip" :class="{ active: edgeTargetMarker === 'ellipse' }" :title="t.quickAction.markerEllipse" @click="setTargetMarker('ellipse')">⬮</button>
+              <button class="qab-icon-btn qab-chip" :class="{ active: edgeTargetMarker === 'cross' }" :title="t.quickAction.markerCross" @click="setTargetMarker('cross')">✕</button>
+              <button class="qab-icon-btn qab-chip" :class="{ active: edgeTargetMarker === 'async' }" :title="t.quickAction.markerAsync" @click="setTargetMarker('async')">▷</button>
             </div>
           </div>
         </div>
 
         <div class="qab-divider" />
 
+        <!-- 线条 Line -->
         <div class="qab-section">
-          <div class="qab-section-title">
-            {{ t.quickAction.line }}
-          </div>
+          <div class="qab-section-title">{{ t.quickAction.line }}</div>
           <div class="qab-row">
             <label>{{ t.quickAction.style }}</label>
             <div class="qab-icon-row">
               <button class="qab-icon-btn" :class="{ active: edgeStrokeDash === '' }" :title="t.quickAction.solidLine" @click="setEdgeStrokeDash('')">
-                <svg width="22" height="10" viewBox="0 0 22 10"><line x1="1" y1="5" x2="21" y2="5" stroke="currentColor" stroke-width="2" stroke-linecap="round" /></svg>
+                <svg width="22" height="10" viewBox="0 0 22 10"><line x1="1" y1="5" x2="21" y2="5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
               </button>
               <button class="qab-icon-btn" :class="{ active: edgeStrokeDash === '5 5' }" :title="t.quickAction.dashedLine" @click="setEdgeStrokeDash('5 5')">
-                <svg width="22" height="10" viewBox="0 0 22 10"><line x1="1" y1="5" x2="21" y2="5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-dasharray="5 3" /></svg>
+                <svg width="22" height="10" viewBox="0 0 22 10"><line x1="1" y1="5" x2="21" y2="5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-dasharray="5 3"/></svg>
               </button>
               <button class="qab-icon-btn" :class="{ active: edgeStrokeDash === '2 4' }" :title="t.quickAction.dottedLine" @click="setEdgeStrokeDash('2 4')">
-                <svg width="22" height="10" viewBox="0 0 22 10"><line x1="1" y1="5" x2="21" y2="5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-dasharray="2 3" /></svg>
+                <svg width="22" height="10" viewBox="0 0 22 10"><line x1="1" y1="5" x2="21" y2="5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-dasharray="2 3"/></svg>
+              </button>
+              <button class="qab-icon-btn" :class="{ active: edgeStrokeDash === '8 3 2 3' }" :title="t.quickAction.dashdotLine ?? 'DashDot'" @click="setEdgeStrokeDash('8 3 2 3')">
+                <svg width="22" height="10" viewBox="0 0 22 10"><line x1="1" y1="5" x2="21" y2="5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-dasharray="6 2 2 2"/></svg>
               </button>
             </div>
           </div>
@@ -922,6 +935,30 @@ function onEdgeWidth(ev: Event) {
   border-color: var(--uni-draw-primary);
   background: var(--uni-draw-primary-bg);
   color: var(--uni-draw-primary);
+}
+
+.qab-chip {
+  font-size: 12px;
+  min-width: 20px;
+  padding: 0 3px;
+}
+
+.qab-select {
+  flex: 1;
+  min-width: 0;
+  height: 24px;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  background: #fafafa;
+  font-size: 11px;
+  color: #555;
+  padding: 0 4px;
+  cursor: pointer;
+  outline: none;
+}
+
+.qab-select:focus {
+  border-color: var(--uni-draw-primary);
 }
 
 .qab-line-type-btn {

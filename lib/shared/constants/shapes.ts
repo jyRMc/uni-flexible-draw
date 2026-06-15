@@ -43,15 +43,15 @@ export const BASIC_SHAPES = {
 
 /**
  * 连接线
+ *
+ * X6 的边由 router + connector + marker + style 四个维度组合而成，
+ * 不再为每种视觉变体注册独立 shape。
+ * - edge: 基础边（X6 内置 'edge'）
+ * - edge-sketch: 草图边（roughjs 手绘连接器）
  */
 export const EDGE_SHAPES = {
-  LINE: 'edge-line',
+  LINE: 'edge',
   SKETCH: 'edge-sketch',
-  DASHED: 'edge-dashed',
-  ARROW: 'edge-arrow',
-  DOUBLE_ARROW: 'edge-double-arrow',
-  CURVE: 'edge-curve',
-  ORTHOGONAL: 'edge-orthogonal',
 } as const
 
 /**
