@@ -71,7 +71,6 @@ export function diamondPorts(style?: PortStyle): PortsConfig {
     groups: {
       top: {
         position(args: any) {
-          console.log('DIAMOND TOP position args:', args)
           const bbox = args.bbox
           return { x: bbox.width / 2, y: 0 }
         },
@@ -143,20 +142,44 @@ export function trianglePorts(style?: PortStyle): PortsConfig {
   }
 }
 
-/** 正多边形：按顶点数 n 均匀分布在边界 */
-export function polygonPorts(n: number, style?: PortStyle): PortsConfig {
+/**
+ * 正多边形：按顶点数 n 均匀分布在边界
+ *
+ * @param n - 顶点数
+ * @param style - 连接点样式
+ * @param points - 可选，与 shape 的 refPoints 一致的归一化顶点坐标串（如 '0.5,0 1,0.38 ...'），
+ *                 提供后连接点将严格对齐实际绘图顶点，而不是按外接圆估算。
+ */
+export function polygonPorts(n: number, style?: PortStyle, points?: string): PortsConfig {
   const attrs = portAttrs(style)
   const groups: PortsConfig['groups'] = {}
   const items: PortsConfig['items'] = []
+
+  // 解析归一化顶点坐标，用于精确对齐 polygon 的 refPoints
+  const normalizedPoints = points
+    ? points.trim().split(/\s+/).map((pair) => {
+        const [x, y] = pair.split(',').map(v => Number(v))
+        return { x, y }
+      })
+    : []
+
   for (let i = 0; i < n; i++) {
     const angle = (Math.PI * 2 * i) / n - Math.PI / 2
     const gid = `p${i}`
+    const normalized = normalizedPoints[i]
     groups[gid] = {
       position(args: any) {
         const bbox = args.bbox
+        // 如果提供了与 refPoints 对应的顶点坐标，直接使用，保证和实际绘制顶点重合
+        if (normalized) {
+          return {
+            x: bbox.width * normalized.x,
+            y: bbox.height * normalized.y,
+          }
+        }
+        // 否则按外接圆估算
         const cx = bbox.width / 2
         const cy = bbox.height / 2
-        // 使用外接圆上的点
         return {
           x: cx + cx * Math.cos(angle),
           y: cy + cy * Math.sin(angle),

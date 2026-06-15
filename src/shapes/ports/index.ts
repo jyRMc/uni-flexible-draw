@@ -30,13 +30,13 @@ export function getShapePorts(shape: string): PortsConfig {
     return trianglePorts()
   }
   if (shape === 'basic-hexagon') {
-    return polygonPorts(6)
+    return polygonPorts(6, undefined, '0.5,0 1,0.25 1,0.75 0.5,1 0,0.75 0,0.25')
   }
   if (shape === 'basic-pentagon') {
-    return polygonPorts(5)
+    return polygonPorts(5, undefined, '0.5,0 1,0.38 0.81,1 0.19,1 0,0.38')
   }
   if (shape === 'basic-octagon') {
-    return polygonPorts(8)
+    return polygonPorts(8, undefined, '0.3,0 0.7,0 1,0.3 1,0.7 0.7,1 0.3,1 0,0.7 0,0.3')
   }
   if (shape === 'basic-star') {
     return starPorts(5)

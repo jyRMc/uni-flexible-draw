@@ -50,6 +50,52 @@ function inferLabelPosition(
   return 'center'
 }
 
+interface PortPositionContext {
+  bbox: { width: number, height: number }
+  portId?: string
+  groupId?: string
+  node?: Node
+}
+
+function recomputePortItems(defaultPorts: any, bbox: { width: number, height: number }, node: Node): any[] {
+  return (defaultPorts.items ?? []).map((item: any) => {
+    const gcfg = defaultPorts.groups?.[item.group]
+    if (gcfg && typeof gcfg.position === 'function') {
+      const pos = gcfg.position({ bbox, portId: item.id, groupId: item.group, node } as PortPositionContext)
+      return { ...item, args: { ...item.args, x: pos.x, y: pos.y } }
+    }
+    return { ...item }
+  })
+}
+
+function isDefaultPortSet(current: any, defaultPorts: any): boolean {
+  const currentItems = current?.items
+  const defaultItems = defaultPorts?.items
+  if (!Array.isArray(currentItems) || !Array.isArray(defaultItems))
+    return false
+  if (currentItems.length !== defaultItems.length)
+    return false
+  return currentItems.every((item: any, index: number) =>
+    item.id === defaultItems[index].id && item.group === defaultItems[index].group,
+  )
+}
+
+function attachPortResizeHandler(node: Node, defaultPorts: any): void {
+  const hasFunctionPosition = Object.values(defaultPorts.groups ?? {}).some(
+    (g: any) => typeof g.position === 'function',
+  )
+  if (!hasFunctionPosition)
+    return
+
+  node.on('change:size', () => {
+    const currentPorts = node.prop('ports') as any
+    if (!isDefaultPortSet(currentPorts, defaultPorts))
+      return
+    const bbox = node.getBBox()
+    node.prop('ports/items', recomputePortItems(defaultPorts, bbox, node))
+  })
+}
+
 /**
  * 节点工厂
  * 根据 NodeData 创建 X6 节点实例
@@ -174,12 +220,18 @@ export class NodeFactory {
       Object.entries(shapePorts.groups ?? {}).forEach(([gid, gcfg]: [string, any]) => {
         if (typeof gcfg.position === 'function') {
           computedGroups[gid] = { ...gcfg, position: 'absolute' }
-        } else {
+        }
+        else {
           computedGroups[gid] = gcfg
         }
       })
       node.prop('ports', { ...shapePorts, groups: computedGroups, items: computedItems })
     }
+
+    // 当节点尺寸变化时，自动重新计算基于 bbox 函数计算的连接点位置，
+    // 保证 resize 后端口号仍落在正确的几何位置上
+    attachPortResizeHandler(node, shapePorts)
+
     return node
   }
 
