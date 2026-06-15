@@ -353,6 +353,7 @@ function onIconDragStart(event: DragEvent, entry: IconEntry) {
 .search-icon {
   color: #aaa;
   flex-shrink: 0;
+}
 
 .search-input {
   flex: 1;
@@ -406,17 +407,20 @@ function onIconDragStart(event: DragEvent, entry: IconEntry) {
 }
 .asset-cell:hover {
   background: #eef2ff;
-
+}
 .asset-cell:active {
   cursor: grabbing;
   background: #dce5ff;
+}
 
 .asset-icon {
   color: #555;
   flex-shrink: 0;
+}
 
 .asset-cell:hover .asset-icon {
   color: var(--primary);
+}
 
 /* ── Virtual scroll (icon grid) ── */
 .icon-vscroll-space {
@@ -470,38 +474,41 @@ function onIconDragStart(event: DragEvent, entry: IconEntry) {
 }
 .type-tab:hover {
   color: var(--primary);
+}
 
 .type-tab.active {
   color: var(--primary);
   border-bottom-color: var(--primary);
   font-weight: 600;
+}
 
 /* ── Material grid (Pixabay) ── */
 .material-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 4px;
-  padding: 4px;
+  gap: 0;
+  padding: 0;
 }
 
 .material-cell {
   position: relative;
-  border-radius: 6px;
+  border-radius: 0;
   overflow: hidden;
   cursor: grab;
-  border: 1px solid #e8e8e8;
+  border: none;
   background: #f5f5f5;
   transition: box-shadow 0.12s;
 }
 .material-cell:hover {
-  box-shadow: 0 0 0 2px var(--primary);
-
+  box-shadow: inset 0 0 0 2px var(--primary);
+}
 .material-cell:active {
   cursor: grabbing;
+}
 
 .material-thumb {
   width: 100%;
-  aspect-ratio: 4 / 3;
+  aspect-ratio: 1 / 1;
   object-fit: cover;
   display: block;
 }
@@ -523,6 +530,7 @@ function onIconDragStart(event: DragEvent, entry: IconEntry) {
 .material-load-more button:hover {
   border-color: var(--primary);
   color: var(--primary);
+}
 
 .material-no-key {
   font-size: 10px;

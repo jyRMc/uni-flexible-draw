@@ -700,9 +700,10 @@ defineExpose({
   overflow-y: auto;
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 12px;
-  padding: 4px 4px 12px;
+  gap: 0;
+  padding: 0;
   align-content: start;
+  grid-auto-rows: 51px;
 }
 
 .ud-assets-panel {
@@ -717,11 +718,13 @@ defineExpose({
   align-items: center;
   justify-content: center;
   aspect-ratio: 1 / 1;
-  padding: 8px;
-  border: 1px solid var(--uni-draw-panel-border, #e0e0e0);
-  border-radius: var(--uni-draw-radius-sm, 4px);
+  padding: 0;
+  border: none;
+  border-radius: 0;
   background: var(--uni-draw-panel-bg, #fff);
   cursor: pointer;
+  border-left: 1px solid rgba(0, 0, 0, 0.25);
+  border-top: 1px solid rgba(0, 0, 0, 0.25);
   transition:
     border-color 0.15s,
     box-shadow 0.15s,
@@ -746,7 +749,7 @@ defineExpose({
   min-width: 0;
   min-height: 0;
   overflow: hidden;
-  border-radius: var(--uni-draw-radius-sm, 4px);
+  border-radius: 0;
   background: var(--uni-draw-panel-bg, #fff);
 }
 
@@ -754,7 +757,7 @@ defineExpose({
   display: block;
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: cover;
   pointer-events: none;
 }
 

@@ -23,18 +23,20 @@ export const flowchartPredefined: Node.Config = {
     lineLeft: {
       refX: 0.1,
       refY: 0,
-      refWidth: 0.02,
+      width: 2,
       refHeight: 1,
       fill: '#52c41a',
       stroke: 'none',
+      cursor: 'ew-resize',
     },
     lineRight: {
       refX: 0.88,
       refY: 0,
-      refWidth: 0.02,
+      width: 2,
       refHeight: 1,
       fill: '#52c41a',
       stroke: 'none',
+      cursor: 'ew-resize',
     },
     label: {
       fill: '#52c41a',
