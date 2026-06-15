@@ -1,5 +1,7 @@
 export {
   stateSimple,
+  stateComposite,
+  stateSubmachine,
   stateInitial,
   stateFinal,
   stateShallowHistory,

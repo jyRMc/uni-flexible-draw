@@ -3,6 +3,7 @@ import type { LabelConfig, NodeData } from '@uni-draw/shared'
 import { PRIMARY_COLOR } from '@uni-draw/shared'
 import { buildTableAttrs, buildTableMarkup, normalizeTableData } from '../../shapes/basic/table'
 import { getShapePorts } from '../../shapes/ports'
+import { shapeLineDefs } from '../../shapes/lineDefs'
 import { buildMultiRegionAttrs, getDefaultRegionData, getMultiRegionMarkup, isMultiRegionShape } from '../../shapes/utils/regionNodes'
 
 function buildLabelAttrs(label: NodeData['label']): Record<string, unknown> | undefined {
@@ -94,6 +95,32 @@ function attachPortResizeHandler(node: Node, defaultPorts: any): void {
     const bbox = node.getBBox()
     node.prop('ports/items', recomputePortItems(defaultPorts, bbox, node))
   })
+}
+
+function applyLineAttrs(node: Node): void {
+  const defs = shapeLineDefs[(node as any).shape]
+  if (!defs)
+    return
+
+  const size = node.getSize()
+  const attrs: Record<string, any> = {}
+  Object.entries(defs).forEach(([selector, def]) => {
+    attrs[selector] = {
+      x1: size.width * def.x1,
+      y1: size.height * def.y1,
+      x2: size.width * def.x2,
+      y2: size.height * def.y2,
+    }
+  })
+  node.setAttrs(attrs)
+}
+
+function attachLineResizeHandler(node: Node): void {
+  if (!shapeLineDefs[(node as any).shape])
+    return
+
+  applyLineAttrs(node)
+  node.on('change:size', () => applyLineAttrs(node))
 }
 
 /**
@@ -231,6 +258,10 @@ export class NodeFactory {
     // 当节点尺寸变化时，自动重新计算基于 bbox 函数计算的连接点位置，
     // 保证 resize 后端口号仍落在正确的几何位置上
     attachPortResizeHandler(node, shapePorts)
+
+    // SVG <line> 不支持百分比坐标，根据节点实际尺寸换算为具体像素值，
+    // 并在 resize 时重新计算
+    attachLineResizeHandler(node)
 
     return node
   }

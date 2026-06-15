@@ -38,22 +38,12 @@ export const flowchartDatabase: Node.Config = {
       stroke: 'none',
     },
     leftLine: {
-      x1: '0%',
-      y1: '14%',
-      x2: '0%',
-      y2: '86%',
       stroke: '#52c41a',
       strokeWidth: 2,
-      visibility: 'hidden',
     },
     rightLine: {
-      x1: '100%',
-      y1: '14%',
-      x2: '100%',
-      y2: '86%',
       stroke: '#52c41a',
       strokeWidth: 2,
-      visibility: 'hidden',
     },
     topCap: {
       refCx: 0.5,

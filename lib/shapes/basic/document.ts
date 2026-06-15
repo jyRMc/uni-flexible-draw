@@ -4,14 +4,14 @@ import { PRIMARY_COLOR } from '../theme'
 export const basicDocument: Node.Config = {
   inherit: 'path',
   width: 100,
-  height: 70,
+  height: 140,
   markup: [
     { tagName: 'path', selector: 'body' },
     { tagName: 'text', selector: 'label' },
   ],
   attrs: {
     body: {
-      refD: 'M 0 0 L 1 0 L 1 0.786 Q 0.75 1 0.5 0.786 Q 0.25 0.571 0 0.786 Z',
+      refD: 'M 0.1 0.95 L 0.1 0.15 Q 0.1 0.1 0.15 0.1 L 0.6 0.1 L 0.9 0.288 L 0.9 0.95 Q 0.9 1 0.85 1 L 0.15 1 Q 0.1 1 0.1 0.95 Z M 0.9 0.288 L 0.6 0.288 L 0.6 0.1',
       fill: '#ffffff',
       stroke: PRIMARY_COLOR,
       strokeWidth: 2,

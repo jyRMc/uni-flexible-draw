@@ -157,10 +157,13 @@ export function polygonPorts(n: number, style?: PortStyle, points?: string): Por
 
   // 解析归一化顶点坐标，用于精确对齐 polygon 的 refPoints
   const normalizedPoints = points
-    ? points.trim().split(/\s+/).map((pair) => {
-        const [x, y] = pair.split(',').map(v => Number(v))
-        return { x, y }
-      })
+    ? points
+        .trim()
+        .split(/\s+/)
+        .map((pair) => {
+          const [x, y] = pair.split(',').map(v => Number(v))
+          return { x, y }
+        })
     : []
 
   for (let i = 0; i < n; i++) {
@@ -208,10 +211,13 @@ export function starPorts(points = 5, style?: PortStyle, vertices?: string): Por
 
   // 解析归一化顶点坐标，用于精确对齐 polygon 的 refPoints
   const normalizedVertices = vertices
-    ? vertices.trim().split(/\s+/).map((pair) => {
-        const [x, y] = pair.split(',').map(v => Number(v))
-        return { x, y }
-      })
+    ? vertices
+        .trim()
+        .split(/\s+/)
+        .map((pair) => {
+          const [x, y] = pair.split(',').map(v => Number(v))
+          return { x, y }
+        })
     : []
 
   for (let i = 0; i < total; i++) {
@@ -382,6 +388,92 @@ export function activationPorts(style?: PortStyle): PortsConfig {
   }
 }
 
+/** Fork：1 个顶部 + 3 个底部分支 */
+export function forkPorts(style?: PortStyle): PortsConfig {
+  const attrs = portAttrs(style)
+  return {
+    groups: {
+      top: {
+        position(args: any) {
+          const bbox = args.bbox
+          return { x: bbox.width * 0.5, y: bbox.height * 0.1667 }
+        },
+        attrs,
+      },
+      bottom1: {
+        position(args: any) {
+          const bbox = args.bbox
+          return { x: bbox.width * 0.25, y: bbox.height * 0.8333 }
+        },
+        attrs,
+      },
+      bottom2: {
+        position(args: any) {
+          const bbox = args.bbox
+          return { x: bbox.width * 0.5, y: bbox.height * 0.8333 }
+        },
+        attrs,
+      },
+      bottom3: {
+        position(args: any) {
+          const bbox = args.bbox
+          return { x: bbox.width * 0.75, y: bbox.height * 0.8333 }
+        },
+        attrs,
+      },
+    },
+    items: [
+      { id: 'port-top', group: 'top' },
+      { id: 'port-bottom-1', group: 'bottom1' },
+      { id: 'port-bottom-2', group: 'bottom2' },
+      { id: 'port-bottom-3', group: 'bottom3' },
+    ],
+  }
+}
+
+/** Join：3 个顶部分支 + 1 个底部 */
+export function joinPorts(style?: PortStyle): PortsConfig {
+  const attrs = portAttrs(style)
+  return {
+    groups: {
+      top1: {
+        position(args: any) {
+          const bbox = args.bbox
+          return { x: bbox.width * 0.25, y: bbox.height * 0.1667 }
+        },
+        attrs,
+      },
+      top2: {
+        position(args: any) {
+          const bbox = args.bbox
+          return { x: bbox.width * 0.5, y: bbox.height * 0.1667 }
+        },
+        attrs,
+      },
+      top3: {
+        position(args: any) {
+          const bbox = args.bbox
+          return { x: bbox.width * 0.75, y: bbox.height * 0.1667 }
+        },
+        attrs,
+      },
+      bottom: {
+        position(args: any) {
+          const bbox = args.bbox
+          return { x: bbox.width * 0.5, y: bbox.height * 0.8333 }
+        },
+        attrs,
+      },
+    },
+    items: [
+      { id: 'port-top-1', group: 'top1' },
+      { id: 'port-top-2', group: 'top2' },
+      { id: 'port-top-3', group: 'top3' },
+      { id: 'port-bottom', group: 'bottom' },
+    ],
+  }
+}
+
 /** 时序图 Fragment：上下各 2 个 */
 export function fragmentPorts(style?: PortStyle): PortsConfig {
   const attrs = portAttrs(style)
@@ -423,4 +515,54 @@ export function fragmentPorts(style?: PortStyle): PortsConfig {
       { id: 'port-bottom-right', group: 'bottomRight' },
     ],
   }
+}
+
+/** 文档节点：5 个顶点连接点 */
+export function documentPorts(style?: PortStyle): PortsConfig {
+  const attrs = portAttrs(style)
+  const groups: PortsConfig['groups'] = {}
+  const items: PortsConfig['items'] = []
+  const points = [
+    { id: 'topLeft', x: 0.0625, y: 0.111111 },
+    { id: 'topRight', x: 0.6875, y: 0.111111 },
+    { id: 'fold', x: 0.9375, y: 0.555556 },
+    { id: 'bottomRight', x: 0.9375, y: 0.888889 },
+    { id: 'bottomLeft', x: 0.0625, y: 0.888889 },
+  ]
+  for (const p of points) {
+    groups[p.id] = {
+      position(args: any) {
+        const bbox = args.bbox
+        return { x: bbox.width * p.x, y: bbox.height * p.y }
+      },
+      attrs,
+    }
+    items.push({ id: `port-${p.id}`, group: p.id })
+  }
+  return { groups, items }
+}
+
+/** 多文档节点：以前层文档顶点为准 */
+export function multiDocumentPorts(style?: PortStyle): PortsConfig {
+  const attrs = portAttrs(style)
+  const groups: PortsConfig['groups'] = {}
+  const items: PortsConfig['items'] = []
+  const points = [
+    { id: 'topLeft', x: 0.125, y: 0.2 },
+    { id: 'topRight', x: 0.75, y: 0.2 },
+    { id: 'fold', x: 0.9375, y: 0.5 },
+    { id: 'bottomRight', x: 0.9375, y: 0.9 },
+    { id: 'bottomLeft', x: 0.125, y: 0.9 },
+  ]
+  for (const p of points) {
+    groups[p.id] = {
+      position(args: any) {
+        const bbox = args.bbox
+        return { x: bbox.width * p.x, y: bbox.height * p.y }
+      },
+      attrs,
+    }
+    items.push({ id: `port-${p.id}`, group: p.id })
+  }
+  return { groups, items }
 }

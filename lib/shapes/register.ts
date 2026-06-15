@@ -54,11 +54,20 @@ export function registerAllShapes(): void {
   NodeRegistry.register(FLOWCHART_SHAPES.DECISION, flowchart.flowchartDecision)
   NodeRegistry.register(FLOWCHART_SHAPES.INPUT_OUTPUT, flowchart.flowchartInputOutput)
   NodeRegistry.register(FLOWCHART_SHAPES.DOCUMENT, flowchart.flowchartDocument)
+  NodeRegistry.register(FLOWCHART_SHAPES.MULTI_DOCUMENT, flowchart.flowchartMultiDocument)
   NodeRegistry.register(FLOWCHART_SHAPES.DATABASE, flowchart.flowchartDatabase)
   NodeRegistry.register(FLOWCHART_SHAPES.PREDEFINED, flowchart.flowchartPredefined)
   NodeRegistry.register(FLOWCHART_SHAPES.INTERNAL_STORAGE, flowchart.flowchartInternalStorage)
   NodeRegistry.register(FLOWCHART_SHAPES.CONNECTOR, flowchart.flowchartConnector)
+  NodeRegistry.register(FLOWCHART_SHAPES.OFF_PAGE_CONNECTOR, flowchart.flowchartOffPage)
+  NodeRegistry.register(FLOWCHART_SHAPES.PREPARATION, flowchart.flowchartPreparation)
+  NodeRegistry.register(FLOWCHART_SHAPES.MANUAL_OPERATION, flowchart.flowchartManualOperation)
+  NodeRegistry.register(FLOWCHART_SHAPES.DELAY, flowchart.flowchartDelay)
+  NodeRegistry.register(FLOWCHART_SHAPES.DISPLAY, flowchart.flowchartDisplay)
+  NodeRegistry.register(FLOWCHART_SHAPES.ANNOTATION, flowchart.flowchartAnnotation)
   NodeRegistry.register(FLOWCHART_SHAPES.MERGE, flowchart.flowchartMerge)
+  NodeRegistry.register(FLOWCHART_SHAPES.SORT, flowchart.flowchartSort)
+  NodeRegistry.register(FLOWCHART_SHAPES.STORED_DATA, flowchart.flowchartStoredData)
 
   // UML 类图
   NodeRegistry.register(UML_SHAPES.CLASS, uml.umlClass)
@@ -114,6 +123,8 @@ export function registerAllShapes(): void {
 
   // 状态图
   NodeRegistry.register(STATE_SHAPES.STATE, state.stateSimple)
+  NodeRegistry.register(STATE_SHAPES.COMPOSITE, state.stateComposite)
+  NodeRegistry.register(STATE_SHAPES.SUBMACHINE, state.stateSubmachine)
   NodeRegistry.register(STATE_SHAPES.INITIAL, state.stateInitial)
   NodeRegistry.register(STATE_SHAPES.FINAL, state.stateFinal)
   NodeRegistry.register(STATE_SHAPES.SHALLOW_HISTORY, state.stateShallowHistory)

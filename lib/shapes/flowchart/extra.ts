@@ -1,9 +1,10 @@
 import type { Node } from '@antv/x6'
+import { diamondPorts, ellipsePorts, rectPorts } from '../ports/ports'
 
 export const flowchartPredefined: Node.Config = {
   inherit: 'rect',
-  width: 100,
-  height: 60,
+  width: 160,
+  height: 70,
   markup: [
     { tagName: 'rect', selector: 'body' },
     { tagName: 'rect', selector: 'lineLeft' },
@@ -14,49 +15,34 @@ export const flowchartPredefined: Node.Config = {
     body: {
       refWidth: 1,
       refHeight: 1,
-      fill: '#f6ffed',
-      stroke: '#52c41a',
+      fill: '#f8fafc',
+      stroke: '#334155',
       strokeWidth: 2,
       rx: 0,
       ry: 0,
     },
     lineLeft: {
-      refX: 0.1,
+      refX: 0.15625,
       refY: 0,
-      width: 2,
+      width: 1.5,
       refHeight: 1,
-      fill: '#52c41a',
+      fill: '#334155',
       stroke: 'none',
-      cursor: 'ew-resize',
     },
     lineRight: {
-      refX: 0.88,
+      refX: 0.84375,
       refY: 0,
-      width: 2,
+      width: 1.5,
       refHeight: 1,
-      fill: '#52c41a',
+      fill: '#334155',
       stroke: 'none',
-      cursor: 'ew-resize',
     },
     label: {
-      fill: '#52c41a',
+      fill: '#334155',
       fontSize: 14,
     },
   },
-  ports: {
-    groups: {
-      top: { position: 'top', attrs: { circle: { r: 4, magnet: true, stroke: '#52c41a', fill: '#fff' } } },
-      bottom: { position: 'bottom', attrs: { circle: { r: 4, magnet: true, stroke: '#52c41a', fill: '#fff' } } },
-      left: { position: 'left', attrs: { circle: { r: 4, magnet: true, stroke: '#52c41a', fill: '#fff' } } },
-      right: { position: 'right', attrs: { circle: { r: 4, magnet: true, stroke: '#52c41a', fill: '#fff' } } },
-    },
-    items: [
-      { id: 'top', group: 'top' },
-      { id: 'bottom', group: 'bottom' },
-      { id: 'left', group: 'left' },
-      { id: 'right', group: 'right' },
-    ],
-  },
+  ports: rectPorts({ stroke: '#334155' }),
 }
 
 export const flowchartInternalStorage: Node.Config = {
@@ -104,67 +90,42 @@ export const flowchartInternalStorage: Node.Config = {
       textVerticalAnchor: 'middle',
     },
   },
-  ports: {
-    groups: {
-      top: { position: 'top', attrs: { circle: { r: 4, magnet: true, stroke: '#52c41a', fill: '#fff' } } },
-      bottom: { position: 'bottom', attrs: { circle: { r: 4, magnet: true, stroke: '#52c41a', fill: '#fff' } } },
-      left: { position: 'left', attrs: { circle: { r: 4, magnet: true, stroke: '#52c41a', fill: '#fff' } } },
-      right: { position: 'right', attrs: { circle: { r: 4, magnet: true, stroke: '#52c41a', fill: '#fff' } } },
-    },
-    items: [
-      { id: 'top', group: 'top' },
-      { id: 'bottom', group: 'bottom' },
-      { id: 'left', group: 'left' },
-      { id: 'right', group: 'right' },
-    ],
-  },
+  ports: rectPorts({ stroke: '#52c41a' }),
 }
 
 export const flowchartConnector: Node.Config = {
   inherit: 'circle',
-  width: 20,
-  height: 20,
+  width: 50,
+  height: 50,
   attrs: {
     body: {
-      fill: '#52c41a',
-      stroke: '#389e0d',
+      fill: '#f8fafc',
+      stroke: '#334155',
       strokeWidth: 2,
     },
-  },
-  ports: {
-    groups: {
-      center: { position: 'center', attrs: { circle: { r: 6, magnet: true, stroke: '#52c41a', fill: '#fff' } } },
+    label: {
+      fill: '#334155',
+      fontSize: 14,
+      refX: 0.5,
+      refY: 0.55,
+      textAnchor: 'middle',
+      textVerticalAnchor: 'middle',
     },
-    items: [
-      { id: 'center', group: 'center' },
-    ],
   },
+  ports: ellipsePorts(8, { stroke: '#334155' }),
 }
 
 export const flowchartMerge: Node.Config = {
   inherit: 'polygon',
-  width: 60,
-  height: 60,
+  width: 40,
+  height: 40,
   attrs: {
     body: {
-      refPoints: '0.5,0 1,0.5 0.5,1 0,0.5',
-      fill: '#f6ffed',
-      stroke: '#52c41a',
+      refPoints: '0.5,0.15 0.85,0.5 0.5,0.85 0.15,0.5',
+      fill: '#334155',
+      stroke: '#334155',
       strokeWidth: 2,
     },
   },
-  ports: {
-    groups: {
-      top: { position: 'top', attrs: { circle: { r: 4, magnet: true, stroke: '#52c41a', fill: '#fff' } } },
-      bottom: { position: 'bottom', attrs: { circle: { r: 4, magnet: true, stroke: '#52c41a', fill: '#fff' } } },
-      left: { position: 'left', attrs: { circle: { r: 4, magnet: true, stroke: '#52c41a', fill: '#fff' } } },
-      right: { position: 'right', attrs: { circle: { r: 4, magnet: true, stroke: '#52c41a', fill: '#fff' } } },
-    },
-    items: [
-      { id: 'top', group: 'top' },
-      { id: 'bottom', group: 'bottom' },
-      { id: 'left', group: 'left' },
-      { id: 'right', group: 'right' },
-    ],
-  },
+  ports: diamondPorts({ stroke: '#334155' }),
 }

@@ -532,9 +532,16 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
     })
 
     // 监听选中节点的属性变更（大小/位置/样式），实现双向绑定
-    graph.on('node:change:size', ({ node }: any) => {
+    graph.on('node:change:size', ({ node, options }: any) => {
       if (selectedNodeData.value && selectedNodeData.value.id === node.id) {
         selectedNodeData.value = NodeFactory.toData(node)
+      }
+      // 组合尺寸变化时，同步按比例调整内部子元素的尺寸和定位
+      if (node.shape === 'basic-group' && groupManager && !options?.fitGroupSize && !groupManager.isFittingSize(node)) {
+        const previousSize = node.previous('size')
+        if (previousSize) {
+          groupManager.syncChildrenOnResize(node, previousSize)
+        }
       }
     })
     graph.on('node:change:attrs', ({ node }: any) => {

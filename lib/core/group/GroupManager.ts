@@ -21,9 +21,17 @@ export class GroupManager {
   private graph: Graph
   private editingGroupId: string | null = null
   private originalZIndexMap = new Map<string, number>()
+  private fittingSizeGroups = new WeakMap<Node, boolean>()
 
   constructor(graph: Graph) {
     this.graph = graph
+  }
+
+  /**
+   * 是否正在执行 fitGroupSize 调整 group 尺寸
+   */
+  isFittingSize(group: Node): boolean {
+    return this.fittingSizeGroups.get(group) === true
   }
 
   /**
@@ -325,12 +333,64 @@ export class GroupManager {
     const newW = Math.max(maxX - minX + padding * 2, GROUP_MIN_SIZE)
     const newH = Math.max(maxY - minY + padding * 2, GROUP_MIN_SIZE)
 
-    // 调整 group 位置，使其始终包裹所有子节点并保留 padding
-    group.setPosition({
-      x: gPos.x + minX - padding,
-      y: gPos.y + minY - padding,
+    // 标记当前正在进行 fitGroupSize，避免外部 size 监听器再次同步子节点
+    this.fittingSizeGroups.set(group, true)
+    try {
+      // 调整 group 位置，使其始终包裹所有子节点并保留 padding
+      group.setPosition({
+        x: gPos.x + minX - padding,
+        y: gPos.y + minY - padding,
+      })
+      group.resize(newW, newH)
+    }
+    finally {
+      this.fittingSizeGroups.delete(group)
+    }
+  }
+
+  /**
+   * 组合尺寸变化时，按比例同步调整内部子节点的尺寸和位置，
+   * 保持子节点相对于组合边界的比例不变。
+   */
+  syncChildrenOnResize(group: Node, previousSize: { width: number, height: number }): void {
+    const children = (group as any).getChildren?.() ?? []
+    if (children.length === 0)
+      return
+
+    const currentSize = group.getSize()
+    const scaleX = currentSize.width / previousSize.width
+    const scaleY = currentSize.height / previousSize.height
+
+    if (!Number.isFinite(scaleX) || !Number.isFinite(scaleY))
+      return
+    if (scaleX === 1 && scaleY === 1)
+      return
+
+    const groupPos = group.getPosition()
+
+    this.graph.batchUpdate('sync-group-children', () => {
+      children.forEach((child: Node) => {
+        // 仅同步节点类型子元素；边会随连接节点自动移动
+        if (!child.isNode?.())
+          return
+
+        const childPos = child.getPosition()
+        const childSize = child.getSize()
+
+        // 子节点当前位置已随父节点移动更新，使用相对当前 group 位置的偏移进行缩放
+        const relX = childPos.x - groupPos.x
+        const relY = childPos.y - groupPos.y
+
+        child.setPosition({
+          x: groupPos.x + relX * scaleX,
+          y: groupPos.y + relY * scaleY,
+        })
+        child.resize(
+          Math.max(1, childSize.width * scaleX),
+          Math.max(1, childSize.height * scaleY),
+        )
+      })
     })
-    group.resize(newW, newH)
   }
 
   /**
