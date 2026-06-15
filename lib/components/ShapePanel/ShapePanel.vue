@@ -112,4 +112,22 @@ function onSelect(item: MaterialItem) {
   overflow-y: auto;
   padding: 2px 0 12px;
 }
+
+.shape-panel-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.shape-panel-content::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 3px;
+  transition: background 0.2s;
+}
+
+.shape-panel-content:hover::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+}
+
+.shape-panel-content:hover::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.25);
+}
 </style>
