@@ -1,6 +1,2 @@
-export { edgeLine } from './line'
+export { edgeDefaults, registerEdgeShape } from './line'
 export { edgeSketch } from './sketch'
-export { edgeDashed } from './dashed'
-export { edgeArrow, edgeDoubleArrow } from './arrow'
-export { edgeCurve } from './curve'
-export { edgeOrthogonal } from './orthogonal'

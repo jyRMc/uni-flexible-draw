@@ -15,8 +15,8 @@
         @dragstart="(e: DragEvent) => onDragStart(item, e)"
         @click="onSelect(item)"
       >
-        <div v-if="isEdgePreviewShape(item.shape)" class="shape-svg-preview" v-html="getEdgePreviewSvg(item.shape)"></div>
-        <span v-else :class="['shape-icon-font', 'iconfont', getShapeIconClass(item.shape)]" aria-hidden="true"></span>
+        <div v-if="isEdgePreviewShape(item)" class="shape-svg-preview" v-html="getEdgePreviewSvg(item)"></div>
+        <span v-else class="shape-icon-font iconfont" :class="getShapeIconClass(item.shape)" aria-hidden="true"></span>
       </div>
     </div>
   </div>
@@ -94,12 +94,8 @@ const SHAPE_ICON_CLASSES: Record<string, string> = {
   'flowchart-connector': 'icon-flowchart-connector',
   'flowchart-merge': 'icon-basic-triangle',
   'flowchart-internal-storage': 'icon-flowchart-internal-storage',
-  'edge-line': 'icon-edge-line',
-  'edge-dashed': 'icon-edge-dashed',
-  'edge-arrow': 'icon-edge-arrow',
-  'edge-double-arrow': 'icon-edge-double-arrow',
-  'edge-curve': 'icon-edge-curve',
-  'edge-orthogonal': 'icon-edge-orthogonal',
+  'edge': 'icon-edge-line',
+  'edge-sketch': 'icon-edge-line',
   'uml-class': 'icon-uml-class',
   'uml-interface': 'icon-uml-interface',
   'uml-abstract': 'icon-uml-class',
@@ -174,38 +170,66 @@ function getShapeIconClass(shape: string): string {
   return SHAPE_ICON_CLASSES[shape] ?? CATEGORY_ICON_CLASSES[shape.split('-')[0]] ?? 'icon-basic-rectangle'
 }
 
-function isEdgePreviewShape(shape: string): boolean {
-  return shape === 'edge-line'
-    || shape === 'edge-sketch'
-    || shape === 'edge-dashed'
-    || shape === 'edge-arrow'
-    || shape === 'edge-double-arrow'
-    || shape === 'edge-curve'
-    || shape === 'edge-orthogonal'
+function isEdgePreviewShape(item: MaterialItem): boolean {
+  return item.shape === 'edge' || item.shape === 'edge-sketch'
 }
 
-function getEdgePreviewSvg(shape: string): string {
+function getEdgePreviewSvg(item: MaterialItem): string {
   const stroke = 'currentColor'
   const line = `fill="none" stroke="${stroke}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"`
+  const d = item.data ?? {}
+  const connectorName = (d.connectorName as string) ?? 'normal'
+  const routerName = (d.routerName as string) ?? 'normal'
+  const sourceMarker = (d.sourceMarker as string) ?? 'none'
+  const targetMarker = (d.targetMarker as string) ?? 'none'
+  const strokeStyle = (d.strokeStyle as string) ?? 'solid'
 
-  switch (shape) {
-    case 'edge-line':
-      return `<svg viewBox="0 0 44 18" xmlns="http://www.w3.org/2000/svg"><line x1="4" y1="9" x2="40" y2="9" ${line}/></svg>`
-    case 'edge-sketch':
-      return `<svg viewBox="0 0 44 18" xmlns="http://www.w3.org/2000/svg"><path d="M4,9 C6.5,5.7 9.5,11.7 13,8.4 C17,4.8 21,12.2 25,8.2 C29,4.6 33,10.8 36.5,7.6 C38.2,6.1 39.2,9.8 40,9" ${line}/></svg>`
-    case 'edge-dashed':
-      return `<svg viewBox="0 0 44 18" xmlns="http://www.w3.org/2000/svg"><line x1="4" y1="9" x2="40" y2="9" ${line} stroke-dasharray="5 3"/></svg>`
-    case 'edge-arrow':
-      return `<svg viewBox="0 0 44 18" xmlns="http://www.w3.org/2000/svg"><line x1="4" y1="9" x2="31" y2="9" ${line}/><polygon points="31,5 40,9 31,13" fill="${stroke}"/></svg>`
-    case 'edge-double-arrow':
-      return `<svg viewBox="0 0 44 18" xmlns="http://www.w3.org/2000/svg"><line x1="12" y1="9" x2="32" y2="9" ${line}/><polygon points="12,5 4,9 12,13" fill="${stroke}"/><polygon points="32,5 40,9 32,13" fill="${stroke}"/></svg>`
-    case 'edge-curve':
-      return `<svg viewBox="0 0 44 22" xmlns="http://www.w3.org/2000/svg"><path d="M4,7 C11,7 11,17 22,17 C33,17 33,7 40,7" ${line}/></svg>`
-    case 'edge-orthogonal':
-      return `<svg viewBox="0 0 44 28" xmlns="http://www.w3.org/2000/svg"><path d="M4,22 L18,22 Q21,22 21,19 L21,9 Q21,6 24,6 L40,6" ${line}/></svg>`
-    default:
-      return `<svg viewBox="0 0 44 18" xmlns="http://www.w3.org/2000/svg"><line x1="4" y1="9" x2="40" y2="9" ${line}/></svg>`
+  const dashAttr = strokeStyle === 'dashed' ? ' stroke-dasharray="6 4"' : strokeStyle === 'dotted' ? ' stroke-dasharray="2 4"' : strokeStyle === 'dashdot' ? ' stroke-dasharray="8 3 2 3"' : ''
+
+  // 箭头多边形
+  const arrowFill = `fill="${stroke}"`
+  const srcArrow = sourceMarker !== 'none' ? `<polygon points="12,5 4,9 12,13" ${arrowFill}/>` : ''
+  const tgtArrow = targetMarker !== 'none' ? `<polygon points="32,5 40,9 32,13" ${arrowFill}/>` : ''
+  const lineStart = sourceMarker !== 'none' ? 12 : 4
+  const lineEnd = targetMarker !== 'none' ? 32 : 40
+
+  // 路径
+  let path = ''
+  if (item.shape === 'edge-sketch') {
+    path = `<path d="M4,9 C6.5,5.7 9.5,11.7 13,8.4 C17,4.8 21,12.2 25,8.2 C29,4.6 33,10.8 36.5,7.6 C38.2,6.1 39.2,9.8 40,9" ${line}${dashAttr}/>`
   }
+  else if (connectorName === 'smooth') {
+    path = `<path d="M4,7 C11,7 11,17 22,17 C33,17 33,7 40,7" ${line}${dashAttr}/>`
+  }
+  else if (connectorName === 'rounded') {
+    path = `<path d="M4,22 L18,22 Q21,22 21,19 L21,9 Q21,6 24,6 L40,6" ${line}${dashAttr}/>`
+  }
+  else if (connectorName === 'quadratic') {
+    path = `<path d="M4,18 Q22,2 40,18" ${line}${dashAttr}/>`
+  }
+  else if (connectorName === 'jumpover') {
+    path = `<path d="M4,16 H16 C18,16 18,8 20,8 C22,8 22,16 24,16 H40" ${line}${dashAttr}/>`
+  }
+  else if (connectorName === 'wobble') {
+    path = `<path d="M4,9 C7,5 10,13 14,9 C18,5 21,13 25,9 C29,5 32,13 36,9 C38,7 39,9 40,9" ${line}${dashAttr}/>`
+  }
+  else if (routerName === 'orth') {
+    path = `<polyline points="4,22 22,22 22,6 40,6" ${line}${dashAttr}/>`
+  }
+  else if (routerName === 'manhattan') {
+    path = `<polyline points="4,22 14,22 14,14 30,14 30,6 40,6" ${line}${dashAttr}/>`
+  }
+  else if (routerName === 'er') {
+    path = `<path d="M4,14 H16 C20,14 20,6 22,6 C24,6 24,14 28,14 H40" ${line}${dashAttr}/>`
+  }
+  else if (routerName === 'metro') {
+    path = `<polyline points="4,22 12,22 12,8 32,8 32,22 40,22" ${line}${dashAttr}/>`
+  }
+  else {
+    path = `<line x1="${lineStart}" y1="9" x2="${lineEnd}" y2="9" ${line}${dashAttr}/>`
+  }
+
+  return `<svg viewBox="0 0 44 28" xmlns="http://www.w3.org/2000/svg">${srcArrow}${path}${tgtArrow}</svg>`
 }
 
 /*

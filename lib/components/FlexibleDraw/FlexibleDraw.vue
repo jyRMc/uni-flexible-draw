@@ -101,7 +101,7 @@
 <script setup lang="ts">
 import { toRef, ref, watch, onUnmounted, computed, nextTick } from 'vue'
 import { useLocale } from '../../locale'
-import type { GraphData, NodeData, EdgeData, CanvasConfig } from '@uni-draw/shared'
+import type { GraphData, NodeData, EdgeData, CanvasConfig, RouterName, ConnectorName, MarkerName, StrokeStyleName } from '@uni-draw/shared'
 import { useCanvas } from '../../composables/useCanvas'
 import ContextMenu from '../ContextMenu/ContextMenu.vue'
 import ColorPicker from '../ColorPicker/ColorPicker.vue'
@@ -320,6 +320,26 @@ function changeEdgeType(id: string, lineType: string): void {
   canvas.changeEdgeType(id, lineType)
 }
 
+function changeEdgeRouter(id: string, routerName: RouterName): void {
+  canvas.changeEdgeRouter(id, routerName)
+}
+
+function changeEdgeConnector(id: string, connectorName: ConnectorName): void {
+  canvas.changeEdgeConnector(id, connectorName)
+}
+
+function changeEdgeMarker(id: string, side: 'source' | 'target', markerName: MarkerName | 'none'): void {
+  canvas.changeEdgeMarker(id, side, markerName)
+}
+
+function changeEdgeStrokeStyle(id: string, strokeStyle: StrokeStyleName): void {
+  canvas.changeEdgeStrokeStyle(id, strokeStyle)
+}
+
+function changeEdgeLabelPosition(id: string, position: string): void {
+  canvas.changeEdgeLabelPosition(id, position)
+}
+
 function toggleSketchMode(): boolean | undefined {
   return canvas.toggleSketchMode()
 }
@@ -466,6 +486,11 @@ defineExpose({
   updateNodeStyle,
   updateEdgeStyle,
   changeEdgeType,
+  changeEdgeRouter,
+  changeEdgeConnector,
+  changeEdgeMarker,
+  changeEdgeStrokeStyle,
+  changeEdgeLabelPosition,
   toggleSketchMode,
   alignNodes,
   selectAll,

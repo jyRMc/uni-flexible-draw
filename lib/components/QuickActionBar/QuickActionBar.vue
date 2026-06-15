@@ -1,291 +1,23 @@
-<template>
-  <div class="quick-action-card">
-    <div class="qac-header">
-      <span class="qac-title">{{ isEdge ? t.quickAction.edgeProps : t.quickAction.nodeProps }}</span>
-      <button class="qac-close" :title="t.quickAction.close" @click="$emit('close')">
-        <XIcon :size="14" />
-      </button>
-    </div>
-    <div class="qac-body">
-      <!-- ===== 节点属性 ===== -->
-      <template v-if="!isEdge">
-        <div class="qab-section">
-          <div class="qab-section-title">{{ t.quickAction.size }}</div>
-          <div class="qab-row">
-            <label>{{ t.quickAction.width }}</label>
-            <input type="number" :value="currentSize.width" min="20" step="10" @input="onResize('width', $event)">
-          </div>
-          <div class="qab-row">
-            <label>{{ t.quickAction.height }}</label>
-            <input type="number" :value="currentSize.height" min="20" step="10" @input="onResize('height', $event)">
-          </div>
-        </div>
-
-        <div class="qab-divider" />
-
-        <div class="qab-section">
-          <div class="qab-section-title">{{ t.quickAction.border }}</div>
-          <div class="qab-row">
-            <label>{{ t.quickAction.style }}</label>
-            <div class="qab-icon-row">
-              <button class="qab-icon-btn" :class="{active: currentStrokeDash === ''}" :title="t.quickAction.solidLine" @click="setStrokeDash('')">
-                <svg width="22" height="10" viewBox="0 0 22 10"><line x1="1" y1="5" x2="21" y2="5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-              </button>
-              <button class="qab-icon-btn" :class="{active: currentStrokeDash === '5 5'}" :title="t.quickAction.dashedLine" @click="setStrokeDash('5 5')">
-                <svg width="22" height="10" viewBox="0 0 22 10"><line x1="1" y1="5" x2="21" y2="5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-dasharray="5 3"/></svg>
-              </button>
-              <button class="qab-icon-btn" :class="{active: currentStrokeDash === '2 4'}" :title="t.quickAction.dottedLine" @click="setStrokeDash('2 4')">
-                <svg width="22" height="10" viewBox="0 0 22 10"><line x1="1" y1="5" x2="21" y2="5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-dasharray="2 3"/></svg>
-              </button>
-            </div>
-          </div>
-          <div class="qab-row">
-            <label>{{ t.quickAction.color }}</label>
-            <ColorPicker :model-value="currentStroke" @update:model-value="onColorChange('stroke', $event)" />
-          </div>
-          <div class="qab-row">
-            <label>{{ t.quickAction.lineWidth }}</label>
-            <input type="range" :value="currentStrokeWidth" min="0" max="8" step="0.5" @input="onRange('strokeWidth', $event)">
-            <span class="qab-val">{{ currentStrokeWidth }}</span>
-          </div>
-          <div v-if="rxSupported" class="qab-row">
-            <label>{{ t.quickAction.radius }}</label>
-            <input type="range" :value="currentRx" min="0" max="50" step="1" @input="onRange('rx', $event)">
-            <span class="qab-val">{{ currentRx }}</span>
-          </div>
-        </div>
-
-        <div class="qab-divider" />
-
-        <div v-if="isImageNode" class="qab-section">
-          <div class="qab-section-title">{{ t.quickAction.uploadImage }}</div>
-          <div class="qab-row">
-            <input type="file" accept="image/*,.svg" style="flex:1;min-width:0;font-size:11px" @change="onImageUpload">
-          </div>
-          <div class="qab-row">
-            <label>{{ t.quickAction.imageFit }}</label>
-            <select class="qab-input-select" :value="currentImageFit" @change="onSelectImageFit($event)">
-              <option value="contain">{{ t.quickAction.fitContain }}</option>
-              <option value="cover">{{ t.quickAction.fitCover }}</option>
-              <option value="fill">{{ t.quickAction.fitFill }}</option>
-            </select>
-          </div>
-        </div>
-
-        <div v-if="isImageNode" class="qab-divider" />
-
-        <div class="qab-section">
-          <div class="qab-section-title">{{ t.quickAction.fill }}</div>
-          <div class="qab-row">
-            <label>{{ t.quickAction.color }}</label>
-            <ColorPicker :model-value="currentFill" @update:model-value="onColorChange('fill', $event)" />
-          </div>
-        </div>
-
-        <div class="qab-divider" />
-
-        <div class="qab-section">
-          <div class="qab-section-title">{{ t.quickAction.opacity }}</div>
-          <div class="qab-row">
-            <label>{{ t.quickAction.transparent }}</label>
-            <input type="range" :value="currentOpacity" min="0" max="1" step="0.05" @input="onRange('opacity', $event)">
-            <span class="qab-val">{{ Math.round(currentOpacity * 100) }}%</span>
-          </div>
-        </div>
-
-        <div class="qab-divider" />
-
-        <div v-if="isTableNode" class="qab-section">
-          <div class="qab-section-title">{{ t.quickAction.table }}</div>
-          <div class="qab-row">
-            <label>{{ t.quickAction.rows }}</label>
-            <span class="qab-val qab-val-left">{{ tableRows }}</span>
-          </div>
-          <div class="qab-row">
-            <label>{{ t.quickAction.columns }}</label>
-            <span class="qab-val qab-val-left">{{ tableCols }}</span>
-          </div>
-          <div class="qab-icon-row qab-table-actions">
-            <button class="qab-icon-btn" @click="addRow">{{ t.quickAction.addRow }}</button>
-            <button class="qab-icon-btn" @click="addColumn">{{ t.quickAction.addColumn }}</button>
-            <button class="qab-icon-btn" :disabled="tableRows <= 1" @click="deleteRow">{{ t.quickAction.deleteRow }}</button>
-            <button class="qab-icon-btn" :disabled="tableCols <= 1" @click="deleteColumn">{{ t.quickAction.deleteColumn }}</button>
-          </div>
-          <div class="qab-table-grid">
-            <div v-for="(row, rowIndex) in tableCells" :key="`row-${rowIndex}`" class="qab-table-grid-row">
-              <input
-                v-for="(cell, colIndex) in row"
-                :key="`cell-${rowIndex}-${colIndex}`"
-                class="qab-table-cell-input"
-                type="text"
-                :value="cell"
-                @input="updateCell(rowIndex, colIndex, $event)"
-              >
-            </div>
-          </div>
-        </div>
-
-        <div v-if="isTableNode" class="qab-divider" />
-
-        <div v-if="!isTableNode" class="qab-section">
-          <div class="qab-section-title">{{ t.quickAction.label }}</div>
-          <div class="qab-row">
-            <label>{{ t.quickAction.text }}</label>
-            <input type="text" :value="currentLabel" :placeholder="t.quickAction.inputLabelPlaceholder" @input="onNodeLabel($event)">
-          </div>
-          <div class="qab-row">
-            <label>{{ t.quickAction.labelColor }}</label>
-            <ColorPicker :model-value="currentLabelFill" @update:model-value="onColorChange('labelFill', $event)" />
-          </div>
-        </div>
-
-        <div v-if="!isTableNode" class="qab-divider" />
-
-        <div v-if="!isTableNode" class="qab-section">
-          <div class="qab-section-title">{{ t.quickAction.text }}</div>
-          <div class="qab-row">
-            <label>{{ t.quickAction.position }}</label>
-            <div class="qab-icon-row">
-              <button class="qab-icon-btn" :class="{active: currentLabelPos === 'center'}" :title="t.quickAction.labelCenter" @click="setLabelPos('center')"><AlignCenterIcon :size="13"/></button>
-              <button class="qab-icon-btn" :class="{active: currentLabelPos === 'top'}" :title="t.quickAction.labelTop" @click="setLabelPos('top')"><AlignTopIcon :size="13"/></button>
-              <button class="qab-icon-btn" :class="{active: currentLabelPos === 'bottom'}" :title="t.quickAction.labelBottom" @click="setLabelPos('bottom')"><AlignBottomIcon :size="13"/></button>
-              <button class="qab-icon-btn" :class="{active: currentLabelPos === 'left'}" :title="t.quickAction.labelLeft" @click="setLabelPos('left')"><AlignLeftIcon :size="13"/></button>
-              <button class="qab-icon-btn" :class="{active: currentLabelPos === 'right'}" :title="t.quickAction.labelRight" @click="setLabelPos('right')"><AlignRightIcon :size="13"/></button>
-            </div>
-          </div>
-          <div class="qab-row">
-            <label>{{ t.quickAction.fontSize }}</label>
-            <input type="range" :value="currentFontSize" min="8" max="36" step="1" @input="onRange('fontSize', $event)">
-            <span class="qab-val">{{ currentFontSize }}</span>
-          </div>
-        </div>
-      </template>
-
-      <!-- ===== 边属性 ===== -->
-      <template v-else>
-        <div v-if="!isSketchEdgeShape" class="qab-section">
-          <div class="qab-section-title">{{ t.quickAction.lineType }}</div>
-          <div class="qab-row">
-            <label>{{ t.quickAction.type }}</label>
-            <div class="qab-icon-row qab-line-type-row">
-              <button
-                v-for="option in edgeLineTypeOptions"
-                :key="option.value"
-                class="qab-icon-btn qab-line-type-btn"
-                :class="{active: edgeLineType === option.value}"
-                :title="option.title"
-                @click="setEdgeLineType(option.value)"
-              >
-                <span class="qab-line-type-icon" v-html="option.svg"></span>
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div v-if="!isSketchEdgeShape" class="qab-divider" />
-
-        <div class="qab-section">
-          <div class="qab-section-title">{{ t.quickAction.label }}</div>
-          <div class="qab-row">
-            <label>{{ t.quickAction.text }}</label>
-            <input type="text" :value="edgeLabel" :placeholder="t.quickAction.inputLabelPlaceholder" @input="onEdgeLabel($event)">
-          </div>
-        </div>
-
-        <div class="qab-divider" />
-
-        <div class="qab-section">
-          <div class="qab-section-title">{{ t.quickAction.arrow }}</div>
-          <div class="qab-row">
-            <label>{{ t.quickAction.source }}</label>
-            <div class="qab-icon-row">
-              <button class="qab-icon-btn qab-chip" :class="{active: edgeSourceMarker === 'none'}" :title="t.quickAction.markerNone" @click="setSourceMarker('none')">—</button>
-              <button class="qab-icon-btn qab-chip" :class="{active: edgeSourceMarker === 'classic'}" :title="t.quickAction.markerClassic" @click="setSourceMarker('classic')">→</button>
-              <button class="qab-icon-btn qab-chip" :class="{active: edgeSourceMarker === 'block'}" :title="t.quickAction.markerBlock" @click="setSourceMarker('block')">▶</button>
-              <button class="qab-icon-btn qab-chip" :class="{active: edgeSourceMarker === 'open'}" :title="t.quickAction.markerOpen" @click="setSourceMarker('open')">▷</button>
-              <button class="qab-icon-btn qab-chip" :class="{active: edgeSourceMarker === 'diamond'}" :title="t.quickAction.markerDiamond" @click="setSourceMarker('diamond')">◇</button>
-              <button class="qab-icon-btn qab-chip" :class="{active: edgeSourceMarker === 'circle'}" :title="t.quickAction.markerCircle" @click="setSourceMarker('circle')">○</button>
-            </div>
-          </div>
-          <div class="qab-row">
-            <label>{{ t.quickAction.target }}</label>
-            <div class="qab-icon-row">
-              <button class="qab-icon-btn qab-chip" :class="{active: edgeTargetMarker === 'none'}" :title="t.quickAction.markerNone" @click="setTargetMarker('none')">—</button>
-              <button class="qab-icon-btn qab-chip" :class="{active: edgeTargetMarker === 'classic'}" :title="t.quickAction.markerClassic" @click="setTargetMarker('classic')">→</button>
-              <button class="qab-icon-btn qab-chip" :class="{active: edgeTargetMarker === 'block'}" :title="t.quickAction.markerBlock" @click="setTargetMarker('block')">▶</button>
-              <button class="qab-icon-btn qab-chip" :class="{active: edgeTargetMarker === 'open'}" :title="t.quickAction.markerOpen" @click="setTargetMarker('open')">▷</button>
-              <button class="qab-icon-btn qab-chip" :class="{active: edgeTargetMarker === 'diamond'}" :title="t.quickAction.markerDiamond" @click="setTargetMarker('diamond')">◇</button>
-              <button class="qab-icon-btn qab-chip" :class="{active: edgeTargetMarker === 'circle'}" :title="t.quickAction.markerCircle" @click="setTargetMarker('circle')">○</button>
-            </div>
-          </div>
-        </div>
-
-        <div class="qab-divider" />
-
-        <div class="qab-section">
-          <div class="qab-section-title">{{ t.quickAction.line }}</div>
-          <div class="qab-row">
-            <label>{{ t.quickAction.style }}</label>
-            <div class="qab-icon-row">
-              <button class="qab-icon-btn" :class="{active: edgeStrokeDash === ''}" :title="t.quickAction.solidLine" @click="setEdgeStrokeDash('')">
-                <svg width="22" height="10" viewBox="0 0 22 10"><line x1="1" y1="5" x2="21" y2="5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-              </button>
-              <button class="qab-icon-btn" :class="{active: edgeStrokeDash === '5 5'}" :title="t.quickAction.dashedLine" @click="setEdgeStrokeDash('5 5')">
-                <svg width="22" height="10" viewBox="0 0 22 10"><line x1="1" y1="5" x2="21" y2="5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-dasharray="5 3"/></svg>
-              </button>
-              <button class="qab-icon-btn" :class="{active: edgeStrokeDash === '2 4'}" :title="t.quickAction.dottedLine" @click="setEdgeStrokeDash('2 4')">
-                <svg width="22" height="10" viewBox="0 0 22 10"><line x1="1" y1="5" x2="21" y2="5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-dasharray="2 3"/></svg>
-              </button>
-            </div>
-          </div>
-          <div class="qab-row">
-            <label>{{ t.quickAction.color }}</label>
-            <ColorPicker :model-value="edgeStroke" @update:model-value="onEdgeColorChange($event)" />
-          </div>
-          <div class="qab-row">
-            <label>{{ t.quickAction.lineWidth }}</label>
-            <input type="range" :value="edgeStrokeWidth" min="0.5" max="8" step="0.5" @input="onEdgeWidth($event)">
-            <span class="qab-val">{{ edgeStrokeWidth }}</span>
-          </div>
-        </div>
-      </template>
-
-      <div class="qab-divider" />
-
-      <!-- 草图模式开关 -->
-      <div class="qab-section">
-        <div class="qab-section-title">{{ t.quickAction.sketchMode }}</div>
-        <div v-if="selectedCellId && sketchElementSupported" class="qab-row qab-row-switch">
-          <label>{{ t.quickAction.currentElement }}</label>
-          <label class="qab-switch">
-            <input type="checkbox" :checked="elementSketch" @change="$emit('toggle-element-sketch', selectedCellId)">
-            <span class="qab-switch-track" />
-          </label>
-        </div>
-      </div>
-    </div>
-  </div>
-</template>
-
 <script setup lang="ts">
-import { ref, watch, computed } from 'vue'
-import ColorPicker from '../ColorPicker/ColorPicker.vue'
-import { PRIMARY_COLOR } from '../../styles/vars'
-import { useLocale } from '../../locale'
-import { getEdgeLineTypeOptions } from '@uni-draw/shared'
+import { computed, ref, watch } from 'vue'
+import { getLineTypeOptions } from '@uni-draw/shared'
+import type { NodeData } from '@uni-draw/shared'
 import {
-  X as XIcon,
-  AlignCenter as AlignCenterIcon,
-  AlignStartHorizontal as AlignTopIcon,
   AlignEndHorizontal as AlignBottomIcon,
+  AlignCenter as AlignCenterIcon,
   AlignStartVertical as AlignLeftIcon,
   AlignEndVertical as AlignRightIcon,
+  AlignStartHorizontal as AlignTopIcon,
+  X as XIcon,
 } from 'lucide-vue-next'
-import type { NodeData } from '@uni-draw/shared'
+
+import { useLocale } from '../../locale'
+import { PRIMARY_COLOR } from '../../styles/vars'
+import ColorPicker from '../ColorPicker/ColorPicker.vue'
 
 export interface QuickActionBarProps {
   selectedNode: NodeData | null
-  selectedEdge: { id: string; shape: string; stroke: string; strokeWidth: number; strokeDasharray: string; lineType: string; label?: string; sourceMarker?: string; targetMarker?: string } | null
+  selectedEdge: { id: string, shape: string, stroke: string, strokeWidth: number, strokeDasharray: string, routerName: string, connectorName: string, labelPosition?: string, sourceMarker?: string, targetMarker?: string, strokeStyle?: string, label?: string, lineType?: string } | null
   sketchMode: boolean
   elementSketchIds: Set<string>
   uploadApi?: (file: File) => string | Promise<string>
@@ -297,6 +29,9 @@ const emit = defineEmits<{
   (e: 'update-style', id: string, style: Record<string, unknown>): void
   (e: 'update-edge-style', id: string, style: Record<string, unknown>): void
   (e: 'change-edge-type', id: string, lineType: string): void
+  (e: 'change-edge-marker', id: string, side: 'source' | 'target', markerName: string): void
+  (e: 'change-edge-stroke-style', id: string, strokeStyle: string): void
+  (e: 'change-edge-label-position', id: string, position: string): void
   (e: 'resize', id: string, width: number, height: number): void
   (e: 'add-row', id: string): void
   (e: 'add-column', id: string): void
@@ -311,8 +46,10 @@ const emit = defineEmits<{
 const isEdge = computed(() => !!props.selectedEdge)
 const isSketchEdgeShape = computed(() => props.selectedEdge?.shape === 'edge-sketch')
 const selectedCellId = computed(() => {
-  if (props.selectedEdge) return props.selectedEdge.id
-  if (props.selectedNode) return props.selectedNode.id
+  if (props.selectedEdge)
+    return props.selectedEdge.id
+  if (props.selectedNode)
+    return props.selectedNode.id
   return null
 })
 const elementSketch = computed(() => {
@@ -320,7 +57,8 @@ const elementSketch = computed(() => {
   return id ? props.elementSketchIds.has(id) : false
 })
 const sketchElementSupported = computed(() => {
-  if (props.selectedEdge) return true
+  if (props.selectedEdge)
+    return true
   const shape = props.selectedNode?.shape ?? ''
   return shape !== 'basic-image' && shape !== 'basic-svg' && shape !== 'basic-table'
 })
@@ -340,26 +78,54 @@ const tableCells = computed(() => {
 })
 /** 判断图形是否支持圆角 — 仅 body 为 <rect> 的图形支持 rx */
 const rxSupported = computed(() => {
-  if (!props.selectedNode) return false
+  if (!props.selectedNode)
+    return false
   const shape = props.selectedNode.shape ?? ''
   // polygon(有refPoints)、ellipse/circle、特殊markup 不支持圆角
   // 只有 rect 系列才支持
   const rectShapes = new Set([
-    'basic-rect', 'basic-rounded-rect', 'basic-cylinder', 'basic-cloud', 'basic-document',
-    'flowchart-start-end', 'flowchart-process', 'flowchart-document', 'flowchart-database', 'flowchart-predefined', 'flowchart-internal-storage',
-    'uml-class', 'uml-interface', 'uml-abstract', 'uml-enum', 'uml-package', 'uml-object', 'uml-component',
-    'sequence-activation', 'sequence-fragment-alt', 'sequence-fragment-opt', 'sequence-fragment-loop', 'sequence-fragment-par', 'sequence-fragment-critical',
-    'er-entity', 'er-weak-entity', 'er-associative',
+    'basic-rect',
+    'basic-rounded-rect',
+    'basic-cylinder',
+    'basic-cloud',
+    'basic-document',
+    'flowchart-start-end',
+    'flowchart-process',
+    'flowchart-document',
+    'flowchart-database',
+    'flowchart-predefined',
+    'flowchart-internal-storage',
+    'uml-class',
+    'uml-interface',
+    'uml-abstract',
+    'uml-enum',
+    'uml-package',
+    'uml-object',
+    'uml-component',
+    'sequence-activation',
+    'sequence-fragment-alt',
+    'sequence-fragment-opt',
+    'sequence-fragment-loop',
+    'sequence-fragment-par',
+    'sequence-fragment-critical',
+    'er-entity',
+    'er-weak-entity',
+    'er-associative',
     'dfd-external-entity',
-    'swimlane-horizontal', 'swimlane-vertical', 'swimlane-pool', 'swimlane-phase',
-    'state-simple', 'state-fork', 'state-join',
+    'swimlane-horizontal',
+    'swimlane-vertical',
+    'swimlane-pool',
+    'swimlane-phase',
+    'state-simple',
+    'state-fork',
+    'state-join',
   ])
   return rectShapes.has(shape)
 })
 
 // 节点状态
 const t = useLocale()
-const edgeLineTypeOptions = computed(() => getEdgeLineTypeOptions({
+const edgeLineTypeOptions = computed(() => getLineTypeOptions({
   straight: t.quickAction.straight,
   curve: t.quickAction.curve,
   rounded: t.quickAction.rounded,
@@ -385,15 +151,17 @@ const currentImageFit = ref<'contain' | 'cover' | 'fill'>('contain')
 const edgeStroke = ref(PRIMARY_COLOR)
 const edgeStrokeWidth = ref(2)
 const edgeStrokeDash = ref('')
-const edgeLineType = ref('straight')
+const edgeLineType = ref<string>('straight')
 const edgeLabel = ref('')
+const edgeLabelPosition = ref<string>('center')
 const edgeSourceMarker = ref('none')
 const edgeTargetMarker = ref('block')
 
 watch(
   () => props.selectedNode,
   (n) => {
-    if (!n) return
+    if (!n)
+      return
     currentSize.value = { ...n.size }
     const s = n.style ?? {}
     currentStroke.value = (s.stroke as string) ?? PRIMARY_COLOR
@@ -414,12 +182,14 @@ watch(
 watch(
   () => props.selectedEdge,
   (e) => {
-    if (!e) return
+    if (!e)
+      return
     edgeStroke.value = e.stroke
     edgeStrokeWidth.value = e.strokeWidth
     edgeStrokeDash.value = e.strokeDasharray
-    edgeLineType.value = e.lineType
+    edgeLineType.value = e.lineType ?? inferLineType(e.routerName, e.connectorName)
     edgeLabel.value = e.label ?? ''
+    edgeLabelPosition.value = e.labelPosition ?? 'center'
     edgeSourceMarker.value = e.sourceMarker ?? 'none'
     edgeTargetMarker.value = e.targetMarker ?? 'block'
   },
@@ -428,50 +198,65 @@ watch(
 
 // ===== 节点操作 =====
 function onResize(dim: 'width' | 'height', ev: Event) {
-  if (!props.selectedNode) return
+  if (!props.selectedNode)
+    return
   const val = Number((ev.target as HTMLInputElement).value)
-  if (isNaN(val) || val < 20) return
+  if (isNaN(val) || val < 20)
+    return
   currentSize.value[dim] = val
   emit('resize', props.selectedNode.id, currentSize.value.width, currentSize.value.height)
 }
 
 function setStrokeDash(val: string) {
-  if (!props.selectedNode) return
+  if (!props.selectedNode)
+    return
   currentStrokeDash.value = val
   emit('update-style', props.selectedNode.id, { strokeDasharray: val })
 }
 
 function onColorChange(key: string, val: string) {
-  if (!props.selectedNode) return
-  if (key === 'stroke') currentStroke.value = val
-  if (key === 'fill') currentFill.value = val
-  if (key === 'labelFill') currentLabelFill.value = val
+  if (!props.selectedNode)
+    return
+  if (key === 'stroke')
+    currentStroke.value = val
+  if (key === 'fill')
+    currentFill.value = val
+  if (key === 'labelFill')
+    currentLabelFill.value = val
   emit('update-style', props.selectedNode.id, { [key]: val })
 }
 
 function onRange(key: string, ev: Event) {
-  if (!props.selectedNode) return
+  if (!props.selectedNode)
+    return
   const val = Number((ev.target as HTMLInputElement).value)
-  if (key === 'strokeWidth') currentStrokeWidth.value = val
-  if (key === 'rx') currentRx.value = val
-  if (key === 'fontSize') currentFontSize.value = val
-  if (key === 'opacity') currentOpacity.value = val
+  if (key === 'strokeWidth')
+    currentStrokeWidth.value = val
+  if (key === 'rx')
+    currentRx.value = val
+  if (key === 'fontSize')
+    currentFontSize.value = val
+  if (key === 'opacity')
+    currentOpacity.value = val
   emit('update-style', props.selectedNode.id, { [key]: val })
 }
 
 function onNodeLabel(ev: Event) {
-  if (!props.selectedNode) return
+  if (!props.selectedNode)
+    return
   currentLabel.value = (ev.target as HTMLInputElement).value
   emit('update-style', props.selectedNode.id, { label: currentLabel.value })
 }
 
 async function onImageUpload(ev: Event) {
   const file = (ev.target as HTMLInputElement).files?.[0]
-  if (!file || !props.selectedNode) return
+  if (!file || !props.selectedNode)
+    return
   let url: string
   if (props.uploadApi) {
     url = await props.uploadApi(file)
-  } else {
+  }
+  else {
     url = await new Promise<string>((resolve) => {
       const reader = new FileReader()
       reader.onload = () => resolve(reader.result as string)
@@ -490,80 +275,446 @@ function onSelectImageFit(ev: Event) {
 }
 
 function setLabelPos(val: string) {
-  if (!props.selectedNode) return
+  if (!props.selectedNode)
+    return
   currentLabelPos.value = val
   emit('update-style', props.selectedNode.id, { labelPosition: val })
 }
 
 function addRow() {
-  if (!props.selectedNode) return
+  if (!props.selectedNode)
+    return
   emit('add-row', props.selectedNode.id)
 }
 
 function addColumn() {
-  if (!props.selectedNode) return
+  if (!props.selectedNode)
+    return
   emit('add-column', props.selectedNode.id)
 }
 
 function deleteRow() {
-  if (!props.selectedNode || tableRows.value <= 1) return
+  if (!props.selectedNode || tableRows.value <= 1)
+    return
   emit('delete-row', props.selectedNode.id)
 }
 
 function deleteColumn() {
-  if (!props.selectedNode || tableCols.value <= 1) return
+  if (!props.selectedNode || tableCols.value <= 1)
+    return
   emit('delete-column', props.selectedNode.id)
 }
 
 function updateCell(row: number, col: number, ev: Event) {
-  if (!props.selectedNode) return
+  if (!props.selectedNode)
+    return
   emit('update-cell', props.selectedNode.id, row, col, (ev.target as HTMLInputElement).value)
+}
+
+/** 从 router + connector 名称推断 lineType */
+function inferLineType(routerName?: string, connectorName?: string): string {
+  if (connectorName === 'smooth') return 'curve'
+  if (connectorName === 'rounded') return 'rounded'
+  if (connectorName === 'jumpover') return 'jumpover'
+  if (routerName === 'orth') return 'orthogonal'
+  if (routerName === 'manhattan') return 'manhattan'
+  return 'straight'
 }
 
 // ===== 边操作 =====
 function setEdgeLineType(val: string) {
-  if (!props.selectedEdge) return
-  if (props.selectedEdge.shape === 'edge-sketch') return
+  if (!props.selectedEdge)
+    return
+  if (props.selectedEdge.shape === 'edge-sketch')
+    return
   edgeLineType.value = val
   emit('change-edge-type', props.selectedEdge.id, val)
 }
 
+function setEdgeStrokeDash(val: string) {
+  if (!props.selectedEdge)
+    return
+  edgeStrokeDash.value = val
+  emit('update-edge-style', props.selectedEdge.id, { strokeDasharray: val })
+}
+
+function onLabelPositionChange(ev: Event) {
+  if (!props.selectedEdge)
+    return
+  const val = (ev.target as HTMLSelectElement).value
+  edgeLabelPosition.value = val
+  emit('change-edge-label-position', props.selectedEdge.id, val)
+}
+
 function onEdgeLabel(ev: Event) {
-  if (!props.selectedEdge) return
+  if (!props.selectedEdge)
+    return
   edgeLabel.value = (ev.target as HTMLInputElement).value
   emit('update-edge-style', props.selectedEdge.id, { label: edgeLabel.value })
 }
 
 function setSourceMarker(val: string) {
-  if (!props.selectedEdge) return
+  if (!props.selectedEdge)
+    return
   edgeSourceMarker.value = val
-  emit('update-edge-style', props.selectedEdge.id, { sourceMarker: val })
+  emit('change-edge-marker', props.selectedEdge.id, 'source', val)
 }
 
 function setTargetMarker(val: string) {
-  if (!props.selectedEdge) return
+  if (!props.selectedEdge)
+    return
   edgeTargetMarker.value = val
-  emit('update-edge-style', props.selectedEdge.id, { targetMarker: val })
-}
-
-function setEdgeStrokeDash(val: string) {
-  if (!props.selectedEdge) return
-  edgeStrokeDash.value = val
-  emit('update-edge-style', props.selectedEdge.id, { strokeDasharray: val })
+  emit('change-edge-marker', props.selectedEdge.id, 'target', val)
 }
 
 function onEdgeColorChange(val: string) {
-  if (!props.selectedEdge) return
+  if (!props.selectedEdge)
+    return
   edgeStroke.value = val
   emit('update-edge-style', props.selectedEdge.id, { stroke: val })
 }
 
 function onEdgeWidth(ev: Event) {
-  if (!props.selectedEdge) return
+  if (!props.selectedEdge)
+    return
   edgeStrokeWidth.value = Number((ev.target as HTMLInputElement).value)
   emit('update-edge-style', props.selectedEdge.id, { strokeWidth: edgeStrokeWidth.value })
 }
 </script>
+
+<template>
+  <div class="quick-action-card">
+    <div class="qac-header">
+      <span class="qac-title">{{ isEdge ? t.quickAction.edgeProps : t.quickAction.nodeProps }}</span>
+      <button class="qac-close" :title="t.quickAction.close" @click="$emit('close')">
+        <XIcon :size="14" />
+      </button>
+    </div>
+    <div class="qac-body">
+      <!-- ===== 节点属性 ===== -->
+      <template v-if="!isEdge">
+        <div class="qab-section">
+          <div class="qab-section-title">
+            {{ t.quickAction.size }}
+          </div>
+          <div class="qab-row">
+            <label>{{ t.quickAction.width }}</label>
+            <input type="number" :value="currentSize.width" min="20" step="10" @input="onResize('width', $event)">
+          </div>
+          <div class="qab-row">
+            <label>{{ t.quickAction.height }}</label>
+            <input type="number" :value="currentSize.height" min="20" step="10" @input="onResize('height', $event)">
+          </div>
+        </div>
+
+        <div class="qab-divider" />
+
+        <div class="qab-section">
+          <div class="qab-section-title">
+            {{ t.quickAction.border }}
+          </div>
+          <div class="qab-row">
+            <label>{{ t.quickAction.style }}</label>
+            <div class="qab-icon-row">
+              <button class="qab-icon-btn" :class="{ active: currentStrokeDash === '' }" :title="t.quickAction.solidLine" @click="setStrokeDash('')">
+                <svg width="22" height="10" viewBox="0 0 22 10"><line x1="1" y1="5" x2="21" y2="5" stroke="currentColor" stroke-width="2" stroke-linecap="round" /></svg>
+              </button>
+              <button class="qab-icon-btn" :class="{ active: currentStrokeDash === '5 5' }" :title="t.quickAction.dashedLine" @click="setStrokeDash('5 5')">
+                <svg width="22" height="10" viewBox="0 0 22 10"><line x1="1" y1="5" x2="21" y2="5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-dasharray="5 3" /></svg>
+              </button>
+              <button class="qab-icon-btn" :class="{ active: currentStrokeDash === '2 4' }" :title="t.quickAction.dottedLine" @click="setStrokeDash('2 4')">
+                <svg width="22" height="10" viewBox="0 0 22 10"><line x1="1" y1="5" x2="21" y2="5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-dasharray="2 3" /></svg>
+              </button>
+            </div>
+          </div>
+          <div class="qab-row">
+            <label>{{ t.quickAction.color }}</label>
+            <ColorPicker :model-value="currentStroke" @update:model-value="onColorChange('stroke', $event)" />
+          </div>
+          <div class="qab-row">
+            <label>{{ t.quickAction.lineWidth }}</label>
+            <input type="range" :value="currentStrokeWidth" min="0" max="8" step="0.5" @input="onRange('strokeWidth', $event)">
+            <span class="qab-val">{{ currentStrokeWidth }}</span>
+          </div>
+          <div v-if="rxSupported" class="qab-row">
+            <label>{{ t.quickAction.radius }}</label>
+            <input type="range" :value="currentRx" min="0" max="50" step="1" @input="onRange('rx', $event)">
+            <span class="qab-val">{{ currentRx }}</span>
+          </div>
+        </div>
+
+        <div class="qab-divider" />
+
+        <div v-if="isImageNode" class="qab-section">
+          <div class="qab-section-title">
+            {{ t.quickAction.uploadImage }}
+          </div>
+          <div class="qab-row">
+            <input type="file" accept="image/*,.svg" style="flex:1;min-width:0;font-size:11px" @change="onImageUpload">
+          </div>
+          <div class="qab-row">
+            <label>{{ t.quickAction.imageFit }}</label>
+            <select class="qab-input-select" :value="currentImageFit" @change="onSelectImageFit($event)">
+              <option value="contain">
+                {{ t.quickAction.fitContain }}
+              </option>
+              <option value="cover">
+                {{ t.quickAction.fitCover }}
+              </option>
+              <option value="fill">
+                {{ t.quickAction.fitFill }}
+              </option>
+            </select>
+          </div>
+        </div>
+
+        <div v-if="isImageNode" class="qab-divider" />
+
+        <div class="qab-section">
+          <div class="qab-section-title">
+            {{ t.quickAction.fill }}
+          </div>
+          <div class="qab-row">
+            <label>{{ t.quickAction.color }}</label>
+            <ColorPicker :model-value="currentFill" @update:model-value="onColorChange('fill', $event)" />
+          </div>
+        </div>
+
+        <div class="qab-divider" />
+
+        <div class="qab-section">
+          <div class="qab-section-title">
+            {{ t.quickAction.opacity }}
+          </div>
+          <div class="qab-row">
+            <label>{{ t.quickAction.transparent }}</label>
+            <input type="range" :value="currentOpacity" min="0" max="1" step="0.05" @input="onRange('opacity', $event)">
+            <span class="qab-val">{{ Math.round(currentOpacity * 100) }}%</span>
+          </div>
+        </div>
+
+        <div class="qab-divider" />
+
+        <div v-if="isTableNode" class="qab-section">
+          <div class="qab-section-title">
+            {{ t.quickAction.table }}
+          </div>
+          <div class="qab-row">
+            <label>{{ t.quickAction.rows }}</label>
+            <span class="qab-val qab-val-left">{{ tableRows }}</span>
+          </div>
+          <div class="qab-row">
+            <label>{{ t.quickAction.columns }}</label>
+            <span class="qab-val qab-val-left">{{ tableCols }}</span>
+          </div>
+          <div class="qab-icon-row qab-table-actions">
+            <button class="qab-icon-btn" @click="addRow">
+              {{ t.quickAction.addRow }}
+            </button>
+            <button class="qab-icon-btn" @click="addColumn">
+              {{ t.quickAction.addColumn }}
+            </button>
+            <button class="qab-icon-btn" :disabled="tableRows <= 1" @click="deleteRow">
+              {{ t.quickAction.deleteRow }}
+            </button>
+            <button class="qab-icon-btn" :disabled="tableCols <= 1" @click="deleteColumn">
+              {{ t.quickAction.deleteColumn }}
+            </button>
+          </div>
+          <div class="qab-table-grid">
+            <div v-for="(row, rowIndex) in tableCells" :key="`row-${rowIndex}`" class="qab-table-grid-row">
+              <input
+                v-for="(cell, colIndex) in row"
+                :key="`cell-${rowIndex}-${colIndex}`"
+                class="qab-table-cell-input"
+                type="text"
+                :value="cell"
+                @input="updateCell(rowIndex, colIndex, $event)"
+              >
+            </div>
+          </div>
+        </div>
+
+        <div v-if="isTableNode" class="qab-divider" />
+
+        <div v-if="!isTableNode" class="qab-section">
+          <div class="qab-section-title">
+            {{ t.quickAction.label }}
+          </div>
+          <div class="qab-row">
+            <label>{{ t.quickAction.text }}</label>
+            <input type="text" :value="currentLabel" :placeholder="t.quickAction.inputLabelPlaceholder" @input="onNodeLabel($event)">
+          </div>
+          <div class="qab-row">
+            <label>{{ t.quickAction.labelColor }}</label>
+            <ColorPicker :model-value="currentLabelFill" @update:model-value="onColorChange('labelFill', $event)" />
+          </div>
+        </div>
+
+        <div v-if="!isTableNode" class="qab-divider" />
+
+        <div v-if="!isTableNode" class="qab-section">
+          <div class="qab-section-title">
+            {{ t.quickAction.text }}
+          </div>
+          <div class="qab-row">
+            <label>{{ t.quickAction.position }}</label>
+            <div class="qab-icon-row">
+              <button class="qab-icon-btn" :class="{ active: currentLabelPos === 'center' }" :title="t.quickAction.labelCenter" @click="setLabelPos('center')">
+                <AlignCenterIcon :size="13" />
+              </button>
+              <button class="qab-icon-btn" :class="{ active: currentLabelPos === 'top' }" :title="t.quickAction.labelTop" @click="setLabelPos('top')">
+                <AlignTopIcon :size="13" />
+              </button>
+              <button class="qab-icon-btn" :class="{ active: currentLabelPos === 'bottom' }" :title="t.quickAction.labelBottom" @click="setLabelPos('bottom')">
+                <AlignBottomIcon :size="13" />
+              </button>
+              <button class="qab-icon-btn" :class="{ active: currentLabelPos === 'left' }" :title="t.quickAction.labelLeft" @click="setLabelPos('left')">
+                <AlignLeftIcon :size="13" />
+              </button>
+              <button class="qab-icon-btn" :class="{ active: currentLabelPos === 'right' }" :title="t.quickAction.labelRight" @click="setLabelPos('right')">
+                <AlignRightIcon :size="13" />
+              </button>
+            </div>
+          </div>
+          <div class="qab-row">
+            <label>{{ t.quickAction.fontSize }}</label>
+            <input type="range" :value="currentFontSize" min="8" max="36" step="1" @input="onRange('fontSize', $event)">
+            <span class="qab-val">{{ currentFontSize }}</span>
+          </div>
+        </div>
+      </template>
+
+      <!-- ===== 边属性 ===== -->
+      <template v-else>
+        <!-- 线型 LineType -->
+        <div v-if="!isSketchEdgeShape" class="qab-section">
+          <div class="qab-section-title">{{ t.quickAction.lineType }}</div>
+          <div class="qab-row">
+            <label>{{ t.quickAction.type }}</label>
+            <div class="qab-icon-row qab-line-type-row">
+              <button
+                v-for="option in edgeLineTypeOptions"
+                :key="option.value"
+                class="qab-icon-btn qab-line-type-btn"
+                :class="{ active: edgeLineType === option.value }"
+                :title="option.title"
+                @click="setEdgeLineType(option.value)"
+              >
+                <span class="qab-line-type-icon" v-html="option.svg" />
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div v-if="!isSketchEdgeShape" class="qab-divider" />
+
+        <!-- Label 标签 -->
+        <div class="qab-section">
+          <div class="qab-section-title">{{ t.quickAction.label }}</div>
+          <div class="qab-row">
+            <label>{{ t.quickAction.text }}</label>
+            <input type="text" :value="edgeLabel" :placeholder="t.quickAction.inputLabelPlaceholder" @input="onEdgeLabel($event)">
+          </div>
+          <div class="qab-row">
+            <label>{{ t.quickAction.position }}</label>
+            <select class="qab-select" :value="edgeLabelPosition" @change="onLabelPositionChange($event)">
+              <option value="center">{{ t.quickAction.labelCenter }}</option>
+              <option value="top">{{ t.quickAction.labelTop }}</option>
+              <option value="bottom">{{ t.quickAction.labelBottom }}</option>
+              <option value="near-source">{{ t.quickAction.labelNearSource }}</option>
+              <option value="near-target">{{ t.quickAction.labelNearTarget }}</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="qab-divider" />
+
+        <!-- 箭头 Marker -->
+        <div class="qab-section">
+          <div class="qab-section-title">{{ t.quickAction.arrow }}</div>
+          <div class="qab-row">
+            <label>{{ t.quickAction.source }}</label>
+            <div class="qab-icon-row">
+              <button class="qab-icon-btn qab-chip" :class="{ active: edgeSourceMarker === 'none' }" :title="t.quickAction.markerNone" @click="setSourceMarker('none')">—</button>
+              <button class="qab-icon-btn qab-chip" :class="{ active: edgeSourceMarker === 'classic' }" :title="t.quickAction.markerClassic" @click="setSourceMarker('classic')">→</button>
+              <button class="qab-icon-btn qab-chip" :class="{ active: edgeSourceMarker === 'block' }" :title="t.quickAction.markerBlock" @click="setSourceMarker('block')">▶</button>
+              <button class="qab-icon-btn qab-chip" :class="{ active: edgeSourceMarker === 'diamond' }" :title="t.quickAction.markerDiamond" @click="setSourceMarker('diamond')">◆</button>
+              <button class="qab-icon-btn qab-chip" :class="{ active: edgeSourceMarker === 'circle' }" :title="t.quickAction.markerCircle" @click="setSourceMarker('circle')">●</button>
+              <button class="qab-icon-btn qab-chip" :class="{ active: edgeSourceMarker === 'circlePlus' }" :title="t.quickAction.markerCirclePlus" @click="setSourceMarker('circlePlus')">⊕</button>
+              <button class="qab-icon-btn qab-chip" :class="{ active: edgeSourceMarker === 'ellipse' }" :title="t.quickAction.markerEllipse" @click="setSourceMarker('ellipse')">⬮</button>
+              <button class="qab-icon-btn qab-chip" :class="{ active: edgeSourceMarker === 'cross' }" :title="t.quickAction.markerCross" @click="setSourceMarker('cross')">✕</button>
+              <button class="qab-icon-btn qab-chip" :class="{ active: edgeSourceMarker === 'async' }" :title="t.quickAction.markerAsync" @click="setSourceMarker('async')">▷</button>
+            </div>
+          </div>
+          <div class="qab-row">
+            <label>{{ t.quickAction.target }}</label>
+            <div class="qab-icon-row">
+              <button class="qab-icon-btn qab-chip" :class="{ active: edgeTargetMarker === 'none' }" :title="t.quickAction.markerNone" @click="setTargetMarker('none')">—</button>
+              <button class="qab-icon-btn qab-chip" :class="{ active: edgeTargetMarker === 'classic' }" :title="t.quickAction.markerClassic" @click="setTargetMarker('classic')">→</button>
+              <button class="qab-icon-btn qab-chip" :class="{ active: edgeTargetMarker === 'block' }" :title="t.quickAction.markerBlock" @click="setTargetMarker('block')">▶</button>
+              <button class="qab-icon-btn qab-chip" :class="{ active: edgeTargetMarker === 'diamond' }" :title="t.quickAction.markerDiamond" @click="setTargetMarker('diamond')">◆</button>
+              <button class="qab-icon-btn qab-chip" :class="{ active: edgeTargetMarker === 'circle' }" :title="t.quickAction.markerCircle" @click="setTargetMarker('circle')">●</button>
+              <button class="qab-icon-btn qab-chip" :class="{ active: edgeTargetMarker === 'circlePlus' }" :title="t.quickAction.markerCirclePlus" @click="setTargetMarker('circlePlus')">⊕</button>
+              <button class="qab-icon-btn qab-chip" :class="{ active: edgeTargetMarker === 'ellipse' }" :title="t.quickAction.markerEllipse" @click="setTargetMarker('ellipse')">⬮</button>
+              <button class="qab-icon-btn qab-chip" :class="{ active: edgeTargetMarker === 'cross' }" :title="t.quickAction.markerCross" @click="setTargetMarker('cross')">✕</button>
+              <button class="qab-icon-btn qab-chip" :class="{ active: edgeTargetMarker === 'async' }" :title="t.quickAction.markerAsync" @click="setTargetMarker('async')">▷</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="qab-divider" />
+
+        <!-- 线条 Line -->
+        <div class="qab-section">
+          <div class="qab-section-title">{{ t.quickAction.line }}</div>
+          <div class="qab-row">
+            <label>{{ t.quickAction.style }}</label>
+            <div class="qab-icon-row">
+              <button class="qab-icon-btn" :class="{ active: edgeStrokeDash === '' }" :title="t.quickAction.solidLine" @click="setEdgeStrokeDash('')">
+                <svg width="22" height="10" viewBox="0 0 22 10"><line x1="1" y1="5" x2="21" y2="5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+              </button>
+              <button class="qab-icon-btn" :class="{ active: edgeStrokeDash === '5 5' }" :title="t.quickAction.dashedLine" @click="setEdgeStrokeDash('5 5')">
+                <svg width="22" height="10" viewBox="0 0 22 10"><line x1="1" y1="5" x2="21" y2="5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-dasharray="5 3"/></svg>
+              </button>
+              <button class="qab-icon-btn" :class="{ active: edgeStrokeDash === '2 4' }" :title="t.quickAction.dottedLine" @click="setEdgeStrokeDash('2 4')">
+                <svg width="22" height="10" viewBox="0 0 22 10"><line x1="1" y1="5" x2="21" y2="5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-dasharray="2 3"/></svg>
+              </button>
+              <button class="qab-icon-btn" :class="{ active: edgeStrokeDash === '8 3 2 3' }" :title="t.quickAction.dashdotLine ?? 'DashDot'" @click="setEdgeStrokeDash('8 3 2 3')">
+                <svg width="22" height="10" viewBox="0 0 22 10"><line x1="1" y1="5" x2="21" y2="5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-dasharray="6 2 2 2"/></svg>
+              </button>
+            </div>
+          </div>
+          <div class="qab-row">
+            <label>{{ t.quickAction.color }}</label>
+            <ColorPicker :model-value="edgeStroke" @update:model-value="onEdgeColorChange($event)" />
+          </div>
+          <div class="qab-row">
+            <label>{{ t.quickAction.lineWidth }}</label>
+            <input type="range" :value="edgeStrokeWidth" min="0.5" max="8" step="0.5" @input="onEdgeWidth($event)">
+            <span class="qab-val">{{ edgeStrokeWidth }}</span>
+          </div>
+        </div>
+      </template>
+
+      <div class="qab-divider" />
+
+      <!-- 草图模式开关 -->
+      <div class="qab-section">
+        <div class="qab-section-title">
+          {{ t.quickAction.sketchMode }}
+        </div>
+        <div v-if="selectedCellId && sketchElementSupported" class="qab-row qab-row-switch">
+          <label>{{ t.quickAction.currentElement }}</label>
+          <label class="qab-switch">
+            <input type="checkbox" :checked="elementSketch" @change="$emit('toggle-element-sketch', selectedCellId)">
+            <span class="qab-switch-track" />
+          </label>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
 
 <style scoped>
 .quick-action-card {
@@ -574,7 +725,9 @@ function onEdgeWidth(ev: Event) {
   width: 180px;
   background: #fff;
   border-radius: 10px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1), 0 1px 4px rgba(0, 0, 0, 0.06);
+  box-shadow:
+    0 4px 16px rgba(0, 0, 0, 0.1),
+    0 1px 4px rgba(0, 0, 0, 0.06);
   z-index: 20;
   overflow: hidden;
   user-select: none;
@@ -648,8 +801,8 @@ function onEdgeWidth(ev: Event) {
   flex-shrink: 0;
 }
 
-.qab-row input[type="text"],
-.qab-row input[type="number"] {
+.qab-row input[type='text'],
+.qab-row input[type='number'] {
   flex: 1;
   min-width: 0;
   width: auto;
@@ -660,8 +813,8 @@ function onEdgeWidth(ev: Event) {
   outline: none;
   box-sizing: border-box;
 }
-.qab-row input[type="text"]:focus,
-.qab-row input[type="number"]:focus {
+.qab-row input[type='text']:focus,
+.qab-row input[type='number']:focus {
   border-color: var(--uni-draw-primary);
 }
 
@@ -725,7 +878,31 @@ function onEdgeWidth(ev: Event) {
   color: var(--uni-draw-primary);
 }
 
-.qab-row input[type="color"] {
+.qab-chip {
+  font-size: 12px;
+  min-width: 20px;
+  padding: 0 3px;
+}
+
+.qab-select {
+  flex: 1;
+  min-width: 0;
+  height: 24px;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  background: #fafafa;
+  font-size: 11px;
+  color: #555;
+  padding: 0 4px;
+  cursor: pointer;
+  outline: none;
+}
+
+.qab-select:focus {
+  border-color: var(--uni-draw-primary);
+}
+
+.qab-row input[type='color'] {
   width: 28px;
   height: 24px;
   border: 1px solid #d9d9d9;
@@ -735,7 +912,7 @@ function onEdgeWidth(ev: Event) {
   flex-shrink: 0;
 }
 
-.qab-row input[type="range"] {
+.qab-row input[type='range'] {
   flex: 1;
   min-width: 0;
   accent-color: var(--uni-draw-primary);
@@ -829,7 +1006,7 @@ function onEdgeWidth(ev: Event) {
   height: 14px;
   border-radius: 50%;
   background: #fff;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
   transition: transform 0.2s;
 }
 

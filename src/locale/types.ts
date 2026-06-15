@@ -88,6 +88,8 @@ export interface UniDrawLocale {
     label: string
     text: string
     lineType: string
+    router: string
+    connector: string
     arrow: string
     line: string
     sketchMode: string
@@ -120,12 +122,31 @@ export interface UniDrawLocale {
     markerOpen: string
     markerDiamond: string
     markerCircle: string
+    markerCirclePlus: string
+    markerEllipse: string
+    markerCross: string
+    markerAsync: string
     solidLine: string
     dashedLine: string
     dottedLine: string
+    dashdotLine: string
+    routerNormal: string
+    routerOrth: string
+    routerManhattan: string
+    routerEr: string
+    routerMetro: string
+    routerOneSide: string
+    connectorNormal: string
+    connectorSmooth: string
+    connectorRounded: string
+    connectorQuadratic: string
+    connectorJumpover: string
+    connectorWobble: string
     labelCenter: string
     labelTop: string
     labelBottom: string
+    labelNearSource: string
+    labelNearTarget: string
     labelLeft: string
     labelRight: string
     radiusY: string
@@ -163,21 +184,40 @@ export interface UniDrawLocale {
     lineStyle: string
     sourceMarker: string
     targetMarker: string
+    router: string
+    connector: string
     solidLine: string
     dashedLine: string
     dottedLine: string
+    dashdotLine: string
     markerNone: string
     markerClassic: string
     markerBlock: string
     markerOpen: string
     markerDiamond: string
     markerCircle: string
+    markerCirclePlus: string
+    markerEllipse: string
+    markerCross: string
+    markerAsync: string
     straight: string
     curve: string
     rounded: string
     orthogonal: string
     manhattan: string
     jumpover: string
+    routerNormal: string
+    routerOrth: string
+    routerManhattan: string
+    routerEr: string
+    routerMetro: string
+    routerOneSide: string
+    connectorNormal: string
+    connectorSmooth: string
+    connectorRounded: string
+    connectorQuadratic: string
+    connectorJumpover: string
+    connectorWobble: string
   }
   drawPanel: {
     title: string

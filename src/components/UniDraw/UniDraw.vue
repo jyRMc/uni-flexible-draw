@@ -92,6 +92,8 @@
           @update-style="onUpdateStyle"
           @update-edge-style="onUpdateEdgeStyle"
           @change-edge-type="onChangeEdgeType"
+          @change-edge-marker="onChangeEdgeMarker"
+          @change-edge-label-position="onChangeEdgeLabelPosition"
           @resize="onResizeNode"
           @add-row="onAddTableRow"
           @add-column="onAddTableColumn"
@@ -304,7 +306,7 @@ const sketchMode = ref(false)
 const drawMode = ref(false)
 const elementSketchIds = ref(new Set<string>())
 const selectedNode = ref<NodeData | null>(null)
-const selectedEdge = ref<{ id: string; shape: string; stroke: string; strokeWidth: number; strokeDasharray: string; lineType: string; label?: string; sourceMarker?: string; targetMarker?: string } | null>(null)
+const selectedEdge = ref<{ id: string; shape: string; stroke: string; strokeWidth: number; strokeDasharray: string; routerName: string; connectorName: string; labelPosition: string; sourceMarker?: string; targetMarker?: string; strokeStyle?: string; label?: string; lineType?: string } | null>(null)
 const qabClosed = ref(false)
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -442,6 +444,12 @@ function onUpdateEdgeStyle(id: string, style: Record<string, unknown>) {
 }
 function onChangeEdgeType(id: string, lineType: string) {
   canvasRef.value?.changeEdgeType(id, lineType)
+}
+function onChangeEdgeMarker(id: string, side: 'source' | 'target', markerName: string) {
+  canvasRef.value?.changeEdgeMarker(id, side, markerName)
+}
+function onChangeEdgeLabelPosition(id: string, position: string) {
+  canvasRef.value?.changeEdgeLabelPosition(id, position)
 }
 function onResizeNode(id: string, w: number, h: number) {
   canvasRef.value?.resizeNode(id, w, h)

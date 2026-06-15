@@ -2,7 +2,7 @@ import { ref, watch, nextTick, onMounted, onUnmounted, type Ref } from 'vue'
 import { useAlignment } from './useAlignment'
 import { useStyleEditor, type EdgeViewData } from './useStyleEditor'
 import { useSketch } from './useSketch'
-import type { GraphData, NodeData, EdgeData, MaterialItem, NodeStyle } from '@uni-draw/shared'
+import type { GraphData, NodeData, EdgeData, MaterialItem, NodeStyle, RouterName, ConnectorName, MarkerName, StrokeStyleName } from '@uni-draw/shared'
 import { PRIMARY_COLOR, DEFAULT_PORTS, EDGE_SHAPES, getEdgeLineType, getEdgeLineVertices, isSameEdgeVertices, shortId } from '@uni-draw/shared'
 import { buildTableAttrs, buildTableMarkup, createDefaultTableData, normalizeTableData } from '../shapes/basic/table'
 import {
@@ -88,6 +88,11 @@ export interface UseCanvasReturn {
   updateNodeStyle: (id: string, style: Record<string, unknown>) => void
   updateEdgeStyle: (id: string, style: Record<string, unknown>) => void
   changeEdgeType: (id: string, lineType: string) => void
+  changeEdgeRouter: (id: string, routerName: RouterName) => void
+  changeEdgeConnector: (id: string, connectorName: ConnectorName) => void
+  changeEdgeMarker: (id: string, side: 'source' | 'target', markerName: MarkerName | 'none') => void
+  changeEdgeStrokeStyle: (id: string, strokeStyle: StrokeStyleName) => void
+  changeEdgeLabelPosition: (id: string, position: string) => void
   alignNodes: (direction: string) => void
   selectAll: () => void
   clearCanvas: () => void
@@ -288,6 +293,30 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
             },
           },
         },
+        {
+          name: 'source-arrowhead',
+          args: {
+            attrs: {
+              d: 'M -6 0 A 6 6 0 1 0 6 0 A 6 6 0 1 0 -6 0',
+              fill: '#ffffff',
+              stroke: '#5b8cff',
+              'stroke-width': 2,
+              cursor: 'move',
+            },
+          },
+        },
+        {
+          name: 'target-arrowhead',
+          args: {
+            attrs: {
+              d: 'M -6 0 A 6 6 0 1 0 6 0 A 6 6 0 1 0 -6 0',
+              fill: '#ffffff',
+              stroke: '#5b8cff',
+              'stroke-width': 2,
+              cursor: 'move',
+            },
+          },
+        },
       ],
     }, { async: false })
     const view = graph.findViewByCell(edge)
@@ -343,7 +372,7 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
     onSketchEdgeChange,
   } = sketch
 
-  const { extractEdgeData, updateNodeStyle, updateEdgeStyle, changeEdgeType } = useStyleEditor(
+  const { extractEdgeData, updateNodeStyle, updateEdgeStyle, changeEdgeType, changeEdgeRouter, changeEdgeConnector, changeEdgeMarker, changeEdgeStrokeStyle, changeEdgeLabelPosition } = useStyleEditor(
     () => engine?.getGraph() ?? null,
     selectedEdgeData,
   )
@@ -1490,6 +1519,11 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
     updateNodeStyle,
     updateEdgeStyle,
     changeEdgeType,
+    changeEdgeRouter,
+    changeEdgeConnector,
+    changeEdgeMarker,
+    changeEdgeStrokeStyle,
+    changeEdgeLabelPosition,
     alignNodes,
     selectAll,
     clearCanvas,

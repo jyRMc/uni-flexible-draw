@@ -1,107 +1,7 @@
-<template>
-  <div class="flexible-draw-wrapper">
-    <div
-      ref="containerRef"
-      class="flexible-draw"
-      @dragover.prevent
-      @drop.prevent="onExternalDrop"
-    />
-    <div v-if="drawMode" class="draw-brush-panel">
-      <div class="draw-brush-title">{{ t.drawPanel.title }}</div>
-      <div class="draw-brush-row">
-        <label>{{ t.drawPanel.color }}</label>
-        <ColorPicker :model-value="drawBrushStyle.stroke" @update:model-value="onDrawBrushColor" />
-      </div>
-      <div class="draw-brush-row">
-        <label>{{ t.drawPanel.style }}</label>
-        <div class="draw-brush-dash-list">
-          <button class="draw-brush-dash-btn" :class="{ active: drawBrushStyle.strokeDasharray === '' }" @click="setDrawStrokeDash('')">
-            <svg width="24" height="10" viewBox="0 0 24 10"><line x1="2" y1="5" x2="22" y2="5" stroke="currentColor" stroke-width="2" stroke-linecap="round" /></svg>
-          </button>
-          <button class="draw-brush-dash-btn" :class="{ active: drawBrushStyle.strokeDasharray === '5 5' }" @click="setDrawStrokeDash('5 5')">
-            <svg width="24" height="10" viewBox="0 0 24 10"><line x1="2" y1="5" x2="22" y2="5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-dasharray="5 3" /></svg>
-          </button>
-          <button class="draw-brush-dash-btn" :class="{ active: drawBrushStyle.strokeDasharray === '2 4' }" @click="setDrawStrokeDash('2 4')">
-            <svg width="24" height="10" viewBox="0 0 24 10"><line x1="2" y1="5" x2="22" y2="5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-dasharray="2 3" /></svg>
-          </button>
-        </div>
-      </div>
-      <div class="draw-brush-row">
-        <label>{{ t.drawPanel.width }}</label>
-        <input type="range" :value="drawBrushStyle.strokeWidth" min="1" max="12" step="0.5" @input="onDrawBrushWidth" />
-        <span>{{ drawBrushStyle.strokeWidth }}</span>
-      </div>
-      <div class="draw-brush-row">
-        <label>{{ t.drawPanel.opacity }}</label>
-        <input type="range" :value="drawBrushStyle.opacity" min="0.05" max="1" step="0.05" @input="onDrawBrushOpacity" />
-        <span>{{ Math.round(drawBrushStyle.opacity * 100) }}%</span>
-      </div>
-    </div>
-    <!-- 手绘覆盖层 -->
-    <canvas
-      v-if="drawMode"
-      ref="drawCanvasRef"
-      class="draw-overlay"
-      @mousedown="onDrawStart"
-      @mousemove="onDrawMove"
-      @mouseup="onDrawEnd"
-      @mouseleave="onDrawEnd"
-    />
-    <MiniMap
-      v-if="minimap"
-      ref="minimapRef"
-      class="mini-map-overlay"
-    />
-  </div>
-  <ContextMenu
-    :visible="contextMenuState.visible"
-    :x="contextMenuState.x"
-    :y="contextMenuState.y"
-    :has-selection="contextMenuState.hasSelection"
-    :can-paste="contextMenuState.canPaste"
-    :node-selection-count="contextMenuState.nodeSelectionCount"
-    :edge-selection-count="contextMenuState.edgeSelectionCount"
-    :has-single-node-selection="contextMenuState.hasSingleNodeSelection"
-    :all-selected-locked="contextMenuState.allSelectedLocked"
-    :can-group="contextMenuState.canGroup"
-    :can-ungroup="contextMenuState.canUngroup"
-    @action="onContextAction"
-    @close="canvas.hideContextMenu"
-  />
-  <!-- SVG 代码编辑器对话框 -->
-  <Teleport to="body">
-    <div v-if="canvas.svgEditState.value" class="svg-editor-mask" @click.self="canvas.closeSvgEditor">
-      <div class="svg-editor-dialog">
-        <div class="svg-editor-header">
-          <span class="svg-editor-title">{{ t.svgEditor.title }}</span>
-          <button class="svg-editor-close" @click="canvas.closeSvgEditor">✕</button>
-        </div>
-        <div class="svg-editor-body">
-          <textarea
-            v-model="svgEditorContent"
-            class="svg-editor-textarea"
-            spellcheck="false"
-            :placeholder="t.svgEditor.placeholder"
-          />
-          <div class="svg-editor-preview">
-            <div class="svg-preview-label">{{ t.svgEditor.preview }}</div>
-            <!-- eslint-disable-next-line vue/no-v-html -->
-            <div class="svg-preview-box" v-html="svgEditorContent" />
-          </div>
-        </div>
-        <div class="svg-editor-footer">
-          <button class="svg-editor-btn svg-editor-cancel" @click="canvas.closeSvgEditor">{{ t.svgEditor.cancel }}</button>
-          <button class="svg-editor-btn svg-editor-apply" @click="onSvgApply">{{ t.svgEditor.apply }}</button>
-        </div>
-      </div>
-    </div>
-  </Teleport>
-</template>
-
 <script setup lang="ts">
-import { toRef, ref, watch, onUnmounted, computed, nextTick } from 'vue'
+import { computed, nextTick, onUnmounted, ref, toRef, watch } from 'vue'
+import type { CanvasConfig, EdgeData, GraphData, NodeData } from '@uni-draw/shared'
 import { useLocale } from '../../locale'
-import type { GraphData, NodeData, EdgeData, CanvasConfig } from '@uni-draw/shared'
 import { useCanvas } from '../../composables/useCanvas'
 import ContextMenu from '../ContextMenu/ContextMenu.vue'
 import ColorPicker from '../ColorPicker/ColorPicker.vue'
@@ -168,7 +68,10 @@ const canvas = useCanvas({
 
 const svgEditorContent = computed({
   get: () => canvas.svgEditState.value?.content ?? '',
-  set: (v: string) => { if (canvas.svgEditState.value) canvas.svgEditState.value.content = v },
+  set: (v: string) => {
+    if (canvas.svgEditState.value)
+      canvas.svgEditState.value.content = v
+  },
 })
 
 const {
@@ -203,23 +106,26 @@ watch(() => props.minimap, async (enabled) => {
 
 const drawCanvasRef = ref<HTMLCanvasElement | null>(null)
 let isDrawing = false
-let drawPoints: { x: number; y: number }[] = []
+let drawPoints: { x: number, y: number }[] = []
 let drawCtx: CanvasRenderingContext2D | null = null
 
 function syncDrawCanvasSize() {
   const el = drawCanvasRef.value
   const wrapper = el?.parentElement
-  if (!el || !wrapper) return
+  if (!el || !wrapper)
+    return
   el.width = wrapper.clientWidth
   el.height = wrapper.clientHeight
 }
 
 function onDrawStart(e: MouseEvent) {
   const el = drawCanvasRef.value
-  if (!el) return
+  if (!el)
+    return
   syncDrawCanvasSize()
   drawCtx = el.getContext('2d')
-  if (!drawCtx) return
+  if (!drawCtx)
+    return
   isDrawing = true
   drawPoints = []
   const rect = el.getBoundingClientRect()
@@ -239,9 +145,9 @@ function onDrawStart(e: MouseEvent) {
   drawCtx.moveTo(ox, oy)
 }
 
-
 function onDrawMove(e: MouseEvent) {
-  if (!isDrawing || !drawCtx || !drawCanvasRef.value) return
+  if (!isDrawing || !drawCtx || !drawCanvasRef.value)
+    return
   const rect = drawCanvasRef.value.getBoundingClientRect()
   drawPoints.push({ x: e.clientX, y: e.clientY })
   drawCtx.lineTo(e.clientX - rect.left, e.clientY - rect.top)
@@ -249,7 +155,8 @@ function onDrawMove(e: MouseEvent) {
 }
 
 function onDrawEnd() {
-  if (!isDrawing) return
+  if (!isDrawing)
+    return
   isDrawing = false
   const el = drawCanvasRef.value
   if (!el || drawPoints.length < 2) {
@@ -299,11 +206,12 @@ function onDrawBrushOpacity(ev: Event) {
 }
 
 onUnmounted(() => {
-  if (drawMode.value) canvas.toggleDrawMode()
+  if (drawMode.value)
+    canvas.toggleDrawMode()
 })
 
 // 暴露 screenToCanvas 供父组件拖拽使用
-function screenToCanvas(clientX: number, clientY: number): { x: number; y: number } {
+function screenToCanvas(clientX: number, clientY: number): { x: number, y: number } {
   return canvas.screenToCanvas(clientX, clientY)
 }
 
@@ -318,6 +226,26 @@ function updateEdgeStyle(id: string, style: Record<string, unknown>): void {
 
 function changeEdgeType(id: string, lineType: string): void {
   canvas.changeEdgeType(id, lineType)
+}
+
+function changeEdgeRouter(id: string, routerName: string): void {
+  canvas.changeEdgeRouter(id, routerName as any)
+}
+
+function changeEdgeConnector(id: string, connectorName: string): void {
+  canvas.changeEdgeConnector(id, connectorName as any)
+}
+
+function changeEdgeMarker(id: string, side: 'source' | 'target', markerName: string): void {
+  canvas.changeEdgeMarker(id, side, markerName as any)
+}
+
+function changeEdgeStrokeStyle(id: string, strokeStyle: string): void {
+  canvas.changeEdgeStrokeStyle(id, strokeStyle as any)
+}
+
+function changeEdgeLabelPosition(id: string, position: string): void {
+  canvas.changeEdgeLabelPosition(id, position)
 }
 
 function toggleSketchMode(): boolean | undefined {
@@ -352,22 +280,23 @@ function readAsDataUrl(file: File): Promise<string> {
   })
 }
 
-function parseSvgSize(svg: string): { width: number; height: number } {
+function parseSvgSize(svg: string): { width: number, height: number } {
   const doc = new DOMParser().parseFromString(svg, 'image/svg+xml')
   const el = doc.querySelector('svg')
   const MAX = 400
-  const raw = (attr: string) => parseFloat(el?.getAttribute(attr) ?? '0')
-  let w = raw('width'), h = raw('height')
+  const raw = (attr: string) => Number.parseFloat(el?.getAttribute(attr) ?? '0')
+  let w = raw('width'); let h = raw('height')
   if (!(w > 0 && h > 0)) {
     const vb = el?.getAttribute('viewBox')?.split(/[\s,]+/).map(Number) ?? []
     if (vb.length >= 4) { w = vb[2]; h = vb[3] }
   }
-  if (!(w > 0 && h > 0)) return { width: 200, height: 200 }
+  if (!(w > 0 && h > 0))
+    return { width: 200, height: 200 }
   const s = Math.min(1, MAX / Math.max(w, h))
   return { width: Math.round(w * s), height: Math.round(h * s) }
 }
 
-function getImgSize(url: string): Promise<{ width: number; height: number }> {
+function getImgSize(url: string): Promise<{ width: number, height: number }> {
   return new Promise((resolve) => {
     const img = new Image()
     const MAX = 400
@@ -396,7 +325,8 @@ async function onExternalDrop(e: DragEvent) {
 
   // 处理外部文件拖放（SVG / 图片）
   const files = Array.from(e.dataTransfer?.files ?? [])
-  if (!files.length) return
+  if (!files.length)
+    return
   let ox = 0
   for (const file of files) {
     const filePos = canvas.screenToCanvas(e.clientX + ox, e.clientY)
@@ -404,7 +334,8 @@ async function onExternalDrop(e: DragEvent) {
       const text = await readAsText(file)
       const { width, height } = parseSvgSize(text)
       canvas.addExternalSvg(text, filePos, width, height)
-    } else if (file.type.startsWith('image/')) {
+    }
+    else if (file.type.startsWith('image/')) {
       const url = await readAsDataUrl(file)
       const { width, height } = await getImgSize(url)
       canvas.addExternalImage(url, filePos, width, height)
@@ -466,6 +397,11 @@ defineExpose({
   updateNodeStyle,
   updateEdgeStyle,
   changeEdgeType,
+  changeEdgeRouter,
+  changeEdgeConnector,
+  changeEdgeMarker,
+  changeEdgeStrokeStyle,
+  changeEdgeLabelPosition,
   toggleSketchMode,
   alignNodes,
   selectAll,
@@ -511,6 +447,116 @@ defineExpose({
   selectedEdgeData,
 })
 </script>
+
+<template>
+  <div class="flexible-draw-wrapper">
+    <div
+      ref="containerRef"
+      class="flexible-draw"
+      @dragover.prevent
+      @drop.prevent="onExternalDrop"
+    />
+    <div v-if="drawMode" class="draw-brush-panel">
+      <div class="draw-brush-title">
+        {{ t.drawPanel.title }}
+      </div>
+      <div class="draw-brush-row">
+        <label>{{ t.drawPanel.color }}</label>
+        <ColorPicker :model-value="drawBrushStyle.stroke" @update:model-value="onDrawBrushColor" />
+      </div>
+      <div class="draw-brush-row">
+        <label>{{ t.drawPanel.style }}</label>
+        <div class="draw-brush-dash-list">
+          <button class="draw-brush-dash-btn" :class="{ active: drawBrushStyle.strokeDasharray === '' }" @click="setDrawStrokeDash('')">
+            <svg width="24" height="10" viewBox="0 0 24 10"><line x1="2" y1="5" x2="22" y2="5" stroke="currentColor" stroke-width="2" stroke-linecap="round" /></svg>
+          </button>
+          <button class="draw-brush-dash-btn" :class="{ active: drawBrushStyle.strokeDasharray === '5 5' }" @click="setDrawStrokeDash('5 5')">
+            <svg width="24" height="10" viewBox="0 0 24 10"><line x1="2" y1="5" x2="22" y2="5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-dasharray="5 3" /></svg>
+          </button>
+          <button class="draw-brush-dash-btn" :class="{ active: drawBrushStyle.strokeDasharray === '2 4' }" @click="setDrawStrokeDash('2 4')">
+            <svg width="24" height="10" viewBox="0 0 24 10"><line x1="2" y1="5" x2="22" y2="5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-dasharray="2 3" /></svg>
+          </button>
+        </div>
+      </div>
+      <div class="draw-brush-row">
+        <label>{{ t.drawPanel.width }}</label>
+        <input type="range" :value="drawBrushStyle.strokeWidth" min="1" max="12" step="0.5" @input="onDrawBrushWidth">
+        <span>{{ drawBrushStyle.strokeWidth }}</span>
+      </div>
+      <div class="draw-brush-row">
+        <label>{{ t.drawPanel.opacity }}</label>
+        <input type="range" :value="drawBrushStyle.opacity" min="0.05" max="1" step="0.05" @input="onDrawBrushOpacity">
+        <span>{{ Math.round(drawBrushStyle.opacity * 100) }}%</span>
+      </div>
+    </div>
+    <!-- 手绘覆盖层 -->
+    <canvas
+      v-if="drawMode"
+      ref="drawCanvasRef"
+      class="draw-overlay"
+      @mousedown="onDrawStart"
+      @mousemove="onDrawMove"
+      @mouseup="onDrawEnd"
+      @mouseleave="onDrawEnd"
+    />
+    <MiniMap
+      v-if="minimap"
+      ref="minimapRef"
+      class="mini-map-overlay"
+    />
+  </div>
+  <ContextMenu
+    :visible="contextMenuState.visible"
+    :x="contextMenuState.x"
+    :y="contextMenuState.y"
+    :has-selection="contextMenuState.hasSelection"
+    :can-paste="contextMenuState.canPaste"
+    :node-selection-count="contextMenuState.nodeSelectionCount"
+    :edge-selection-count="contextMenuState.edgeSelectionCount"
+    :has-single-node-selection="contextMenuState.hasSingleNodeSelection"
+    :all-selected-locked="contextMenuState.allSelectedLocked"
+    :can-group="contextMenuState.canGroup"
+    :can-ungroup="contextMenuState.canUngroup"
+    @action="onContextAction"
+    @close="canvas.hideContextMenu"
+  />
+  <!-- SVG 代码编辑器对话框 -->
+  <Teleport to="body">
+    <div v-if="canvas.svgEditState.value" class="svg-editor-mask" @click.self="canvas.closeSvgEditor">
+      <div class="svg-editor-dialog">
+        <div class="svg-editor-header">
+          <span class="svg-editor-title">{{ t.svgEditor.title }}</span>
+          <button class="svg-editor-close" @click="canvas.closeSvgEditor">
+            ✕
+          </button>
+        </div>
+        <div class="svg-editor-body">
+          <textarea
+            v-model="svgEditorContent"
+            class="svg-editor-textarea"
+            spellcheck="false"
+            :placeholder="t.svgEditor.placeholder"
+          />
+          <div class="svg-editor-preview">
+            <div class="svg-preview-label">
+              {{ t.svgEditor.preview }}
+            </div>
+            <!-- eslint-disable-next-line vue/no-v-html -->
+            <div class="svg-preview-box" v-html="svgEditorContent" />
+          </div>
+        </div>
+        <div class="svg-editor-footer">
+          <button class="svg-editor-btn svg-editor-cancel" @click="canvas.closeSvgEditor">
+            {{ t.svgEditor.cancel }}
+          </button>
+          <button class="svg-editor-btn svg-editor-apply" @click="onSvgApply">
+            {{ t.svgEditor.apply }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </Teleport>
+</template>
 
 <style scoped>
 .flexible-draw-wrapper {
@@ -574,7 +620,7 @@ defineExpose({
   color: #777;
 }
 
-.draw-brush-row input[type="range"] {
+.draw-brush-row input[type='range'] {
   flex: 1;
   min-width: 0;
 }
@@ -768,7 +814,7 @@ defineExpose({
 }
 
 .svg-editor-apply {
-  background: #7166F0;
+  background: #7166f0;
   color: #fff;
 }
 </style>

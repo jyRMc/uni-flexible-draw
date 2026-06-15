@@ -1,15 +1,14 @@
-import { Graph } from '@antv/x6'
-import { NodeRegistry, EdgeRegistry } from '@uni-draw/core'
+import { EdgeRegistry, NodeRegistry } from '@uni-draw/core'
 import {
   BASIC_SHAPES,
-  FLOWCHART_SHAPES,
-  EDGE_SHAPES,
-  UML_SHAPES,
-  SEQUENCE_SHAPES,
-  ER_SHAPES,
   DFD_SHAPES,
-  SWIMLANE_SHAPES,
+  EDGE_SHAPES,
+  ER_SHAPES,
+  FLOWCHART_SHAPES,
+  SEQUENCE_SHAPES,
   STATE_SHAPES,
+  SWIMLANE_SHAPES,
+  UML_SHAPES,
 } from '@uni-draw/shared'
 import * as basic from './basic'
 import * as flowchart from './flowchart'
@@ -25,6 +24,9 @@ import * as state from './state'
  * 一键注册所有内置图形
  */
 export function registerAllShapes(): void {
+  // 注册带 defaultLabel 的 edge shape
+  edge.registerEdgeShape()
+
   // 基础图形
   NodeRegistry.register(BASIC_SHAPES.RECT, basic.basicRect)
   NodeRegistry.register(BASIC_SHAPES.ROUNDED_RECT, basic.basicRoundedRect)
@@ -126,12 +128,6 @@ export function registerAllShapes(): void {
   NodeRegistry.register(STATE_SHAPES.SIGNAL_SEND, state.stateSignalSend)
   NodeRegistry.register(STATE_SHAPES.SIGNAL_RECEIVE, state.stateSignalReceive)
 
-  // 边
-  EdgeRegistry.register(EDGE_SHAPES.LINE, edge.edgeLine)
+  // 边（X6 内置 'edge' 无需注册，仅注册草图边）
   EdgeRegistry.register(EDGE_SHAPES.SKETCH, edge.edgeSketch)
-  EdgeRegistry.register(EDGE_SHAPES.DASHED, edge.edgeDashed)
-  EdgeRegistry.register(EDGE_SHAPES.ARROW, edge.edgeArrow)
-  EdgeRegistry.register(EDGE_SHAPES.DOUBLE_ARROW, edge.edgeDoubleArrow)
-  EdgeRegistry.register(EDGE_SHAPES.CURVE, edge.edgeCurve)
-  EdgeRegistry.register(EDGE_SHAPES.ORTHOGONAL, edge.edgeOrthogonal)
 }
