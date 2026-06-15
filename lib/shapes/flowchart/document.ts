@@ -3,7 +3,7 @@ import type { Node } from '@antv/x6'
 export const flowchartDocument: Node.Config = {
   inherit: 'path',
   width: 100,
-  height: 70,
+  height: 140,
   markup: [
     { tagName: 'path', selector: 'body' },
     { tagName: 'text', selector: 'label' },

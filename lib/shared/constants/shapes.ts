@@ -148,6 +148,8 @@ export const SWIMLANE_SHAPES = {
  */
 export const STATE_SHAPES = {
   STATE: 'state-simple',
+  COMPOSITE: 'state-composite',
+  SUBMACHINE: 'state-submachine',
   INITIAL: 'state-initial',
   FINAL: 'state-final',
   SHALLOW_HISTORY: 'state-shallow-history',
@@ -245,6 +247,7 @@ export const RX_SUPPORTED_SHAPES: ReadonlySet<string> = new Set([
 
   // 状态图 - rect 系列
   STATE_SHAPES.STATE, // body=rect(rx=12)
+  STATE_SHAPES.COMPOSITE, // body=rect(rx=12)
   STATE_SHAPES.FORK, // body=rect(rx=0)
   STATE_SHAPES.JOIN, // body=rect(rx=0)
 ])

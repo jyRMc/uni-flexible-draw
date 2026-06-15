@@ -108,7 +108,6 @@ export class NodeFactory {
     const tableData = data.shape === 'basic-table'
       ? normalizeTableData((data.data as Record<string, unknown> | undefined)?.table)
       : null
-
     const labelAttrs = buildLabelAttrs(data.label)
     const labelText = typeof data.label === 'string' ? data.label : data.label?.text
 

@@ -4,7 +4,9 @@ import {
   actorPorts,
   diamondPorts,
   ellipsePorts,
+  forkPorts,
   fragmentPorts,
+  joinPorts,
   lifelinePorts,
   polygonPorts,
   rectPorts,
@@ -95,13 +97,33 @@ export function getShapePorts(shape: string): PortsConfig {
   }
 
   // ── State ──
-  if (shape === 'state-initial' || shape === 'state-final' || shape === 'state-junction'
-    || shape === 'state-shallow-history' || shape === 'state-deep-history'
-    || shape === 'state-entry-point' || shape === 'state-exit-point') {
+  if (shape === 'state-simple' || shape === 'state-composite' || shape === 'state-submachine') {
+    return rectPorts()
+  }
+  if (shape === 'state-initial' || shape === 'state-final'
+    || shape === 'state-shallow-history' || shape === 'state-deep-history') {
     return ellipsePorts(8)
   }
-  if (shape === 'state-choice' || shape === 'state-signal-send' || shape === 'state-signal-receive') {
-    return diamondPorts()
+  if (shape === 'state-choice' || shape === 'state-junction') {
+    return polygonPorts(4, undefined, '0.5,0.2 0.8,0.5 0.5,0.8 0.2,0.5')
+  }
+  if (shape === 'state-entry-point' || shape === 'state-exit-point') {
+    return rectPorts()
+  }
+  if (shape === 'state-signal-send') {
+    return polygonPorts(6, undefined, '0.03125,0.5 0.25,0.071428571 0.75,0.071428571 0.96875,0.5 0.75,0.928571429 0.25,0.928571429')
+  }
+  if (shape === 'state-signal-receive') {
+    return polygonPorts(6, undefined, '0.25,0.071428571 0.75,0.071428571 0.96875,0.5 0.75,0.928571429 0.25,0.928571429 0.03125,0.5')
+  }
+  if (shape === 'state-fork') {
+    return forkPorts()
+  }
+  if (shape === 'state-join') {
+    return joinPorts()
+  }
+  if (shape === 'state-terminate') {
+    return polygonPorts(4, undefined, '0.3,0.3 0.7,0.7 0.7,0.3 0.3,0.7')
   }
 
   // 默认矩形四边

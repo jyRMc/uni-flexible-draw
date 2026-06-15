@@ -171,32 +171,37 @@ export function getShapePreviewSVG(shape: string): string {
 
     // ── State ─────────────────────────────────────────────────────────
     case 'state-initial':
-      return `<svg viewBox="0 0 28 28" xmlns="http://www.w3.org/2000/svg"><circle cx="14" cy="14" r="11" fill="#1890ff"/></svg>`
+      return `<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg"><circle cx="20" cy="20" r="10" fill="#1a1a1a"/></svg>`
     case 'state-final':
-      return `<svg viewBox="0 0 28 28" xmlns="http://www.w3.org/2000/svg"><circle cx="14" cy="14" r="11" fill="none" stroke="#1890ff" stroke-width="2"/><circle cx="14" cy="14" r="7" fill="#1890ff"/></svg>`
+      return `<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg"><circle cx="20" cy="20" r="12" fill="none" stroke="#1a1a1a" stroke-width="2"/><circle cx="20" cy="20" r="6" fill="#1a1a1a"/></svg>`
     case 'state-simple':
-      return `<svg viewBox="0 0 44 24" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="2" width="40" height="20" rx="8" fill="#e6f7ff" stroke="#1890ff" stroke-width="2"/></svg>`
-    case 'state-fork':
-    case 'state-join':
-      return `<svg viewBox="0 0 10 30" xmlns="http://www.w3.org/2000/svg"><rect x="1" y="2" width="8" height="26" fill="#1890ff"/></svg>`
-    case 'state-choice':
-      return `<svg viewBox="0 0 28 28" xmlns="http://www.w3.org/2000/svg"><polygon points="14,2 26,14 14,26 2,14" fill="#fff7e6" stroke="#fa8c16" stroke-width="2"/></svg>`
+      return `<svg viewBox="0 0 48 32" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="2" width="44" height="28" rx="6" ry="6" fill="#f8fafc" stroke="#334155" stroke-width="2"/></svg>`
+    case 'state-composite':
+      return `<svg viewBox="0 0 48 36" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="2" width="44" height="32" rx="6" ry="6" fill="#f8fafc" stroke="#334155" stroke-width="2"/><line x1="2" y1="12" x2="46" y2="12" stroke="#334155" stroke-width="2"/></svg>`
+    case 'state-submachine':
+      return `<svg viewBox="0 0 48 32" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="2" width="44" height="28" rx="6" ry="6" fill="#f8fafc" stroke="#334155" stroke-width="2"/><text x="40" y="22" font-family="monospace" font-size="8" fill="#334155" text-anchor="middle">::</text></svg>`
     case 'state-shallow-history':
-      return `<svg viewBox="0 0 28 28" xmlns="http://www.w3.org/2000/svg"><circle cx="14" cy="14" r="11" fill="none" stroke="#1890ff" stroke-width="2"/><text x="14" y="18" text-anchor="middle" fill="#1890ff" font-size="12" font-weight="bold">H</text></svg>`
+      return `<svg viewBox="0 0 40 32" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="2" width="36" height="28" rx="4" ry="4" fill="#f8fafc" stroke="#334155" stroke-width="2"/><text x="20" y="22" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="600" fill="#1e293b" text-anchor="middle">H</text></svg>`
     case 'state-deep-history':
-      return `<svg viewBox="0 0 28 28" xmlns="http://www.w3.org/2000/svg"><circle cx="14" cy="14" r="11" fill="none" stroke="#1890ff" stroke-width="2"/><text x="14" y="18" text-anchor="middle" fill="#1890ff" font-size="12" font-weight="bold">H*</text></svg>`
+      return `<svg viewBox="0 0 40 32" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="2" width="36" height="28" rx="4" ry="4" fill="#f8fafc" stroke="#334155" stroke-width="2"/><text x="20" y="22" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="600" fill="#1e293b" text-anchor="middle">H*</text></svg>`
     case 'state-junction':
-      return `<svg viewBox="0 0 28 28" xmlns="http://www.w3.org/2000/svg"><circle cx="14" cy="14" r="11" fill="#1890ff"/></svg>`
+      return `<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><polygon points="16,4 28,16 16,28 4,16" fill="#334155"/></svg>`
+    case 'state-choice':
+      return `<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><polygon points="16,4 28,16 16,28 4,16" fill="#f8fafc" stroke="#334155" stroke-width="2"/><text x="16" y="19" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="600" fill="#1e293b" text-anchor="middle">?</text></svg>`
+    case 'state-fork':
+      return `<svg viewBox="0 0 48 32" xmlns="http://www.w3.org/2000/svg"><line x1="24" y1="2" x2="24" y2="12" stroke="#334155" stroke-width="2"/><line x1="4" y1="12" x2="44" y2="12" stroke="#334155" stroke-width="4" stroke-linecap="round"/><line x1="12" y1="12" x2="12" y2="30" stroke="#334155" stroke-width="2"/><line x1="24" y1="12" x2="24" y2="30" stroke="#334155" stroke-width="2"/><line x1="36" y1="12" x2="36" y2="30" stroke="#334155" stroke-width="2"/></svg>`
+    case 'state-join':
+      return `<svg viewBox="0 0 48 32" xmlns="http://www.w3.org/2000/svg"><line x1="12" y1="2" x2="12" y2="12" stroke="#334155" stroke-width="2"/><line x1="24" y1="2" x2="24" y2="12" stroke="#334155" stroke-width="2"/><line x1="36" y1="2" x2="36" y2="12" stroke="#334155" stroke-width="2"/><line x1="4" y1="12" x2="44" y2="12" stroke="#334155" stroke-width="4" stroke-linecap="round"/><line x1="24" y1="12" x2="24" y2="30" stroke="#334155" stroke-width="2"/></svg>`
     case 'state-entry-point':
-      return `<svg viewBox="0 0 28 28" xmlns="http://www.w3.org/2000/svg"><circle cx="14" cy="14" r="11" fill="none" stroke="#1890ff" stroke-width="2"/></svg>`
+      return `<svg viewBox="0 0 48 32" xmlns="http://www.w3.org/2000/svg"><rect x="10" y="2" width="36" height="28" rx="4" ry="4" fill="#f8fafc" stroke="#334155" stroke-width="2"/><circle cx="10" cy="16" r="4" fill="#f8fafc" stroke="#334155" stroke-width="2"/><line x1="2" y1="16" x2="6" y2="16" stroke="#334155" stroke-width="1.5"/><polygon points="6,16 3,13 3,19" fill="#334155"/></svg>`
     case 'state-exit-point':
-      return `<svg viewBox="0 0 28 28" xmlns="http://www.w3.org/2000/svg"><circle cx="14" cy="14" r="11" fill="none" stroke="#1890ff" stroke-width="2"/><line x1="8" y1="8" x2="20" y2="20" stroke="#1890ff" stroke-width="2"/></svg>`
+      return `<svg viewBox="0 0 48 32" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="2" width="36" height="28" rx="4" ry="4" fill="#f8fafc" stroke="#334155" stroke-width="2"/><circle cx="38" cy="16" r="4" fill="#f8fafc" stroke="#334155" stroke-width="2"/><line x1="38" y1="13" x2="38" y2="19" stroke="#334155" stroke-width="1"/><line x1="35" y1="13" x2="41" y2="19" stroke="#334155" stroke-width="1"/><line x1="42" y1="16" x2="46" y2="16" stroke="#334155" stroke-width="1.5"/><polygon points="46,16 43,13 43,19" fill="#334155"/></svg>`
     case 'state-terminate':
-      return `<svg viewBox="0 0 28 28" xmlns="http://www.w3.org/2000/svg"><circle cx="14" cy="14" r="11" fill="none" stroke="#ff4d4f" stroke-width="2"/><line x1="8" y1="8" x2="20" y2="20" stroke="#ff4d4f" stroke-width="2"/><line x1="20" y1="8" x2="8" y2="20" stroke="#ff4d4f" stroke-width="2"/></svg>`
+      return `<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><line x1="8" y1="8" x2="24" y2="24" stroke="#dc2626" stroke-width="2.5" stroke-linecap="round"/><line x1="24" y1="8" x2="8" y2="24" stroke="#dc2626" stroke-width="2.5" stroke-linecap="round"/></svg>`
     case 'state-signal-send':
-      return `<svg viewBox="0 0 32 28" xmlns="http://www.w3.org/2000/svg"><polygon points="16,2 30,14 16,26 2,14" fill="#e6f7ff" stroke="#1890ff" stroke-width="2"/><polygon points="16,6 26,14 16,22 6,14" fill="#1890ff"/></svg>`
+      return `<svg viewBox="0 0 48 32" xmlns="http://www.w3.org/2000/svg"><polygon points="2,16 12,2 36,2 46,16 36,30 12,30" fill="#f8fafc" stroke="#334155" stroke-width="2"/></svg>`
     case 'state-signal-receive':
-      return `<svg viewBox="0 0 32 28" xmlns="http://www.w3.org/2000/svg"><polygon points="16,2 30,14 16,26 2,14" fill="#e6f7ff" stroke="#1890ff" stroke-width="2"/><polygon points="16,6 26,14 16,22 6,14" fill="none" stroke="#1890ff" stroke-width="1.5"/></svg>`
+      return `<svg viewBox="0 0 48 32" xmlns="http://www.w3.org/2000/svg"><polygon points="12,2 36,2 46,16 36,30 12,30 2,16" fill="#f8fafc" stroke="#334155" stroke-width="2"/></svg>`
 
     // ── DFD ──────────────────────────────────────────────────────────
     case 'dfd-process':

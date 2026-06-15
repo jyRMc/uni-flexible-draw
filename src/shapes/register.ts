@@ -113,6 +113,8 @@ export function registerAllShapes(): void {
 
   // 状态图
   NodeRegistry.register(STATE_SHAPES.STATE, state.stateSimple)
+  NodeRegistry.register(STATE_SHAPES.COMPOSITE, state.stateComposite)
+  NodeRegistry.register(STATE_SHAPES.SUBMACHINE, state.stateSubmachine)
   NodeRegistry.register(STATE_SHAPES.INITIAL, state.stateInitial)
   NodeRegistry.register(STATE_SHAPES.FINAL, state.stateFinal)
   NodeRegistry.register(STATE_SHAPES.SHALLOW_HISTORY, state.stateShallowHistory)

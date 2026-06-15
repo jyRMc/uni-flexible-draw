@@ -382,6 +382,92 @@ export function activationPorts(style?: PortStyle): PortsConfig {
   }
 }
 
+/** Fork：1 个顶部 + 3 个底部分支 */
+export function forkPorts(style?: PortStyle): PortsConfig {
+  const attrs = portAttrs(style)
+  return {
+    groups: {
+      top: {
+        position(args: any) {
+          const bbox = args.bbox
+          return { x: bbox.width * 0.5, y: bbox.height * 0.1667 }
+        },
+        attrs,
+      },
+      bottom1: {
+        position(args: any) {
+          const bbox = args.bbox
+          return { x: bbox.width * 0.25, y: bbox.height * 0.8333 }
+        },
+        attrs,
+      },
+      bottom2: {
+        position(args: any) {
+          const bbox = args.bbox
+          return { x: bbox.width * 0.5, y: bbox.height * 0.8333 }
+        },
+        attrs,
+      },
+      bottom3: {
+        position(args: any) {
+          const bbox = args.bbox
+          return { x: bbox.width * 0.75, y: bbox.height * 0.8333 }
+        },
+        attrs,
+      },
+    },
+    items: [
+      { id: 'port-top', group: 'top' },
+      { id: 'port-bottom-1', group: 'bottom1' },
+      { id: 'port-bottom-2', group: 'bottom2' },
+      { id: 'port-bottom-3', group: 'bottom3' },
+    ],
+  }
+}
+
+/** Join：3 个顶部分支 + 1 个底部 */
+export function joinPorts(style?: PortStyle): PortsConfig {
+  const attrs = portAttrs(style)
+  return {
+    groups: {
+      top1: {
+        position(args: any) {
+          const bbox = args.bbox
+          return { x: bbox.width * 0.25, y: bbox.height * 0.1667 }
+        },
+        attrs,
+      },
+      top2: {
+        position(args: any) {
+          const bbox = args.bbox
+          return { x: bbox.width * 0.5, y: bbox.height * 0.1667 }
+        },
+        attrs,
+      },
+      top3: {
+        position(args: any) {
+          const bbox = args.bbox
+          return { x: bbox.width * 0.75, y: bbox.height * 0.1667 }
+        },
+        attrs,
+      },
+      bottom: {
+        position(args: any) {
+          const bbox = args.bbox
+          return { x: bbox.width * 0.5, y: bbox.height * 0.8333 }
+        },
+        attrs,
+      },
+    },
+    items: [
+      { id: 'port-top-1', group: 'top1' },
+      { id: 'port-top-2', group: 'top2' },
+      { id: 'port-top-3', group: 'top3' },
+      { id: 'port-bottom', group: 'bottom' },
+    ],
+  }
+}
+
 /** 时序图 Fragment：上下各 2 个 */
 export function fragmentPorts(style?: PortStyle): PortsConfig {
   const attrs = portAttrs(style)
