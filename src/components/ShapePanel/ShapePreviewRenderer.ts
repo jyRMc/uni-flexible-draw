@@ -181,9 +181,9 @@ export function getShapePreviewSVG(shape: string): string {
     case 'state-submachine':
       return `<svg viewBox="0 0 48 32" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="2" width="44" height="28" rx="6" ry="6" fill="#f8fafc" stroke="#334155" stroke-width="2"/><text x="40" y="22" font-family="monospace" font-size="8" fill="#334155" text-anchor="middle">::</text></svg>`
     case 'state-shallow-history':
-      return `<svg viewBox="0 0 40 32" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="2" width="36" height="28" rx="4" ry="4" fill="#f8fafc" stroke="#334155" stroke-width="2"/><text x="20" y="22" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="600" fill="#1e293b" text-anchor="middle">H</text></svg>`
+      return `<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><circle cx="16" cy="16" r="14" fill="#f8fafc" stroke="#334155" stroke-width="2"/><text x="16" y="20" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="600" fill="#1e293b" text-anchor="middle">H</text></svg>`
     case 'state-deep-history':
-      return `<svg viewBox="0 0 40 32" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="2" width="36" height="28" rx="4" ry="4" fill="#f8fafc" stroke="#334155" stroke-width="2"/><text x="20" y="22" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="600" fill="#1e293b" text-anchor="middle">H*</text></svg>`
+      return `<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><circle cx="16" cy="16" r="14" fill="#f8fafc" stroke="#334155" stroke-width="2"/><text x="16" y="20" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="600" fill="#1e293b" text-anchor="middle">H*</text></svg>`
     case 'state-junction':
       return `<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><polygon points="16,4 28,16 16,28 4,16" fill="#334155"/></svg>`
     case 'state-choice':

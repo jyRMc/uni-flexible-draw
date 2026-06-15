@@ -80,25 +80,31 @@ const rectPorts: any = {
 
 const forkPorts: any = {
   groups: {
-    top: { position: 'top', attrs: portAttrs },
+    top: {
+      position(args: any) {
+        const bbox = args.bbox
+        return { x: bbox.width * 0.5, y: bbox.height * 0.1667 }
+      },
+      attrs: portAttrs,
+    },
     bottom1: {
       position(args: any) {
         const bbox = args.bbox
-        return { x: bbox.width * 0.25, y: bbox.height }
+        return { x: bbox.width * 0.25, y: bbox.height * 0.8333 }
       },
       attrs: portAttrs,
     },
     bottom2: {
       position(args: any) {
         const bbox = args.bbox
-        return { x: bbox.width * 0.5, y: bbox.height }
+        return { x: bbox.width * 0.5, y: bbox.height * 0.8333 }
       },
       attrs: portAttrs,
     },
     bottom3: {
       position(args: any) {
         const bbox = args.bbox
-        return { x: bbox.width * 0.75, y: bbox.height }
+        return { x: bbox.width * 0.75, y: bbox.height * 0.8333 }
       },
       attrs: portAttrs,
     },
@@ -116,25 +122,31 @@ const joinPorts: any = {
     top1: {
       position(args: any) {
         const bbox = args.bbox
-        return { x: bbox.width * 0.25, y: 0 }
+        return { x: bbox.width * 0.25, y: bbox.height * 0.1667 }
       },
       attrs: portAttrs,
     },
     top2: {
       position(args: any) {
         const bbox = args.bbox
-        return { x: bbox.width * 0.5, y: 0 }
+        return { x: bbox.width * 0.5, y: bbox.height * 0.1667 }
       },
       attrs: portAttrs,
     },
     top3: {
       position(args: any) {
         const bbox = args.bbox
-        return { x: bbox.width * 0.75, y: 0 }
+        return { x: bbox.width * 0.75, y: bbox.height * 0.1667 }
       },
       attrs: portAttrs,
     },
-    bottom: { position: 'bottom', attrs: portAttrs },
+    bottom: {
+      position(args: any) {
+        const bbox = args.bbox
+        return { x: bbox.width * 0.5, y: bbox.height * 0.8333 }
+      },
+      attrs: portAttrs,
+    },
   },
   items: [
     { id: 'port-top-1', group: 'top1' },
@@ -192,21 +204,25 @@ export const stateSubmachine: Node.Config = {
   markup: [
     { tagName: 'rect', selector: 'body' },
     { tagName: 'text', selector: 'label' },
+    { tagName: 'path', selector: 'badgePath' },
     { tagName: 'text', selector: 'badge' },
   ],
   attrs: {
     body: { fill: FILL, stroke: STROKE, strokeWidth: 2, rx: 12, ry: 12, refWidth: 1, refHeight: 1 },
     label: { fill: STROKE, fontSize: 16, fontWeight: 500, textAnchor: 'middle', textVerticalAnchor: 'middle', refX: 0.5, refY: 0.5 },
-    badge: { text: '::', fill: STROKE, fontSize: 14, fontFamily: 'monospace', textAnchor: 'middle', textVerticalAnchor: 'middle', refX: 0.86, refY: 0.78 },
+    badgePath: { refD: 'M 0.78125 0.71429 L 0.84375 0.71429 L 0.84375 0.85714 L 0.78125 0.85714 Z', fill: 'none', stroke: STROKE, strokeWidth: 1.5 },
+    badge: { text: '::', fill: STROKE, fontSize: 10, fontFamily: 'monospace', textAnchor: 'middle', textVerticalAnchor: 'middle', refX: 0.8125, refY: 0.7857 },
   },
   ports: rectPorts,
 }
 
 export const stateInitial: Node.Config = {
-  inherit: 'circle',
   width: 40,
   height: 40,
-  attrs: { body: { fill: SOLID, stroke: SOLID, strokeWidth: 1 } },
+  markup: [
+    { tagName: 'circle', selector: 'body' },
+  ],
+  attrs: { body: { fill: SOLID, stroke: SOLID, strokeWidth: 1, refCx: 0.5, refCy: 0.5, refR: 0.3 } },
   ports: ellipsePorts(8),
 }
 
@@ -225,31 +241,31 @@ export const stateFinal: Node.Config = {
 }
 
 export const stateShallowHistory: Node.Config = {
-  width: 60,
+  width: 50,
   height: 50,
   markup: [
-    { tagName: 'rect', selector: 'body' },
+    { tagName: 'circle', selector: 'body' },
     { tagName: 'text', selector: 'hLabel' },
   ],
   attrs: {
-    body: { fill: FILL, stroke: STROKE, strokeWidth: 2, rx: 8, ry: 8, refWidth: 1, refHeight: 1 },
+    body: { fill: FILL, stroke: STROKE, strokeWidth: 2, refR: 0.5, refCx: 0.5, refCy: 0.5 },
     hLabel: { text: 'H', fill: STROKE, fontSize: 20, fontWeight: 600, textAnchor: 'middle', textVerticalAnchor: 'middle', refX: 0.5, refY: 0.5 },
   },
-  ports: rectPorts,
+  ports: ellipsePorts(8),
 }
 
 export const stateDeepHistory: Node.Config = {
-  width: 60,
+  width: 50,
   height: 50,
   markup: [
-    { tagName: 'rect', selector: 'body' },
+    { tagName: 'circle', selector: 'body' },
     { tagName: 'text', selector: 'hLabel' },
   ],
   attrs: {
-    body: { fill: FILL, stroke: STROKE, strokeWidth: 2, rx: 8, ry: 8, refWidth: 1, refHeight: 1 },
+    body: { fill: FILL, stroke: STROKE, strokeWidth: 2, refR: 0.5, refCx: 0.5, refCy: 0.5 },
     hLabel: { text: 'H*', fill: STROKE, fontSize: 18, fontWeight: 600, textAnchor: 'middle', textVerticalAnchor: 'middle', refX: 0.5, refY: 0.5 },
   },
-  ports: rectPorts,
+  ports: ellipsePorts(8),
 }
 
 export const stateJunction: Node.Config = {
@@ -328,7 +344,7 @@ export const stateEntryPoint: Node.Config = {
   ],
   attrs: {
     body: { fill: FILL, stroke: STROKE, strokeWidth: 2, rx: 12, ry: 12, refX: '21.429%', refY: '7.143%', refWidth: '71.429%', refHeight: '85.714%' },
-    label: { fill: STROKE, fontSize: 14, fontWeight: 500, textAnchor: 'middle', textVerticalAnchor: 'middle', refX: 0.5714, refY: 0.5 },
+    label: { fill: STROKE, fontSize: 14, fontWeight: 500, textAnchor: 'middle', textVerticalAnchor: 'middle', refX: 0.5714, refY: 0.5429 },
     point: { fill: FILL, stroke: STROKE, strokeWidth: 2, refCx: 0.2143, refCy: 0.5, refR: 0.0857 },
     arrowLine: { x1: '3.571%', y1: '50%', x2: '17.143%', y2: '50%', stroke: STROKE, strokeWidth: 2 },
     arrowHead: { refPoints: '0.1714,0.5 0.1286,0.4429 0.1286,0.5571', fill: STROKE },
@@ -350,7 +366,7 @@ export const stateExitPoint: Node.Config = {
   ],
   attrs: {
     body: { fill: FILL, stroke: STROKE, strokeWidth: 2, rx: 12, ry: 12, refX: '3.571%', refY: '7.143%', refWidth: '71.429%', refHeight: '85.714%' },
-    label: { fill: STROKE, fontSize: 14, fontWeight: 500, textAnchor: 'middle', textVerticalAnchor: 'middle', refX: 0.3929, refY: 0.5 },
+    label: { fill: STROKE, fontSize: 14, fontWeight: 500, textAnchor: 'middle', textVerticalAnchor: 'middle', refX: 0.3929, refY: 0.5429 },
     point: { fill: FILL, stroke: STROKE, strokeWidth: 2, refCx: 0.75, refCy: 0.5, refR: 0.0857 },
     cross1: { x1: '72.857%', y1: '45.714%', x2: '77.143%', y2: '54.286%', stroke: STROKE, strokeWidth: 1.5 },
     cross2: { x1: '77.143%', y1: '45.714%', x2: '72.857%', y2: '54.286%', stroke: STROKE, strokeWidth: 1.5 },

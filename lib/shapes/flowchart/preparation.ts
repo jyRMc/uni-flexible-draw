@@ -1,9 +1,9 @@
 import type { Node } from '@antv/x6'
 import { polygonPorts } from '../ports/ports'
 
-const refPoints = '0.1875,0.071429 0.96875,0.071429 0.84375,0.928571 0.0625,0.928571'
+const refPoints = '0.25,0.071429 0.75,0.071429 0.96875,0.5 0.75,0.928571 0.25,0.928571 0.03125,0.5'
 
-export const flowchartInputOutput: Node.Config = {
+export const flowchartPreparation: Node.Config = {
   inherit: 'polygon',
   width: 160,
   height: 70,
@@ -19,5 +19,5 @@ export const flowchartInputOutput: Node.Config = {
       fontSize: 14,
     },
   },
-  ports: polygonPorts(4, { stroke: '#334155' }, refPoints),
+  ports: polygonPorts(6, { stroke: '#334155' }, refPoints),
 }

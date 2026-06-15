@@ -4,14 +4,124 @@
   "category": "flowchart",
   "icon": "",
   "items": [
-    { "id": "flowchart-start-end", "name": "开始/结束", "shape": "flowchart-start-end", "defaultSize": { "width": 100, "height": 50 }, "defaultLabel": "开始" },
-    { "id": "flowchart-process", "name": "处理", "shape": "flowchart-process", "defaultSize": { "width": 100, "height": 60 }, "defaultLabel": "处理" },
-    { "id": "flowchart-decision", "name": "判断", "shape": "flowchart-decision", "defaultSize": { "width": 80, "height": 60 }, "defaultLabel": "判断" },
-    { "id": "flowchart-input-output", "name": "输入/输出", "shape": "flowchart-input-output", "defaultSize": { "width": 100, "height": 60 }, "defaultLabel": "输入输出" },
-    { "id": "flowchart-document", "name": "文档", "shape": "flowchart-document", "defaultSize": { "width": 100, "height": 70 }, "defaultLabel": "文档" },
-    { "id": "flowchart-database", "name": "数据库", "shape": "flowchart-database", "defaultSize": { "width": 100, "height": 70 }, "defaultLabel": "数据库" },
-    { "id": "flowchart-predefined", "name": "预定义处理", "shape": "flowchart-predefined", "defaultSize": { "width": 100, "height": 60 }, "defaultLabel": "预定义" },
-    { "id": "flowchart-connector", "name": "连接点", "shape": "flowchart-connector", "defaultSize": { "width": 20, "height": 20 }, "defaultLabel": "" },
-    { "id": "flowchart-merge", "name": "合并", "shape": "flowchart-merge", "defaultSize": { "width": 60, "height": 60 }, "defaultLabel": "" }
+    {
+      "id": "flowchart-start-end",
+      "name": "开始/结束",
+      "shape": "flowchart-start-end",
+      "defaultSize": { "width": 160, "height": 70 },
+      "defaultLabel": "开始"
+    },
+    {
+      "id": "flowchart-process",
+      "name": "处理",
+      "shape": "flowchart-process",
+      "defaultSize": { "width": 160, "height": 70 },
+      "defaultLabel": "处理"
+    },
+    {
+      "id": "flowchart-decision",
+      "name": "判断",
+      "shape": "flowchart-decision",
+      "defaultSize": { "width": 120, "height": 120 },
+      "defaultLabel": "判断"
+    },
+    {
+      "id": "flowchart-input-output",
+      "name": "输入/输出",
+      "shape": "flowchart-input-output",
+      "defaultSize": { "width": 160, "height": 70 },
+      "defaultLabel": "输入输出"
+    },
+    {
+      "id": "flowchart-predefined",
+      "name": "预定义处理",
+      "shape": "flowchart-predefined",
+      "defaultSize": { "width": 160, "height": 70 },
+      "defaultLabel": "预定义"
+    },
+    {
+      "id": "flowchart-connector",
+      "name": "连接符",
+      "shape": "flowchart-connector",
+      "defaultSize": { "width": 50, "height": 50 },
+      "defaultLabel": ""
+    },
+    {
+      "id": "flowchart-off-page-connector",
+      "name": "跨页连接符",
+      "shape": "flowchart-off-page-connector",
+      "defaultSize": { "width": 160, "height": 70 },
+      "defaultLabel": "跨页"
+    },
+    {
+      "id": "flowchart-document",
+      "name": "文档",
+      "shape": "flowchart-document",
+      "defaultSize": { "width": 160, "height": 90 },
+      "defaultLabel": "文档"
+    },
+    {
+      "id": "flowchart-multi-document",
+      "name": "多文档",
+      "shape": "flowchart-multi-document",
+      "defaultSize": { "width": 160, "height": 100 },
+      "defaultLabel": "多文档"
+    },
+    {
+      "id": "flowchart-preparation",
+      "name": "准备/初始化",
+      "shape": "flowchart-preparation",
+      "defaultSize": { "width": 160, "height": 70 },
+      "defaultLabel": "准备"
+    },
+    {
+      "id": "flowchart-manual-operation",
+      "name": "手动操作",
+      "shape": "flowchart-manual-operation",
+      "defaultSize": { "width": 160, "height": 70 },
+      "defaultLabel": "手动"
+    },
+    {
+      "id": "flowchart-delay",
+      "name": "延迟",
+      "shape": "flowchart-delay",
+      "defaultSize": { "width": 160, "height": 70 },
+      "defaultLabel": "延迟"
+    },
+    {
+      "id": "flowchart-database",
+      "name": "数据库",
+      "shape": "flowchart-database",
+      "defaultSize": { "width": 160, "height": 90 },
+      "defaultLabel": "数据库"
+    },
+    {
+      "id": "flowchart-display",
+      "name": "显示",
+      "shape": "flowchart-display",
+      "defaultSize": { "width": 160, "height": 70 },
+      "defaultLabel": "显示"
+    },
+    {
+      "id": "flowchart-annotation",
+      "name": "注释",
+      "shape": "flowchart-annotation",
+      "defaultSize": { "width": 160, "height": 70 },
+      "defaultLabel": "注释"
+    },
+    {
+      "id": "flowchart-merge",
+      "name": "合并",
+      "shape": "flowchart-merge",
+      "defaultSize": { "width": 40, "height": 40 },
+      "defaultLabel": ""
+    },
+    {
+      "id": "flowchart-sort",
+      "name": "排序",
+      "shape": "flowchart-sort",
+      "defaultSize": { "width": 120, "height": 100 },
+      "defaultLabel": "排序"
+    }
   ]
 }

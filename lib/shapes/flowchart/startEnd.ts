@@ -1,34 +1,22 @@
 import type { Node } from '@antv/x6'
+import { rectPorts } from '../ports/ports'
 
 export const flowchartStartEnd: Node.Config = {
   inherit: 'rect',
-  width: 100,
-  height: 50,
+  width: 160,
+  height: 70,
   attrs: {
     body: {
-      fill: '#e6f7ff',
-      stroke: '#1890ff',
+      fill: '#f8fafc',
+      stroke: '#334155',
       strokeWidth: 2,
-      rx: 25,
-      ry: 25,
+      rx: 30,
+      ry: 30,
     },
     label: {
-      fill: '#1890ff',
+      fill: '#334155',
       fontSize: 14,
     },
   },
-  ports: {
-    groups: {
-      top: { position: 'top', attrs: { circle: { r: 4, magnet: true, stroke: '#1890ff', fill: '#fff' } } },
-      bottom: { position: 'bottom', attrs: { circle: { r: 4, magnet: true, stroke: '#1890ff', fill: '#fff' } } },
-      left: { position: 'left', attrs: { circle: { r: 4, magnet: true, stroke: '#1890ff', fill: '#fff' } } },
-      right: { position: 'right', attrs: { circle: { r: 4, magnet: true, stroke: '#1890ff', fill: '#fff' } } },
-    },
-    items: [
-      { id: 'top', group: 'top' },
-      { id: 'bottom', group: 'bottom' },
-      { id: 'left', group: 'left' },
-      { id: 'right', group: 'right' },
-    ],
-  },
+  ports: rectPorts({ stroke: '#334155' }),
 }

@@ -63,11 +63,20 @@ export const FLOWCHART_SHAPES = {
   DECISION: 'flowchart-decision',
   INPUT_OUTPUT: 'flowchart-input-output',
   DOCUMENT: 'flowchart-document',
+  MULTI_DOCUMENT: 'flowchart-multi-document',
   PREDEFINED: 'flowchart-predefined',
   INTERNAL_STORAGE: 'flowchart-internal-storage',
   DATABASE: 'flowchart-database',
   CONNECTOR: 'flowchart-connector',
+  OFF_PAGE_CONNECTOR: 'flowchart-off-page-connector',
+  PREPARATION: 'flowchart-preparation',
+  MANUAL_OPERATION: 'flowchart-manual-operation',
+  DELAY: 'flowchart-delay',
+  DISPLAY: 'flowchart-display',
+  ANNOTATION: 'flowchart-annotation',
   MERGE: 'flowchart-merge',
+  SORT: 'flowchart-sort',
+  STORED_DATA: 'flowchart-stored-data',
 } as const
 
 /**
@@ -207,11 +216,11 @@ export const RX_SUPPORTED_SHAPES: ReadonlySet<string> = new Set([
   BASIC_SHAPES.DOCUMENT, // body=rect，可加圆角
 
   // 流程图 - rect 系列
-  FLOWCHART_SHAPES.START_END, // body=rect(rx=25)
+  FLOWCHART_SHAPES.START_END, // body=rect(rx=30)
   FLOWCHART_SHAPES.PROCESS, // body=rect
-  FLOWCHART_SHAPES.DOCUMENT, // body=rect
   FLOWCHART_SHAPES.DATABASE, // body=rect(rx=0)
   FLOWCHART_SHAPES.PREDEFINED, // body=rect
+  FLOWCHART_SHAPES.ANNOTATION, // body=rect(rx=8)
   FLOWCHART_SHAPES.INTERNAL_STORAGE, // body=rect
 
   // UML - rect 系列
@@ -270,11 +279,20 @@ export const RX_UNSUPPORTED_SHAPES: ReadonlySet<string> = new Set([
   // 基础图形 - ellipse 系列
   BASIC_SHAPES.CIRCLE,
 
-  // 流程图 - polygon/ellipse 系列
+  // 流程图 - polygon/ellipse/path 系列
   FLOWCHART_SHAPES.DECISION,
   FLOWCHART_SHAPES.INPUT_OUTPUT,
   FLOWCHART_SHAPES.CONNECTOR, // circle
+  FLOWCHART_SHAPES.OFF_PAGE_CONNECTOR,
+  FLOWCHART_SHAPES.MULTI_DOCUMENT,
+  FLOWCHART_SHAPES.PREPARATION,
+  FLOWCHART_SHAPES.MANUAL_OPERATION,
+  FLOWCHART_SHAPES.DELAY,
+  FLOWCHART_SHAPES.DISPLAY,
   FLOWCHART_SHAPES.MERGE,
+  FLOWCHART_SHAPES.SORT,
+  FLOWCHART_SHAPES.STORED_DATA,
+  FLOWCHART_SHAPES.DOCUMENT, // body=path
 
   // UML - ellipse/特殊
   UML_SHAPES.USE_CASE, // ellipse
