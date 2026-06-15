@@ -139,6 +139,7 @@ export class AntVRenderEngine {
     })
 
     // 安装 Selection 插件（点击/框选节点和边）
+    // 只监听左键，避免中键拖动画布时被识别为框选
     this.graph.use(
       new Selection({
         enabled: !options.readonly,
@@ -148,6 +149,7 @@ export class AntVRenderEngine {
         showNodeSelectionBox: !options.readonly,
         showEdgeSelectionBox: false,
         selectEdgeOnMoved: !options.readonly,
+        eventTypes: ['leftMouseDown'],
       }),
     )
 
