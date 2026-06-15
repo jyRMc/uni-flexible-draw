@@ -4,6 +4,7 @@ const zhCN: UniDrawLocale = {
   toolbar: {
     undo: '撤销',
     redo: '重做',
+    move: '移动',
     selectAll: '全选',
     panTool: '手形工具',
     zoomOut: '缩小',

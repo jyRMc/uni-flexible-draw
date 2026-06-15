@@ -114,6 +114,17 @@ describe('useStyleEditor', () => {
       isEdge: () => true,
       getAttrs: () => attrs,
       setAttrs: (a: any) => Object.assign(attrs, a),
+      attr: (path: string, value: any) => {
+        const keys = path.split('/')
+        let target: any = attrs
+        for (let i = 0; i < keys.length - 1; i++) {
+          const k = keys[i]
+          if (!target[k])
+            target[k] = {}
+          target = target[k]
+        }
+        target[keys[keys.length - 1]] = value
+      },
       getLabels: () => labels,
       setLabels: (l: any[]) => { labels.length = 0; labels.push(...l) },
       getRouter: () => null,

@@ -14,6 +14,26 @@ export interface EdgeViewData {
   targetMarker: string
 }
 
+function getMarkerDisplayName(marker: any): string {
+  if (!marker || marker === null)
+    return 'none'
+  const name = marker.name
+  if (!name)
+    return 'none'
+  // 'open' 在 X6 中通过 classic/block 等 marker 的 open: true 选项实现
+  if (marker.open === true && (name === 'classic' || name === 'block'))
+    return 'open'
+  return name
+}
+
+function buildMarkerConfig(value: string): any {
+  if (value === 'none')
+    return null
+  if (value === 'open')
+    return { name: 'classic', open: true }
+  return { name: value }
+}
+
 export function useStyleEditor(
   getGraph: () => any,
   selectedEdgeData: Ref<EdgeViewData | null>,
@@ -35,8 +55,8 @@ export function useStyleEditor(
       lineType = 'manhattan'
     const labels = edge.getLabels?.() ?? []
     const label = labels[0]?.attrs?.label?.text ?? ''
-    const sourceMarker = line.sourceMarker?.name ?? 'none'
-    const targetMarker = line.targetMarker?.name ?? 'none'
+    const sourceMarker = getMarkerDisplayName(line.sourceMarker)
+    const targetMarker = getMarkerDisplayName(line.targetMarker)
     return {
       id: edge.id,
       shape: edge.shape,
@@ -190,21 +210,18 @@ export function useStyleEditor(
     if (!cell || !cell.isEdge?.())
       return
     const edge = cell as any
-    const lineAttrs: Record<string, any> = {}
+    // 使用 attr(path, value) 精确设置，避免 setAttrs 的深合并把 null/Object 合并坏掉
     if ('stroke' in style)
-      lineAttrs.stroke = style.stroke
+      edge.attr('line/stroke', style.stroke)
     if ('strokeWidth' in style)
-      lineAttrs.strokeWidth = style.strokeWidth
+      edge.attr('line/strokeWidth', style.strokeWidth)
     if ('strokeDasharray' in style)
-      lineAttrs.strokeDasharray = style.strokeDasharray
+      edge.attr('line/strokeDasharray', style.strokeDasharray)
     if ('sourceMarker' in style) {
-      lineAttrs.sourceMarker = style.sourceMarker === 'none' ? null : { name: style.sourceMarker }
+      edge.attr('line/sourceMarker', buildMarkerConfig(style.sourceMarker as string))
     }
     if ('targetMarker' in style) {
-      lineAttrs.targetMarker = style.targetMarker === 'none' ? null : { name: style.targetMarker }
-    }
-    if (Object.keys(lineAttrs).length > 0) {
-      edge.setAttrs({ line: lineAttrs })
+      edge.attr('line/targetMarker', buildMarkerConfig(style.targetMarker as string))
     }
     if ('label' in style) {
       const txt = style.label as string

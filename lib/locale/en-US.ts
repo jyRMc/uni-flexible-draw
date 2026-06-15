@@ -4,6 +4,7 @@ const enUS: UniDrawLocale = {
   toolbar: {
     undo: 'Undo',
     redo: 'Redo',
+    move: 'Move',
     selectAll: 'Select All',
     panTool: 'Pan Tool',
     zoomOut: 'Zoom Out',

@@ -15,6 +15,7 @@ import {
   ImageDown,
   Maximize2,
   MousePointer2,
+  SquareMousePointer,
   PanelLeftClose,
   PanelLeftOpen,
   PenLine,
@@ -78,9 +79,12 @@ function emitAction(action: string) {
     </button>
     <div class="tb-divider" />
     <button class="tb-btn" :title="`${t.toolbar.selectAll} (Ctrl+A)`" @click="emitAction('selectAll')">
+      <SquareMousePointer :size="16" />
+    </button>
+    <button class="tb-btn" :class="{ active: !panMode }" :title="`${t.toolbar.move} `" @click="panMode && emitAction('togglePan')">
       <MousePointer2 :size="16" />
     </button>
-    <button class="tb-btn" :class="{ active: panMode }" :title="`${t.toolbar.panTool} (H)`" @click="emitAction('togglePan')">
+    <button class="tb-btn" :class="{ active: panMode }" :title="`${t.toolbar.panTool} (H)`" @click="!panMode && emitAction('togglePan')">
       <Hand :size="16" />
     </button>
     <div class="tb-divider" />

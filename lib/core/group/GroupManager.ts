@@ -81,10 +81,8 @@ export class GroupManager {
     const group = NodeFactory.createNode(this.graph, groupData)
     this.graph.addNode(group)
 
-    // 将子节点的位置转换为相对于 group 的坐标，然后 addChild
+    // 将节点加入 group；X6 中节点位置存储为世界坐标，加入父节点后无需转换坐标
     validNodes.forEach((n) => {
-      const pos = n.getPosition()
-      n.setPosition({ x: pos.x - groupX, y: pos.y - groupY })
       group.addChild(n)
     })
 
@@ -109,19 +107,15 @@ export class GroupManager {
         return
 
       const children = (group as any).getChildren?.() ?? []
-      const gPos = group.getPosition()
 
-      // freeze 暂停渲染，避免中途更新；unfreeze 后子节点 SVG 会从 group 中移出
-      this.graph.freeze()
-      children.forEach((child: Node) => {
-        const cPos = child.getPosition()
-        child.setPosition({ x: cPos.x + gPos.x, y: cPos.y + gPos.y })
-        group.removeChild(child)
-        toSelect.push(child)
+      // 使用 unembed 解除父子关系，子节点仍保留在画布中；X6 中节点位置为世界坐标，无需转换
+      this.graph.batchUpdate('ungroup', () => {
+        children.forEach((child: Node) => {
+          group.unembed(child)
+          toSelect.push(child)
+        })
+        group.remove({ deep: false } as any)
       })
-      this.graph.unfreeze()
-
-      group.remove({ deep: false } as any)
     })
 
     if (toSelect.length > 0) {
@@ -216,11 +210,7 @@ export class GroupManager {
     if (this.isDescendant(nodeId, groupId))
       return false
 
-    const gPos = group.getPosition()
-    const nPos = node.getPosition()
-
-    // 转换子节点位置为相对坐标
-    node.setPosition({ x: nPos.x - gPos.x, y: nPos.y - gPos.y })
+    // X6 中节点位置为世界坐标，加入 group 时无需转换
     group.addChild(node)
     this.fitGroupSize(group)
     return true
@@ -237,12 +227,8 @@ export class GroupManager {
     if ((group as Node).shape !== 'basic-group')
       return false
 
-    const gPos = group.getPosition()
-    const nPos = node.getPosition()
-
-    group.removeChild(node)
-    // 恢复世界坐标
-    node.setPosition({ x: nPos.x + gPos.x, y: nPos.y + gPos.y })
+    // 使用 unembed 解除父子关系，子节点仍保留在画布中；X6 中节点位置为世界坐标，无需转换
+    group.unembed(node)
     this.fitGroupSize(group)
     return true
   }
@@ -319,19 +305,31 @@ export class GroupManager {
     let maxX = -Infinity
     let maxY = -Infinity
 
+    const gPos = group.getPosition()
     children.forEach((child: Node) => {
+      // group 中可能包含边等非节点元素，跳过
+      if (!child.isNode?.())
+        return
       const pos = child.getPosition()
       const size = child.getSize()
-      minX = Math.min(minX, pos.x)
-      minY = Math.min(minY, pos.y)
-      maxX = Math.max(maxX, pos.x + size.width)
-      maxY = Math.max(maxY, pos.y + size.height)
+      // 子节点在 X6 中存储为世界坐标，计算相对 group 的边界
+      const relX = pos.x - gPos.x
+      const relY = pos.y - gPos.y
+      minX = Math.min(minX, relX)
+      minY = Math.min(minY, relY)
+      maxX = Math.max(maxX, relX + size.width)
+      maxY = Math.max(maxY, relY + size.height)
     })
 
     const padding = GROUP_PADDING
     const newW = Math.max(maxX - minX + padding * 2, GROUP_MIN_SIZE)
     const newH = Math.max(maxY - minY + padding * 2, GROUP_MIN_SIZE)
 
+    // 调整 group 位置，使其始终包裹所有子节点并保留 padding
+    group.setPosition({
+      x: gPos.x + minX - padding,
+      y: gPos.y + minY - padding,
+    })
     group.resize(newW, newH)
   }
 

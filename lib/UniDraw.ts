@@ -1166,7 +1166,7 @@ export class UniDraw {
       { label: t.properties.markerDiamond, value: 'diamond' },
       { label: t.properties.markerCircle, value: 'circle' },
     ], (next) => {
-      edge.setAttrs?.({ line: { sourceMarker: next === 'none' ? null : { name: next } } })
+      edge.attr?.('line/sourceMarker', next === 'none' ? null : { name: next })
       this.opts.onDataChange?.(this.getData())
     })
     appendSelectInput(t.properties.targetMarker, targetMarker, [
@@ -1177,7 +1177,7 @@ export class UniDraw {
       { label: t.properties.markerDiamond, value: 'diamond' },
       { label: t.properties.markerCircle, value: 'circle' },
     ], (next) => {
-      edge.setAttrs?.({ line: { targetMarker: next === 'none' ? null : { name: next } } })
+      edge.attr?.('line/targetMarker', next === 'none' ? null : { name: next })
       this.opts.onDataChange?.(this.getData())
     })
   }

@@ -1,4 +1,4 @@
-import { Graph } from '@antv/x6'
+import { Graph, Registry } from '@antv/x6'
 import { History } from '@antv/x6-plugin-history'
 import { Selection } from '@antv/x6-plugin-selection'
 import { Transform } from '@antv/x6-plugin-transform'
@@ -130,13 +130,22 @@ export class AntVRenderEngine {
       },
     })
 
+    // X6 没有内置 'open' 箭头，基于 block 注册一个空心箭头
+    if (!Registry.Marker.registry.get('open')) {
+      Graph.registerMarker('open', (options: any) => {
+        return Registry.Marker.presets.block({ ...options, open: true })
+      })
+    }
+
     // 安装 Selection 插件（点击/框选节点和边）
     // 只监听左键，避免中键拖动画布时被识别为框选
+    // rubberEdge 开启后框选可包含连接线
     this.graph.use(
       new Selection({
         enabled: !options.readonly,
         multiple: true,
         rubberband: !options.readonly,
+        rubberEdge: !options.readonly,
         movable: !options.readonly,
         showNodeSelectionBox: !options.readonly,
         showEdgeSelectionBox: false,
@@ -289,7 +298,7 @@ export class AntVRenderEngine {
         document.addEventListener('mouseup', onMouseUp)
       })
 
-      // 悬停边时高亮线条并显示顶点手柄
+      // 悬停边时高亮线条并显示顶点/端点手柄
       this.graph.on('edge:mouseenter', ({ edge }: any) => {
         highlightEdge(edge)
         if (edge.shape !== 'edge-sketch') {
@@ -313,6 +322,8 @@ export class AntVRenderEngine {
                 },
               },
             },
+            { name: 'source-arrowhead' },
+            { name: 'target-arrowhead' },
           ])
         }
       })

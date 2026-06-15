@@ -2,6 +2,7 @@ export interface UniDrawLocale {
   toolbar: {
     undo: string
     redo: string
+    move: string
     selectAll: string
     panTool: string
     zoomOut: string

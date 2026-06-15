@@ -239,15 +239,8 @@ export class NodeFactory {
    * 从 X6 节点提取 NodeData
    */
   static toData(node: Node): NodeData {
-    let position = node.getPosition()
+    const position = node.getPosition()
     const size = node.getSize()
-
-    // 如果节点有 parent，将相对坐标转换为世界坐标，以便序列化后正确恢复
-    const parentNode = (node as any).getParent?.()
-    if (parentNode) {
-      const pPos = parentNode.getPosition()
-      position = { x: position.x + pPos.x, y: position.y + pPos.y }
-    }
 
     // 从 attrs 提取样式（圆柱体从 topCap 读取，其他从 body 读取）
     const attrs = (node as any).getAttrs?.() ?? {}

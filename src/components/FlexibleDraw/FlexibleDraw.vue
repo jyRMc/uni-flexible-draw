@@ -480,58 +480,58 @@ defineExpose({
       ref="minimapRef"
       class="mini-map-overlay"
     />
-  </div>
-  <ContextMenu
-    :visible="contextMenuState.visible"
-    :x="contextMenuState.x"
-    :y="contextMenuState.y"
-    :has-selection="contextMenuState.hasSelection"
-    :can-paste="contextMenuState.canPaste"
-    :node-selection-count="contextMenuState.nodeSelectionCount"
-    :edge-selection-count="contextMenuState.edgeSelectionCount"
-    :has-single-node-selection="contextMenuState.hasSingleNodeSelection"
-    :all-selected-locked="contextMenuState.allSelectedLocked"
-    :can-group="contextMenuState.canGroup"
-    :can-ungroup="contextMenuState.canUngroup"
-    @action="onContextAction"
-    @close="canvas.hideContextMenu"
-  />
-  <!-- SVG 代码编辑器对话框 -->
-  <Teleport to="body">
-    <div v-if="canvas.svgEditState.value" class="svg-editor-mask" @click.self="canvas.closeSvgEditor">
-      <div class="svg-editor-dialog">
-        <div class="svg-editor-header">
-          <span class="svg-editor-title">{{ t.svgEditor.title }}</span>
-          <button class="svg-editor-close" @click="canvas.closeSvgEditor">
-            ✕
-          </button>
-        </div>
-        <div class="svg-editor-body">
-          <textarea
-            v-model="svgEditorContent"
-            class="svg-editor-textarea"
-            spellcheck="false"
-            :placeholder="t.svgEditor.placeholder"
-          />
-          <div class="svg-editor-preview">
-            <div class="svg-preview-label">
-              {{ t.svgEditor.preview }}
+    <ContextMenu
+      :visible="contextMenuState.visible"
+      :x="contextMenuState.x"
+      :y="contextMenuState.y"
+      :has-selection="contextMenuState.hasSelection"
+      :can-paste="contextMenuState.canPaste"
+      :node-selection-count="contextMenuState.nodeSelectionCount"
+      :edge-selection-count="contextMenuState.edgeSelectionCount"
+      :has-single-node-selection="contextMenuState.hasSingleNodeSelection"
+      :all-selected-locked="contextMenuState.allSelectedLocked"
+      :can-group="contextMenuState.canGroup"
+      :can-ungroup="contextMenuState.canUngroup"
+      @action="onContextAction"
+      @close="canvas.hideContextMenu"
+    />
+    <!-- SVG 代码编辑器对话框 -->
+    <Teleport to="body">
+      <div v-if="canvas.svgEditState.value" class="svg-editor-mask" @click.self="canvas.closeSvgEditor">
+        <div class="svg-editor-dialog">
+          <div class="svg-editor-header">
+            <span class="svg-editor-title">{{ t.svgEditor.title }}</span>
+            <button class="svg-editor-close" @click="canvas.closeSvgEditor">
+              ✕
+            </button>
+          </div>
+          <div class="svg-editor-body">
+            <textarea
+              v-model="svgEditorContent"
+              class="svg-editor-textarea"
+              spellcheck="false"
+              :placeholder="t.svgEditor.placeholder"
+            />
+            <div class="svg-editor-preview">
+              <div class="svg-preview-label">
+                {{ t.svgEditor.preview }}
+              </div>
+              <!-- eslint-disable-next-line vue/no-v-html -->
+              <div class="svg-preview-box" v-html="svgEditorContent" />
             </div>
-            <!-- eslint-disable-next-line vue/no-v-html -->
-            <div class="svg-preview-box" v-html="svgEditorContent" />
+          </div>
+          <div class="svg-editor-footer">
+            <button class="svg-editor-btn svg-editor-cancel" @click="canvas.closeSvgEditor">
+              {{ t.svgEditor.cancel }}
+            </button>
+            <button class="svg-editor-btn svg-editor-apply" @click="onSvgApply">
+              {{ t.svgEditor.apply }}
+            </button>
           </div>
         </div>
-        <div class="svg-editor-footer">
-          <button class="svg-editor-btn svg-editor-cancel" @click="canvas.closeSvgEditor">
-            {{ t.svgEditor.cancel }}
-          </button>
-          <button class="svg-editor-btn svg-editor-apply" @click="onSvgApply">
-            {{ t.svgEditor.apply }}
-          </button>
-        </div>
       </div>
-    </div>
-  </Teleport>
+    </Teleport>
+  </div>
 </template>
 
 <style scoped>

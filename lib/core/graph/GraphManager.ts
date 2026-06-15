@@ -50,10 +50,7 @@ export class GraphManager {
           const parent = nodeMap.get(nodeData.parent)
           const child = nodeMap.get(nodeData.id)
           if (parent && child && parent.id !== child.id) {
-            const cPos = child.getPosition()
-            const pPos = parent.getPosition()
-            // 转换为相对坐标
-            child.setPosition({ x: cPos.x - pPos.x, y: cPos.y - pPos.y })
+            // X6 中节点位置存储为世界坐标，建立父子关系时无需转换坐标
             parent.addChild(child)
           }
         }
