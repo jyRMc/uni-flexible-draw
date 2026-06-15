@@ -25,13 +25,13 @@ export const umlDeployment: Node.Config = {
       fill: '#f0f0f0',
       stroke: '#333333',
       strokeWidth: 1,
-      refPoints: '0,0 20,-15 140,-15 120,0',
+      refPoints: '0,0 0.142857,-0.1875 1,-0.1875 0.857143,0',
     },
     rightFace: {
       fill: '#e0e0e0',
       stroke: '#333333',
       strokeWidth: 1,
-      refPoints: '140,0 140,80 160,65 160,-15 140,-15 140,0',
+      refPoints: '1,0 1,1 1.142857,0.8125 1.142857,-0.1875 1,-0.1875 1,0',
     },
     label: {
       fill: '#333333',

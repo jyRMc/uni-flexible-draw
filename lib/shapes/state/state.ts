@@ -303,11 +303,11 @@ export const stateFork: Node.Config = {
     { tagName: 'line', selector: 'branch3' },
   ],
   attrs: {
-    stem: { x1: '50%', y1: '16.667%', x2: '50%', y2: '50%', stroke: STROKE, strokeWidth: 2 },
-    bar: { x1: '16.667%', y1: '50%', x2: '83.333%', y2: '50%', stroke: STROKE, strokeWidth: 5, strokeLinecap: 'round' },
-    branch1: { x1: '25%', y1: '50%', x2: '25%', y2: '83.333%', stroke: STROKE, strokeWidth: 2 },
-    branch2: { x1: '50%', y1: '50%', x2: '50%', y2: '83.333%', stroke: STROKE, strokeWidth: 2 },
-    branch3: { x1: '75%', y1: '50%', x2: '75%', y2: '83.333%', stroke: STROKE, strokeWidth: 2 },
+    stem: { stroke: STROKE, strokeWidth: 2 },
+    bar: { stroke: STROKE, strokeWidth: 5, strokeLinecap: 'round' },
+    branch1: { stroke: STROKE, strokeWidth: 2 },
+    branch2: { stroke: STROKE, strokeWidth: 2 },
+    branch3: { stroke: STROKE, strokeWidth: 2 },
   },
   ports: forkPorts,
 }
@@ -323,11 +323,11 @@ export const stateJoin: Node.Config = {
     { tagName: 'line', selector: 'stem' },
   ],
   attrs: {
-    branch1: { x1: '25%', y1: '16.667%', x2: '25%', y2: '50%', stroke: STROKE, strokeWidth: 2 },
-    branch2: { x1: '50%', y1: '16.667%', x2: '50%', y2: '50%', stroke: STROKE, strokeWidth: 2 },
-    branch3: { x1: '75%', y1: '16.667%', x2: '75%', y2: '50%', stroke: STROKE, strokeWidth: 2 },
-    bar: { x1: '16.667%', y1: '50%', x2: '83.333%', y2: '50%', stroke: STROKE, strokeWidth: 5, strokeLinecap: 'round' },
-    stem: { x1: '50%', y1: '50%', x2: '50%', y2: '83.333%', stroke: STROKE, strokeWidth: 2 },
+    branch1: { stroke: STROKE, strokeWidth: 2 },
+    branch2: { stroke: STROKE, strokeWidth: 2 },
+    branch3: { stroke: STROKE, strokeWidth: 2 },
+    bar: { stroke: STROKE, strokeWidth: 5, strokeLinecap: 'round' },
+    stem: { stroke: STROKE, strokeWidth: 2 },
   },
   ports: joinPorts,
 }
@@ -346,7 +346,7 @@ export const stateEntryPoint: Node.Config = {
     body: { fill: FILL, stroke: STROKE, strokeWidth: 2, rx: 12, ry: 12, refX: '21.429%', refY: '7.143%', refWidth: '71.429%', refHeight: '85.714%' },
     label: { fill: STROKE, fontSize: 14, fontWeight: 500, textAnchor: 'middle', textVerticalAnchor: 'middle', refX: 0.5714, refY: 0.5429 },
     point: { fill: FILL, stroke: STROKE, strokeWidth: 2, refCx: 0.2143, refCy: 0.5, refR: 0.0857 },
-    arrowLine: { x1: '3.571%', y1: '50%', x2: '17.143%', y2: '50%', stroke: STROKE, strokeWidth: 2 },
+    arrowLine: { stroke: STROKE, strokeWidth: 2 },
     arrowHead: { refPoints: '0.1714,0.5 0.1286,0.4429 0.1286,0.5571', fill: STROKE },
   },
   ports: rectPorts,
@@ -368,9 +368,9 @@ export const stateExitPoint: Node.Config = {
     body: { fill: FILL, stroke: STROKE, strokeWidth: 2, rx: 12, ry: 12, refX: '3.571%', refY: '7.143%', refWidth: '71.429%', refHeight: '85.714%' },
     label: { fill: STROKE, fontSize: 14, fontWeight: 500, textAnchor: 'middle', textVerticalAnchor: 'middle', refX: 0.3929, refY: 0.5429 },
     point: { fill: FILL, stroke: STROKE, strokeWidth: 2, refCx: 0.75, refCy: 0.5, refR: 0.0857 },
-    cross1: { x1: '72.857%', y1: '45.714%', x2: '77.143%', y2: '54.286%', stroke: STROKE, strokeWidth: 1.5 },
-    cross2: { x1: '77.143%', y1: '45.714%', x2: '72.857%', y2: '54.286%', stroke: STROKE, strokeWidth: 1.5 },
-    arrowLine: { x1: '79.286%', y1: '50%', x2: '92.857%', y2: '50%', stroke: STROKE, strokeWidth: 2 },
+    cross1: { stroke: STROKE, strokeWidth: 1.5 },
+    cross2: { stroke: STROKE, strokeWidth: 1.5 },
+    arrowLine: { stroke: STROKE, strokeWidth: 2 },
     arrowHead: { refPoints: '0.9286,0.5 0.8857,0.4429 0.8857,0.5571', fill: STROKE },
   },
   ports: rectPorts,
@@ -384,8 +384,8 @@ export const stateTerminate: Node.Config = {
     { tagName: 'line', selector: 'cross2' },
   ],
   attrs: {
-    cross1: { x1: '30%', y1: '30%', x2: '70%', y2: '70%', stroke: TERMINATE, strokeWidth: 3, strokeLinecap: 'round' },
-    cross2: { x1: '70%', y1: '30%', x2: '30%', y2: '70%', stroke: TERMINATE, strokeWidth: 3, strokeLinecap: 'round' },
+    cross1: { stroke: TERMINATE, strokeWidth: 3, strokeLinecap: 'round' },
+    cross2: { stroke: TERMINATE, strokeWidth: 3, strokeLinecap: 'round' },
   },
   ports: terminatePorts,
 }
@@ -402,8 +402,8 @@ export const stateSignalSend: Node.Config = {
   attrs: {
     body: { fill: FILL, stroke: STROKE, strokeWidth: 2, refPoints: signalSendPoints },
     label: { fill: STROKE, fontSize: 14, fontWeight: 500, textAnchor: 'middle', textVerticalAnchor: 'middle', refX: 0.5, refY: 0.5 },
-    flap1: { x1: '75%', y1: '7.143%', x2: '96.875%', y2: '50%', stroke: STROKE, strokeWidth: 1.5 },
-    flap2: { x1: '75%', y1: '92.857%', x2: '96.875%', y2: '50%', stroke: STROKE, strokeWidth: 1.5 },
+    flap1: { stroke: STROKE, strokeWidth: 1.5 },
+    flap2: { stroke: STROKE, strokeWidth: 1.5 },
   },
   ports: signalSendPorts,
 }
@@ -420,8 +420,8 @@ export const stateSignalReceive: Node.Config = {
   attrs: {
     body: { fill: FILL, stroke: STROKE, strokeWidth: 2, refPoints: signalReceivePoints },
     label: { fill: STROKE, fontSize: 14, fontWeight: 500, textAnchor: 'middle', textVerticalAnchor: 'middle', refX: 0.5, refY: 0.5 },
-    flap1: { x1: '25%', y1: '7.143%', x2: '3.125%', y2: '50%', stroke: STROKE, strokeWidth: 1.5 },
-    flap2: { x1: '25%', y1: '92.857%', x2: '3.125%', y2: '50%', stroke: STROKE, strokeWidth: 1.5 },
+    flap1: { stroke: STROKE, strokeWidth: 1.5 },
+    flap2: { stroke: STROKE, strokeWidth: 1.5 },
   },
   ports: signalReceivePorts,
 }

@@ -11,7 +11,7 @@ import { PRIMARY_COLOR } from '../theme'
  *   topCap     顶部椭圆盖（最后绘制，覆盖边线顶端）
  *
  * 各元素使用 ref* 相对坐标，resize 时自动缩放。
- * ellipse cy_ratio = ry_ratio = 0.12，侧壁从 12%~88%。
+ * ellipse cy_ratio = ry_ratio = 0.12，侧壁从 24%~76%。
  */
 export const basicCylinder: Node.Config = {
   inherit: 'rect',
@@ -51,22 +51,12 @@ export const basicCylinder: Node.Config = {
       stroke: 'none',
     },
     leftLine: {
-      x1: '0%',
-      y1: '12%',
-      x2: '0%',
-      y2: '88%',
       stroke: PRIMARY_COLOR,
       strokeWidth: 2,
-      visibility: 'hidden',
     },
     rightLine: {
-      x1: '100%',
-      y1: '12%',
-      x2: '100%',
-      y2: '88%',
       stroke: PRIMARY_COLOR,
       strokeWidth: 2,
-      visibility: 'hidden',
     },
     topCap: {
       refCx: 0.5,
