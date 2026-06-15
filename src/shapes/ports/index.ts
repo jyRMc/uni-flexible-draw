@@ -39,7 +39,7 @@ export function getShapePorts(shape: string): PortsConfig {
     return polygonPorts(8, undefined, '0.3,0 0.7,0 1,0.3 1,0.7 0.7,1 0.3,1 0,0.7 0,0.3')
   }
   if (shape === 'basic-star') {
-    return starPorts(5)
+    return starPorts(5, undefined, '0.5,0 0.62,0.38 1,0.38 0.69,0.62 0.81,1 0.5,0.75 0.19,1 0.31,0.62 0,0.38 0.38,0.38')
   }
 
   // ── Flowchart ──

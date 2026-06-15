@@ -192,19 +192,44 @@ export function polygonPorts(n: number, style?: PortStyle, points?: string): Por
   return { groups, items }
 }
 
-/** 星形：5 个外顶点 + 5 个内凹点（共 10 个） */
-export function starPorts(points = 5, style?: PortStyle): PortsConfig {
+/**
+ * 星形：points 个外顶点 + points 个内凹点（共 points*2 个）
+ *
+ * @param points - 外顶点数
+ * @param style - 连接点样式
+ * @param vertices - 可选，与 shape 的 refPoints 一致的归一化顶点坐标串，
+ *                   提供后连接点将严格对齐实际绘图顶点，而不是按正星形估算。
+ */
+export function starPorts(points = 5, style?: PortStyle, vertices?: string): PortsConfig {
   const attrs = portAttrs(style)
   const groups: PortsConfig['groups'] = {}
   const items: PortsConfig['items'] = []
   const total = points * 2
+
+  // 解析归一化顶点坐标，用于精确对齐 polygon 的 refPoints
+  const normalizedVertices = vertices
+    ? vertices.trim().split(/\s+/).map((pair) => {
+        const [x, y] = pair.split(',').map(v => Number(v))
+        return { x, y }
+      })
+    : []
+
   for (let i = 0; i < total; i++) {
     const angle = (Math.PI * 2 * i) / total - Math.PI / 2
     const isOuter = i % 2 === 0
     const gid = `p${i}`
+    const normalized = normalizedVertices[i]
     groups[gid] = {
       position(args: any) {
         const bbox = args.bbox
+        // 如果提供了与 refPoints 对应的顶点坐标，直接使用，保证和实际绘制顶点重合
+        if (normalized) {
+          return {
+            x: bbox.width * normalized.x,
+            y: bbox.height * normalized.y,
+          }
+        }
+        // 否则按正星形估算
         const cx = bbox.width / 2
         const cy = bbox.height / 2
         const r = isOuter ? cx : cx * 0.4
