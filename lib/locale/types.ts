@@ -21,6 +21,8 @@ export interface UniDrawLocale {
     clearCanvas: string
     exportJson: string
     exportPng: string
+    exportSvg: string
+    noExportableContent: string
     group: string
     ungroup: string
   }

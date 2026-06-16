@@ -59,7 +59,10 @@ const UniDraw = forwardRef<UniDrawRef, UniDrawProps>((props, ref) => {
       onDataChange: onChange,
     })
     instanceRef.current = inst
-    return () => { inst.destroy(); instanceRef.current = null }
+    return () => {
+      inst.destroy()
+      instanceRef.current = null
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 

@@ -285,10 +285,14 @@ function parseSvgSize(svg: string): { width: number, height: number } {
   const el = doc.querySelector('svg')
   const MAX = 400
   const raw = (attr: string) => Number.parseFloat(el?.getAttribute(attr) ?? '0')
-  let w = raw('width'); let h = raw('height')
+  let w = raw('width')
+  let h = raw('height')
   if (!(w > 0 && h > 0)) {
     const vb = el?.getAttribute('viewBox')?.split(/[\s,]+/).map(Number) ?? []
-    if (vb.length >= 4) { w = vb[2]; h = vb[3] }
+    if (vb.length >= 4) {
+      w = vb[2]
+      h = vb[3]
+    }
   }
   if (!(w > 0 && h > 0))
     return { width: 200, height: 200 }

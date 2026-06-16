@@ -2,6 +2,7 @@ import './styles/unidraw.css'
 import { AntVRenderEngine } from './core/engine/AntVRenderEngine'
 import { GraphManager } from './core/graph/GraphManager'
 import { ExportService } from './core/export/ExportService'
+import { showMessage } from './core/message/MessageService'
 import { GraphEventBus } from './core/event/GraphEventBus'
 import { ZoomTool } from './core/tool/ZoomTool'
 import { ShortcutManager } from './core/shortcut/ShortcutManager'
@@ -78,6 +79,7 @@ const ICONS = {
   panelLeftOpen: icons['toolbar/panel-left-open'],
   trash: icons['toolbar/trash'],
   download: icons['toolbar/download'],
+  svg: icons['toolbar/svg'],
   json: icons['toolbar/json'],
   close: icons['toolbar/close'],
 }
@@ -317,6 +319,7 @@ export class UniDraw {
       sep(),
       btn('tb-btn', t.toolbar.exportJson, ICONS.json, () => this.exportJSONToFile()),
       btn('tb-btn', t.toolbar.exportPng, ICONS.download, () => this.exportPNGToFile()),
+      btn('tb-btn', t.toolbar.exportSvg, ICONS.svg, () => this.exportSVGToFile()),
     )
 
     return bar
@@ -1198,7 +1201,18 @@ export class UniDraw {
 
   // ── Export helpers ─────────────────────────────────────────────────────────
 
+  private isEmpty(): boolean {
+    const graph = (this as any)._graph
+    if (!graph)
+      return true
+    return graph.getNodes().length === 0 && graph.getEdges().length === 0
+  }
+
   private async exportPNGToFile(): Promise<void> {
+    if (this.isEmpty()) {
+      showMessage(this.t.toolbar.noExportableContent, 'warning')
+      return
+    }
     const dataUrl = await this.exportService?.toPNG({ padding: 20 })
     if (!dataUrl)
       return
@@ -1206,6 +1220,23 @@ export class UniDraw {
     a.href = dataUrl
     a.download = 'diagram.png'
     a.click()
+  }
+
+  private async exportSVGToFile(): Promise<void> {
+    if (this.isEmpty()) {
+      showMessage(this.t.toolbar.noExportableContent, 'warning')
+      return
+    }
+    const svgText = await this.exportService?.toSVG()
+    if (!svgText)
+      return
+    const blob = new Blob([svgText], { type: 'image/svg+xml;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'diagram.svg'
+    a.click()
+    URL.revokeObjectURL(url)
   }
 
   private exportJSONToFile(): void {

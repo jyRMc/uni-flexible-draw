@@ -504,7 +504,7 @@ const miniDiagrams: Record<string, string> = {
   align-items: center;
   transition:
     color 0.15s,
-   background 0.15s;
+    background 0.15s;
 }
 .tpl-close:hover {
   color: #333;
@@ -533,12 +533,12 @@ const miniDiagrams: Record<string, string> = {
   transition:
     border-color 0.18s,
     box-shadow 0.18s,
-   transform 0.18s;
+    transform 0.18s;
   cursor: pointer;
 }
 .tpl-card:hover {
   border-color: var(--primary);
-  box-shadow: 0 4px 16px rgba(113,1 102, 40, 0.18);
+  box-shadow: 0 4px 16px rgba(113, 1 102, 40, 0.18);
   transform: translateY(-2px);
 }
 
@@ -596,10 +596,10 @@ const miniDiagrams: Record<string, string> = {
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  box-shadow: 0 2px 8px rgba(113,1 102, 40, 0.4);
+  box-shadow: 0 2px 8px rgba(113, 1 102, 40, 0.4);
   transition:
     background 0.15s,
-   transform 0.12s;
+    transform 0.12s;
 }
 .btn-use:hover {
   background: #3d6fd6;

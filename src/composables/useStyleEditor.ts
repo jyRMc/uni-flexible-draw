@@ -18,6 +18,10 @@ import {
 } from '../shared'
 import { buildTableAttrs, normalizeTableData } from '../shapes/basic/table'
 
+/**
+ * 边视图数据接口
+ * 用于展示和编辑边的样式属性
+ */
 export interface EdgeViewData {
   id: string
   shape: string
@@ -35,10 +39,24 @@ export interface EdgeViewData {
   lineType: string
 }
 
+/**
+ * 样式编辑器组合式函数
+ * 提供节点和边的样式编辑能力
+ *
+ * @param getGraph - 获取 X6 Graph 实例的函数
+ * @param selectedEdgeData - 选中边数据的响应式引用
+ * @returns 样式编辑 API
+ */
 export function useStyleEditor(
   getGraph: () => any,
   selectedEdgeData: Ref<EdgeViewData | null>,
 ) {
+  /**
+   * 从边实例中提取视图数据
+   *
+   * @param edge - X6 Edge 实例
+   * @returns 边视图数据
+   */
   function extractEdgeData(edge: any): EdgeViewData {
     const line = edge.getAttrs?.()?.line ?? {}
     const router = edge.getRouter?.()

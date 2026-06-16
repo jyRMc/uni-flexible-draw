@@ -23,6 +23,8 @@ const zhCN: UniDrawLocale = {
     clearCanvas: '清空画布',
     exportJson: '导出 JSON',
     exportPng: '导出 PNG',
+    exportSvg: '导出 SVG',
+    noExportableContent: '暂无可导出资源',
     group: '组合',
     ungroup: '取消组合',
   },

@@ -72,7 +72,9 @@ onMounted(() => {
   if (!iconScrollRef.value)
     return
   iconViewportH.value = iconScrollRef.value.clientHeight || 300
-  const ro = new ResizeObserver(([e]) => { iconViewportH.value = e.contentRect.height })
+  const ro = new ResizeObserver(([e]) => {
+    iconViewportH.value = e.contentRect.height
+  })
   ro.observe(iconScrollRef.value)
   onUnmounted(() => ro.disconnect())
 })
@@ -130,12 +132,19 @@ const materialScrollRef = ref<HTMLElement | null>(null)
 
 async function searchMaterials(append = false) {
   const q = query.value.trim()
-  if (!q) { materialItems.value = []; materialTotal.value = 0; return }
+  if (!q) {
+    materialItems.value = []
+    materialTotal.value = 0
+    return
+  }
   if (!PIXABAY_KEY) {
     console.warn('[AssetsPanel] Set VITE_PIXABAY_KEY in .env to enable material search')
     return
   }
-  if (!append) { materialPage.value = 1; materialItems.value = [] }
+  if (!append) {
+    materialPage.value = 1
+    materialItems.value = []
+  }
   materialLoading.value = true
   try {
     const url = `https://pixabay.com/api/?key=${PIXABAY_KEY}&q=${encodeURIComponent(q)}&per_page=20&page=${materialPage.value}&image_type=all&safesearch=true`
@@ -159,7 +168,10 @@ async function searchMaterials(append = false) {
   }
 }
 
-function loadMoreMaterials() { materialPage.value++; searchMaterials(true) }
+function loadMoreMaterials() {
+  materialPage.value++
+  searchMaterials(true)
+}
 
 // ── Image lazy loading ────────────────────────────────────────────────
 let imageObserver: IntersectionObserver | null = null

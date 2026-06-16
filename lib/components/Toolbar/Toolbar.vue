@@ -9,17 +9,18 @@ import {
   AlignStartVertical,
   AlignVerticalSpaceBetween,
   Brush,
+  FileCode,
   FileJson,
   Group,
   Hand,
   ImageDown,
   Maximize2,
   MousePointer2,
-  SquareMousePointer,
   PanelLeftClose,
   PanelLeftOpen,
   PenLine,
   Redo2,
+  SquareMousePointer,
   Trash2,
   Undo2,
   Ungroup,
@@ -148,6 +149,9 @@ function emitAction(action: string) {
     </button>
     <button class="tb-btn" :title="t.toolbar.exportPng" @click="emitAction('export:png')">
       <ImageDown :size="16" />
+    </button>
+    <button class="tb-btn" :title="t.toolbar.exportSvg" @click="emitAction('export:svg')">
+      <FileCode :size="16" />
     </button>
   </div>
 </template>

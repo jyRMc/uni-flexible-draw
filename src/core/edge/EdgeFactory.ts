@@ -2,15 +2,8 @@ import type { Edge, Graph } from '@antv/x6'
 import type { ConnectorConfig, EdgeData, MarkerConfig, RouterConfig } from '../../shared'
 import {
   getConnectorConfig,
-  getEdgeLineConfig,
   getEdgeLineVertices,
-  getMarkerConfig,
   getRouterConfig,
-  getStrokeDasharray,
-  inferConnectorName,
-  inferMarkerName,
-  inferRouterName,
-  inferStrokeStyleName,
 } from '../../shared'
 import { edgeDefaults } from '../../shapes/edge/line'
 

@@ -8,6 +8,17 @@ export default antfu({
     css: true,
     html: true,
   },
+  rules: {
+    'no-console': 'off',
+    'antfu/top-level-function': 'off',
+    'vue/custom-event-name-casing': 'off',
+    '@typescript-eslint/no-explicit-any': 'off',
+    'react-hooks/exhaustive-deps': 'off',
+    'ts/no-use-before-define': 'off',
+    'unicorn/prefer-number-properties': 'off',
+    'regexp/no-super-linear-backtracking': 'off',
+  },
+}, {
   ignores: [
     '**/dist',
     '**/node_modules',
@@ -17,9 +28,10 @@ export default antfu({
     'vitest.setup.ts',
     'src/__tests__/**',
     'server/**/*.test.mjs',
+    'lib/**',
+    'server/**',
+    'scripts/**',
+    'uni-runtime.js',
+    'examples/**',
   ],
-  rules: {
-    'no-console': 'off',
-    'antfu/top-level-function': 'off',
-  },
 })

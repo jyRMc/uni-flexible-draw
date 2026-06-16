@@ -1,27 +1,3 @@
-<template>
-  <div class="shape-category">
-    <div class="shape-category-header" @click="toggle">
-      <span class="shape-category-arrow" :class="{ expanded: isExpanded }">›</span>
-      <span class="shape-category-name">{{ displayLibraryName }}</span>
-      <span class="shape-category-count">{{ library.items.length }}</span>
-    </div>
-    <div v-show="isExpanded" class="shape-category-items">
-      <div
-        v-for="item in library.items"
-        :key="item.id"
-        class="shape-category-item"
-        :title="item.name"
-        draggable="true"
-        @dragstart="(e: DragEvent) => onDragStart(item, e)"
-        @click="onSelect(item)"
-      >
-        <div v-if="isEdgePreviewShape(item)" class="shape-svg-preview" v-html="getEdgePreviewSvg(item)"></div>
-        <span v-else class="shape-icon-font iconfont" :class="getShapeIconClass(item.shape)" aria-hidden="true"></span>
-      </div>
-    </div>
-  </div>
-</template>
-
 <script setup lang="ts">
 import '../../../lib/icon/iconfont.css'
 import { computed, ref } from 'vue'
@@ -232,6 +208,30 @@ function getEdgePreviewSvg(item: MaterialItem): string {
   return `<svg viewBox="0 0 44 28" xmlns="http://www.w3.org/2000/svg">${srcArrow}${path}${tgtArrow}</svg>`
 }
 </script>
+
+<template>
+  <div class="shape-category">
+    <div class="shape-category-header" @click="toggle">
+      <span class="shape-category-arrow" :class="{ expanded: isExpanded }">›</span>
+      <span class="shape-category-name">{{ displayLibraryName }}</span>
+      <span class="shape-category-count">{{ library.items.length }}</span>
+    </div>
+    <div v-show="isExpanded" class="shape-category-items">
+      <div
+        v-for="item in library.items"
+        :key="item.id"
+        class="shape-category-item"
+        :title="item.name"
+        draggable="true"
+        @dragstart="(e: DragEvent) => onDragStart(item, e)"
+        @click="onSelect(item)"
+      >
+        <div v-if="isEdgePreviewShape(item)" class="shape-svg-preview" v-html="getEdgePreviewSvg(item)" />
+        <span v-else class="shape-icon-font iconfont" :class="getShapeIconClass(item.shape)" aria-hidden="true" />
+      </div>
+    </div>
+  </div>
+</template>
 
 <style scoped>
 .shape-category {

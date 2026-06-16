@@ -5,7 +5,6 @@ import { EdgeFactory } from '../edge/EdgeFactory'
 export interface ClipboardCell {
   type: 'node' | 'edge'
   shape: string
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   data: any
 }
 

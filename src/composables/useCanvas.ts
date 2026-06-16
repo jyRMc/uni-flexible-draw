@@ -154,6 +154,22 @@ export interface UseCanvasReturn {
   disableMinimap: () => void
 }
 
+/**
+ * 画布核心组合式函数
+ * 封装了 UniFlexibleDraw 的全部画布交互逻辑，包括：
+ * - 图形渲染与生命周期管理
+ * - 节点/边的增删改查
+ * - 视图控制（缩放、平移）
+ * - 剪贴板操作（复制、剪切、粘贴）
+ * - 草图模式与手绘风格
+ * - 样式编辑与对齐
+ * - 快捷键绑定
+ * - 上下文菜单
+ * - 迷你地图
+ *
+ * @param options - 画布配置选项
+ * @returns 画布操作 API
+ */
 export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
   const containerRef = ref<HTMLElement | null>(null)
   const zoom = ref(1)
@@ -201,14 +217,31 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
   const autoVertexEdgeIds = new Set<string>()
   const autoVertexTolerance = 4
 
+  // ── Alt + 拖拽复制状态 ─────────────────────────────────────────────────
+  let altDragClones: any[] | null = null
+  let altDragStartClientX = 0
+  let altDragStartClientY = 0
+  let altDragNodeStartPositions: Map<string, { x: number, y: number }> | null = null
+  let altDragMoveHandler: ((e: MouseEvent) => void) | null = null
+  let altDragUpHandler: (() => void) | null = null
+
+  /** 获取 X6 Graph 实例 */
   function getGraph() {
     return engine?.getGraph() ?? null
   }
 
+  /** 判断边是否为草图直线边（草图边不使用自动顶点） */
   function isSketchStraightEdge(edge: any): boolean {
     return edge?.shape === EDGE_SHAPES.SKETCH
   }
 
+  /**
+   * 计算边的自动顶点位置
+   * 自动顶点位于边的起点和终点的中点，用于支持边的拖拽操作
+   *
+   * @param edge - X6 Edge 实例
+   * @returns 顶点坐标，如果无法计算则返回 null
+   */
   function getAutoVertex(edge: any): { x: number, y: number } | null {
     if (isSketchStraightEdge(edge))
       return null
@@ -219,10 +252,17 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
     return { x: (src.x + tgt.x) / 2, y: (src.y + tgt.y) / 2 }
   }
 
+  /** 判断两个点是否在容差范围内接近 */
   function isNearPoint(a: { x: number, y: number }, b: { x: number, y: number }): boolean {
     return Math.abs(a.x - b.x) <= autoVertexTolerance && Math.abs(a.y - b.y) <= autoVertexTolerance
   }
 
+  /**
+   * 确保边有自动顶点（用于边拖拽）
+   * 如果边还没有顶点，自动添加一个中点顶点
+   *
+   * @param edge - X6 Edge 实例
+   */
   function ensureAutoVertex(edge: any): void {
     const vertices = edge.getVertices?.() ?? []
     if (vertices.length > 0)
@@ -234,6 +274,12 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
     edge.setVertices([vertex], { silent: true })
   }
 
+  /**
+   * 同步自动顶点位置
+   * 当边的端点位置变化时，自动更新顶点位置到中点
+   *
+   * @param edge - X6 Edge 实例
+   */
   function syncAutoVertex(edge: any): void {
     if (!autoVertexEdgeIds.has(edge.id))
       return
@@ -246,6 +292,12 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
     edge.setVertices([vertex], { silent: true })
   }
 
+  /**
+   * 释放边的自动顶点状态
+   * 如果顶点仍然在中点位置，则移除该顶点
+   *
+   * @param edge - X6 Edge 实例
+   */
   function releaseAutoVertex(edge: any): void {
     const vertices = edge.getVertices?.() ?? []
     const vertex = getAutoVertex(edge)
@@ -255,6 +307,12 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
     autoVertexEdgeIds.delete(edge.id)
   }
 
+  /**
+   * 刷新边的自动顶点状态
+   * 如果顶点已被用户手动调整（不再在中点位置），则取消自动顶点标记
+   *
+   * @param edge - X6 Edge 实例
+   */
   function refreshAutoVertexState(edge: any): void {
     if (!autoVertexEdgeIds.has(edge.id))
       return
@@ -379,7 +437,9 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
     eventBus.on('data:changed', (data: unknown) => {
       isEmittingUpdate = true
       options.onDataChange?.(data as GraphData)
-      nextTick(() => { isEmittingUpdate = false })
+      nextTick(() => {
+        isEmittingUpdate = false
+      })
     })
 
     // 监听缩放
@@ -399,6 +459,131 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
       clearContextSelection()
       hideContextMenu()
     })
+
+    // ── Alt + 拖拽复制 ──────────────────────────────────────────────────
+    // 必须用原生捕获阶段拦截 X6 之前，否则 X6 Selection 插件已锁定拖拽目标
+    const altCloneContainer = graph.container
+
+    const onAltCloneMouseDown = (e: MouseEvent) => {
+      if (!e.altKey) {
+        return
+      }
+
+      const target = e.target as HTMLElement | null
+      const nodeEl = target?.closest?.('[data-cell-id]') as HTMLElement | null
+      if (!nodeEl) {
+        return
+      }
+
+      const cellId = nodeEl.getAttribute('data-cell-id')
+      if (!cellId) {
+        return
+      }
+
+      const cell = graph.getCellById(cellId)
+      if (!cell || !cell.isNode?.()) {
+        return
+      }
+
+      // 阻止 X6 看到此次 mousedown
+      e.stopPropagation()
+      e.stopImmediatePropagation()
+
+      const selected = getSelectedCells()
+      const nodesToClone: any[] = []
+      const cloneIds = new Set<string>()
+      const isInSelection = selected.some((c: any) => c.id === cell.id && c.isNode?.())
+
+      if (isInSelection) {
+        for (const c of selected) {
+          if (c.isNode?.() && c.getData?.()?.locked !== true) {
+            nodesToClone.push(c)
+            cloneIds.add(c.id)
+          }
+        }
+      }
+
+      if (nodesToClone.length === 0) {
+        if (cell.getData?.()?.locked !== true) {
+          nodesToClone.push(cell)
+          cloneIds.add(cell.id)
+        }
+      }
+
+      if (nodesToClone.length === 0)
+        return
+
+      // 克隆关联边
+      const edgesToClone = selected.filter((c: any) =>
+        c.isEdge?.()
+        && cloneIds.has(typeof c.getSourceCellId === 'function' ? c.getSourceCellId() : c.getSourceCell?.() ?? '')
+        && cloneIds.has(typeof c.getTargetCellId === 'function' ? c.getTargetCellId() : c.getTargetCell?.() ?? ''),
+      )
+
+      const cellsToClone = [...nodesToClone, ...edgesToClone]
+      const cloned
+        = typeof (graph as any).cloneCells === 'function'
+          ? (graph as any).cloneCells(cellsToClone)
+          : []
+      if (cloned.length === 0) {
+        return
+      }
+      (graph as any).addCells(cloned)
+
+      // 选中克隆体
+      if (typeof (graph as any).cleanSelection === 'function') {
+        (graph as any).cleanSelection()
+      }
+      const clonedNodes = cloned.filter((c: any) => c.isNode?.())
+      graph.select(clonedNodes)
+
+      // 记录每个克隆体的初始 graph 坐标
+      const nodePositions = new Map<string, any>()
+      clonedNodes.forEach((n: any) => {
+        nodePositions.set(n.id, n.getPosition())
+      })
+
+      altDragClones = clonedNodes
+      altDragStartClientX = e.clientX
+      altDragStartClientY = e.clientY
+      altDragNodeStartPositions = nodePositions
+
+      // 在 document 上监听 move/up，手动驱动拖拽
+      altDragMoveHandler = (ev: MouseEvent) => {
+        if (!altDragClones || !altDragNodeStartPositions) {
+          return
+        }
+        const startLocal = graph.clientToLocal({ x: altDragStartClientX, y: altDragStartClientY })
+        const curLocal = graph.clientToLocal({ x: ev.clientX, y: ev.clientY })
+        const dx = curLocal.x - startLocal.x
+        const dy = curLocal.y - startLocal.y
+
+        altDragClones.forEach((clone: any) => {
+          const startPos = altDragNodeStartPositions!.get(clone.id)
+          if (startPos) {
+            clone.setPosition({ x: startPos.x + dx, y: startPos.y + dy })
+          }
+        })
+      }
+
+      altDragUpHandler = () => {
+        altDragClones = null
+        altDragNodeStartPositions = null
+        if (altDragMoveHandler) {
+          document.removeEventListener('mousemove', altDragMoveHandler)
+          altDragMoveHandler = null
+        }
+        if (altDragUpHandler) {
+          document.removeEventListener('mouseup', altDragUpHandler)
+          altDragUpHandler = null
+        }
+      }
+
+      document.addEventListener('mousemove', altDragMoveHandler)
+      document.addEventListener('mouseup', altDragUpHandler)
+    }
+
+    altCloneContainer.addEventListener('mousedown', onAltCloneMouseDown, true)
 
     // 监听节点/边选中
     graph.on('cell:selected', ({ cell }: any) => {
@@ -464,7 +649,9 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
         // 卸载边工具
         const view = graph.findViewByCell(cell)
         if (view) {
-          try { view.removeTools() }
+          try {
+            view.removeTools()
+          }
           catch {}
         }
       }
@@ -1320,8 +1507,10 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
     if (nodes.length === 0)
       return
 
-    let minX = Infinity; let minY = Infinity
-    let maxX = -Infinity; let maxY = -Infinity
+    let minX = Infinity
+    let minY = Infinity
+    let maxX = -Infinity
+    let maxY = -Infinity
 
     nodes.forEach((n: any) => {
       const pos = (n as any).getPosition?.() ?? { x: 0, y: 0 }
@@ -1453,24 +1642,60 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
   function handleContextAction(action: string): void {
     hideContextMenu()
     switch (action) {
-      case 'cut': cut(); break
-      case 'copy': copy(); break
-      case 'paste': paste(); break
-      case 'duplicate': duplicate(); break
-      case 'delete': deleteSelected(); break
-      case 'createFrame': createFrame(); break
-      case 'moveUp': moveUp(); break
-      case 'moveDown': moveDown(); break
-      case 'toTop': toFront(); break
-      case 'toBottom': toBack(); break
-      case 'flipH': flipH(); break
-      case 'flipV': flipV(); break
-      case 'toggleLock': toggleLock(); break
-      case 'addLink': addLink(); break
-      case 'copyAsPng': copyAsPng(); break
-      case 'copyAsSvg': copyAsSvg(); break
-      case 'group': groupNodes(); break
-      case 'ungroup': ungroupNodes(); break
+      case 'cut':
+        cut()
+        break
+      case 'copy':
+        copy()
+        break
+      case 'paste':
+        paste()
+        break
+      case 'duplicate':
+        duplicate()
+        break
+      case 'delete':
+        deleteSelected()
+        break
+      case 'createFrame':
+        createFrame()
+        break
+      case 'moveUp':
+        moveUp()
+        break
+      case 'moveDown':
+        moveDown()
+        break
+      case 'toTop':
+        toFront()
+        break
+      case 'toBottom':
+        toBack()
+        break
+      case 'flipH':
+        flipH()
+        break
+      case 'flipV':
+        flipV()
+        break
+      case 'toggleLock':
+        toggleLock()
+        break
+      case 'addLink':
+        addLink()
+        break
+      case 'copyAsPng':
+        copyAsPng()
+        break
+      case 'copyAsSvg':
+        copyAsSvg()
+        break
+      case 'group':
+        groupNodes()
+        break
+      case 'ungroup':
+        ungroupNodes()
+        break
     }
   }
 

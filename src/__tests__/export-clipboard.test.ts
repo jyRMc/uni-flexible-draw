@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it } from 'vitest'
 import { Graph } from '@antv/x6'
 import { ExportService } from '../core/export/ExportService'
 import { DataMigration } from '../core/export/DataMigration'

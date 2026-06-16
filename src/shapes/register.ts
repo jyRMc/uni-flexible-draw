@@ -1,4 +1,3 @@
-import { Graph } from '@antv/x6'
 import { EdgeRegistry, NodeRegistry } from '../core'
 import {
   BASIC_SHAPES,

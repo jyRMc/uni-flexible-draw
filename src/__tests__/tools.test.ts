@@ -36,7 +36,8 @@ describe('zoomTool', () => {
   })
 
   it('should zoom out', () => {
-    tool.zoomIn(); tool.zoomIn()
+    tool.zoomIn()
+    tool.zoomIn()
     const before = graph.zoom()
     tool.zoomOut()
     expect(graph.zoom()).toBeLessThan(before)

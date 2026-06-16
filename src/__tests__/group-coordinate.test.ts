@@ -182,7 +182,7 @@ describe('project group coordinate behavior', () => {
     group!.addChild(edge as any)
 
     // fitGroupSize 不应因边没有 getPosition 而报错
-    expect(() => groupManager['fitGroupSize'](group!)).not.toThrow()
+    expect(() => groupManager.fitGroupSize(group!)).not.toThrow()
 
     document.body.removeChild(container)
   })

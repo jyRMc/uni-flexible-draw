@@ -22,6 +22,8 @@ const enUS: UniDrawLocale = {
     clearCanvas: 'Clear Canvas',
     exportJson: 'Export JSON',
     exportPng: 'Export PNG',
+    exportSvg: 'Export SVG',
+    noExportableContent: 'No exportable content',
     group: 'Group',
     ungroup: 'Ungroup',
   },

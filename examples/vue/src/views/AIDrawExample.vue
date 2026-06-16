@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
-import { AssetItem, GraphData, TemplateItem, UniDraw, UniDrawLocale, enUS, zhCN } from '@uni-draw/draw'
+import type { AssetItem, GraphData, TemplateItem, UniDrawLocale } from '@uni-draw/draw'
+import { UniDraw, enUS, zhCN } from '@uni-draw/draw'
 import { type AIConnectionConfig, diagnoseAiConnection, generateGraph } from '../mocks/aiService'
 import { SCENARIO_TEMPLATES } from '../mocks/templates'
 import PreviewModal from '../components/PreviewModal.vue'

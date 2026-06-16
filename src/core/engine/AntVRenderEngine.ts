@@ -2,6 +2,7 @@ import { Graph } from '@antv/x6'
 import { History } from '@antv/x6-plugin-history'
 import { Selection } from '@antv/x6-plugin-selection'
 import { Transform } from '@antv/x6-plugin-transform'
+import { Export } from '@antv/x6-plugin-export'
 import type { CanvasConfig } from '@uni-draw/shared'
 import { PRIMARY_COLOR } from '@uni-draw/shared'
 import { icons } from '@/assets/icons'
@@ -73,7 +74,7 @@ export class AntVRenderEngine {
         : undefined,
       interacting: options.readonly
         ? { nodeMovable: false, edgeMovable: false, arrowheadMovable: false }
-        : ((cellView: any) => {
+        : (cellView: any) => {
             const cell = cellView.cell
             const isLocked = cell?.getData?.()?.locked === true
 
@@ -92,7 +93,7 @@ export class AntVRenderEngine {
               nodeMovable: !isLocked,
               magnetConnectable: !isLocked,
             }
-          }),
+          },
       connecting: {
         allowBlank: true,
         allowMulti: true,
@@ -136,15 +137,18 @@ export class AntVRenderEngine {
     this.graph.use(
       new Transform({
         resizing: {
-          enabled: (node) => node.getData()?.locked !== true,
+          enabled: node => node.getData()?.locked !== true,
           orthogonal: false,
           preserveAspectRatio: false,
         },
         rotating: {
-          enabled: (node) => node.getData()?.locked !== true,
+          enabled: node => node.getData()?.locked !== true,
         },
       }),
     )
+
+    // 安装 Export 插件（导出 PNG / SVG）
+    this.graph.use(new Export())
 
     // 注入旋转控制柄自定义图标
     this.injectRotateHandleStyle(options.rotateHandlePath)
@@ -169,18 +173,23 @@ export class AntVRenderEngine {
     if (!options.readonly) {
       this.graph.on('node:mouseenter', ({ node, view }: any) => {
         const ports = view.container.querySelectorAll('.x6-port-body') as NodeListOf<SVGElement>
-        ports.forEach((el) => { el.style.visibility = 'visible' })
+        ports.forEach((el) => {
+          el.style.visibility = 'visible'
+        })
         node.setTools([])
       })
       this.graph.on('node:mouseleave', ({ node, view }: any) => {
         const ports = view.container.querySelectorAll('.x6-port-body') as NodeListOf<SVGElement>
-        ports.forEach((el) => { el.style.visibility = 'hidden' })
+        ports.forEach((el) => {
+          el.style.visibility = 'hidden'
+        })
         node.removeTools()
       })
 
       // 双击节点：浮层 textarea 内联编辑标签（图片/SVG 节点由 useCanvas 处理）
       this.graph.on('node:dblclick', ({ node, e }: any) => {
-        if (node.shape === 'basic-image' || node.shape === 'basic-svg') return
+        if (node.shape === 'basic-image' || node.shape === 'basic-svg')
+          return
         e.stopPropagation()
         e.preventDefault()
 
@@ -189,12 +198,14 @@ export class AntVRenderEngine {
         const size = node.getSize()
 
         // 将图形坐标转换为客户端坐标
-        let clientX: number, clientY: number
+        let clientX: number
+        let clientY: number
         if (typeof (this.graph as any).localToClient === 'function') {
           const pt = (this.graph as any).localToClient({ x: pos.x, y: pos.y })
           clientX = pt.x
           clientY = pt.y
-        } else {
+        }
+        else {
           const { tx, ty } = this.graph!.translate()
           const rect = container.getBoundingClientRect()
           clientX = rect.left + tx + pos.x * zoom
@@ -241,8 +252,13 @@ export class AntVRenderEngine {
 
         editor.addEventListener('blur', commit)
         editor.addEventListener('keydown', (ke: KeyboardEvent) => {
-          if (ke.key === 'Enter' && !ke.shiftKey) { ke.preventDefault(); commit() }
-          if (ke.key === 'Escape' && document.body.contains(editor)) document.body.removeChild(editor)
+          if (ke.key === 'Enter' && !ke.shiftKey) {
+            ke.preventDefault()
+            commit()
+          }
+          if (ke.key === 'Escape' && document.body.contains(editor)) {
+            document.body.removeChild(editor)
+          }
         })
       })
     }
@@ -254,9 +270,11 @@ export class AntVRenderEngine {
    * 注入旋转控制柄自定义 SVG 图标
    */
   private injectRotateHandleStyle(path?: string): void {
-    if (typeof document === 'undefined') return
+    if (typeof document === 'undefined')
+      return
     const id = 'uni-draw-rotate-handle-style'
-    if (document.getElementById(id)) return
+    if (document.getElementById(id))
+      return
     const svg = path
       ? `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 32 32" fill="none" stroke="${PRIMARY_COLOR}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="${path}"/></svg>`
       : icons['toolbar/rotate-handle']

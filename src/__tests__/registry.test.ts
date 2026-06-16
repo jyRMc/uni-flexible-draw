@@ -1,5 +1,4 @@
 import { beforeEach, describe, expect, it } from 'vitest'
-import { Graph } from '@antv/x6'
 import { NodeRegistry } from '../core/node/NodeRegistry'
 import { EdgeRegistry } from '../core/edge/EdgeRegistry'
 

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 基础边（X6 内置 'edge'）
  *
  * 视觉效果完全由 router + connector + marker + attrs 四个维度组合决定，

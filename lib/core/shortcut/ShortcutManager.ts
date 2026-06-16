@@ -67,63 +67,93 @@ export class ShortcutManager {
 
       // Ctrl+X → 剪切
       if (ctrlOrCmd && !shift && key === 'x') {
-        e.preventDefault(); this.dispatch('cut'); return
+        e.preventDefault()
+        this.dispatch('cut')
+        return
       }
       // Ctrl+C → 拷贝
       if (ctrlOrCmd && !shift && key === 'c') {
-        e.preventDefault(); this.dispatch('copy'); return
+        e.preventDefault()
+        this.dispatch('copy')
+        return
       }
       // Ctrl+V → 粘贴
       if (ctrlOrCmd && !shift && key === 'v') {
-        e.preventDefault(); this.dispatch('paste'); return
+        e.preventDefault()
+        this.dispatch('paste')
+        return
       }
       // Ctrl+D → 复制
       if (ctrlOrCmd && !shift && key === 'd') {
-        e.preventDefault(); this.dispatch('duplicate'); return
+        e.preventDefault()
+        this.dispatch('duplicate')
+        return
       }
       // Shift+Alt+C → 复制为PNG
       if (shift && e.altKey && key === 'c') {
-        e.preventDefault(); this.dispatch('copyAsPng'); return
+        e.preventDefault()
+        this.dispatch('copyAsPng')
+        return
       }
       // Ctrl+Shift+[ → 置于底层
       if (ctrlOrCmd && shift && key === '[') {
-        e.preventDefault(); this.dispatch('toBack'); return
+        e.preventDefault()
+        this.dispatch('toBack')
+        return
       }
       // Ctrl+Shift+] → 置于顶层
       if (ctrlOrCmd && shift && key === ']') {
-        e.preventDefault(); this.dispatch('toFront'); return
+        e.preventDefault()
+        this.dispatch('toFront')
+        return
       }
       // Ctrl+[ → 下移一层
       if (ctrlOrCmd && !shift && key === '[') {
-        e.preventDefault(); this.dispatch('moveDown'); return
+        e.preventDefault()
+        this.dispatch('moveDown')
+        return
       }
       // Ctrl+] → 上移一层
       if (ctrlOrCmd && !shift && key === ']') {
-        e.preventDefault(); this.dispatch('moveUp'); return
+        e.preventDefault()
+        this.dispatch('moveUp')
+        return
       }
       // Shift+H → 水平翻转
       if (shift && !ctrlOrCmd && key === 'h') {
-        e.preventDefault(); this.dispatch('flipH'); return
+        e.preventDefault()
+        this.dispatch('flipH')
+        return
       }
       // Shift+V → 垂直翻转
       if (shift && !ctrlOrCmd && key === 'v') {
-        e.preventDefault(); this.dispatch('flipV'); return
+        e.preventDefault()
+        this.dispatch('flipV')
+        return
       }
       // Ctrl+K → 添加链接
       if (ctrlOrCmd && !shift && key === 'k') {
-        e.preventDefault(); this.dispatch('addLink'); return
+        e.preventDefault()
+        this.dispatch('addLink')
+        return
       }
       // Ctrl+Shift+L → 锁定
       if (ctrlOrCmd && shift && key === 'l') {
-        e.preventDefault(); this.dispatch('toggleLock'); return
+        e.preventDefault()
+        this.dispatch('toggleLock')
+        return
       }
       // Ctrl+G → 组合
       if (ctrlOrCmd && !shift && key === 'g') {
-        e.preventDefault(); this.dispatch('group'); return
+        e.preventDefault()
+        this.dispatch('group')
+        return
       }
       // Ctrl+Shift+G → 取消组合
       if (ctrlOrCmd && shift && key === 'g') {
-        e.preventDefault(); this.dispatch('ungroup'); return
+        e.preventDefault()
+        this.dispatch('ungroup')
+        return
       }
 
       // Ctrl+0 / Cmd+0 → 实际大小

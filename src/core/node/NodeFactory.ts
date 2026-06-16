@@ -6,6 +6,12 @@ import { getShapePorts } from '../../shapes/ports'
 import { shapeLineDefs } from '../../shapes/lineDefs'
 import { buildMultiRegionAttrs, getDefaultRegionData, getMultiRegionMarkup, isMultiRegionShape } from '../../shapes/utils/regionNodes'
 
+/**
+ * 构建标签属性对象
+ *
+ * @param label - 节点标签配置
+ * @returns 标签属性对象，如果没有有效属性则返回 undefined
+ */
 function buildLabelAttrs(label: NodeData['label']): Record<string, unknown> | undefined {
   if (typeof label !== 'object' || label === null)
     return undefined
@@ -30,6 +36,15 @@ function buildLabelAttrs(label: NodeData['label']): Record<string, unknown> | un
   return Object.keys(attrs).length > 0 ? attrs : undefined
 }
 
+/**
+ * 根据 X6 属性推断标签位置
+ *
+ * @param textVerticalAnchor - 垂直对齐方式
+ * @param refY - Y 轴参考位置
+ * @param textAnchor - 水平对齐方式
+ * @param refX - X 轴参考位置
+ * @returns 标签位置枚举值
+ */
 function inferLabelPosition(
   textVerticalAnchor?: string,
   refY?: string | number,
@@ -51,6 +66,7 @@ function inferLabelPosition(
   return 'center'
 }
 
+/** 端口位置计算上下文 */
 interface PortPositionContext {
   bbox: { width: number, height: number }
   portId?: string
@@ -58,6 +74,17 @@ interface PortPositionContext {
   node?: Node
 }
 
+/**
+ * 根据节点尺寸重新计算端口位置
+ * 用于支持动态端口位置计算（如泳道的端口）
+ *
+ * @param defaultPorts - 默认端口配置
+ * @param bbox - 节点边界框
+ * @param bbox.width - 边界框宽度
+ * @param bbox.height - 边界框高度
+ * @param node - X6 Node 实例
+ * @returns 重新计算后的端口数组
+ */
 function recomputePortItems(defaultPorts: any, bbox: { width: number, height: number }, node: Node): any[] {
   return (defaultPorts.items ?? []).map((item: any) => {
     const gcfg = defaultPorts.groups?.[item.group]
@@ -69,6 +96,13 @@ function recomputePortItems(defaultPorts: any, bbox: { width: number, height: nu
   })
 }
 
+/**
+ * 判断当前端口配置是否与默认配置一致
+ *
+ * @param current - 当前端口配置
+ * @param defaultPorts - 默认端口配置
+ * @returns 是否一致
+ */
 function isDefaultPortSet(current: any, defaultPorts: any): boolean {
   const currentItems = current?.items
   const defaultItems = defaultPorts?.items
@@ -81,6 +115,13 @@ function isDefaultPortSet(current: any, defaultPorts: any): boolean {
   )
 }
 
+/**
+ * 为节点绑定端口尺寸变化处理器
+ * 当节点尺寸变化时，自动更新使用函数式位置的端口坐标
+ *
+ * @param node - X6 Node 实例
+ * @param defaultPorts - 默认端口配置
+ */
 function attachPortResizeHandler(node: Node, defaultPorts: any): void {
   const hasFunctionPosition = Object.values(defaultPorts.groups ?? {}).some(
     (g: any) => typeof g.position === 'function',
@@ -97,6 +138,12 @@ function attachPortResizeHandler(node: Node, defaultPorts: any): void {
   })
 }
 
+/**
+ * 应用形状线条属性
+ * 根据节点尺寸计算并设置线条元素的坐标
+ *
+ * @param node - X6 Node 实例
+ */
 function applyLineAttrs(node: Node): void {
   const defs = shapeLineDefs[(node as any).shape]
   if (!defs)
@@ -115,6 +162,12 @@ function applyLineAttrs(node: Node): void {
   node.setAttrs(attrs)
 }
 
+/**
+ * 为节点绑定线条尺寸变化处理器
+ * 当节点尺寸变化时，自动更新线条元素的坐标
+ *
+ * @param node - X6 Node 实例
+ */
 function attachLineResizeHandler(node: Node): void {
   if (!shapeLineDefs[(node as any).shape])
     return

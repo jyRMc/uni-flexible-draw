@@ -2,6 +2,7 @@ import { Graph } from '@antv/x6'
 import { History } from '@antv/x6-plugin-history'
 import { Selection } from '@antv/x6-plugin-selection'
 import { Transform } from '@antv/x6-plugin-transform'
+import { Export } from '@antv/x6-plugin-export'
 import type { CanvasConfig } from '@uni-draw/shared'
 import { PRIMARY_COLOR } from '@uni-draw/shared'
 import { icons } from '../../assets/icons'
@@ -137,6 +138,9 @@ export class AntVRenderEngine {
         },
       }),
     )
+
+    // 安装 Export 插件（导出 PNG / SVG）
+    this.graph.use(new Export())
 
     // 注入旋转控制柄自定义图标
     this.injectRotateHandleStyle(options.rotateHandlePath)

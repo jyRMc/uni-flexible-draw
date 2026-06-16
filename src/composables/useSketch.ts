@@ -71,6 +71,10 @@ const EXCALIFONT_FONT_FACE_CSS = `
 }
 `
 
+/**
+ * 确保草图文本字体已加载
+ * 动态注入 Excalifont 和 Xiaolai SC 字体样式，用于手绘风格的文本显示
+ */
 function ensureSketchTextFontsLoaded() {
   if (typeof document === 'undefined')
     return
@@ -92,6 +96,13 @@ function ensureSketchTextFontsLoaded() {
   }
 }
 
+/**
+ * 获取草图文本属性
+ * 将文本字体替换为手绘风格字体
+ *
+ * @param attrs - 原始文本属性
+ * @returns 应用草图字体后的属性
+ */
 function getSketchTextAttrs(attrs: Record<string, any> | undefined) {
   return {
     ...(attrs ?? {}),
@@ -99,6 +110,13 @@ function getSketchTextAttrs(attrs: Record<string, any> | undefined) {
   }
 }
 
+/**
+ * 草图模式组合式函数
+ * 提供手绘风格渲染能力，基于 rough.js 实现
+ *
+ * @param getGraph - 获取 X6 Graph 实例的函数
+ * @returns 草图模式 API
+ */
 export function useSketch(getGraph: () => any) {
   const sketchMode = ref(false)
   const sketchElementIds = ref(new Set<string>())
@@ -109,6 +127,12 @@ export function useSketch(getGraph: () => any) {
   const originalAttrsMap = new Map<string, any>()
   let sketchRedrawing = false
 
+  /**
+   * 获取元素的草图种子值（用于保证相同元素每次渲染效果一致）
+   *
+   * @param id - 元素 ID
+   * @returns 种子值
+   */
   function getSeed(id: string): number {
     if (!seedMap.has(id)) {
       seedMap.set(id, Math.abs(hashStr(id)) || 1)
@@ -116,6 +140,12 @@ export function useSketch(getGraph: () => any) {
     return seedMap.get(id)!
   }
 
+  /**
+   * 字符串哈希函数
+   *
+   * @param s - 输入字符串
+   * @returns 哈希值
+   */
   function hashStr(s: string): number {
     let h = 0
     for (let i = 0; i < s.length; i++) {
@@ -124,14 +154,25 @@ export function useSketch(getGraph: () => any) {
     return Math.abs(h) || 1
   }
 
+  /** 触发 sketchElementIds 的响应式更新 */
   function markSketchElementIds() {
     sketchElementIds.value = new Set(sketchElementIds.value)
   }
 
+  /** 判断节点是否不支持草图模式（图片、SVG、表格） */
   function isSketchUnsupportedNode(node: any): boolean {
     return node?.shape === 'basic-image' || node?.shape === 'basic-svg' || node?.shape === 'basic-table'
   }
 
+  /**
+   * 解析 refPoints 属性为坐标点数组
+   * 支持百分比坐标（<= 1 的值视为百分比）
+   *
+   * @param refPoints - refPoints 字符串，格式如 "0,0 1,0 1,1 0,1"
+   * @param width - 节点宽度
+   * @param height - 节点高度
+   * @returns 坐标点数组
+   */
   function parseRefPoints(refPoints: string, width: number, height: number): [number, number][] {
     const pairs = refPoints.trim().split(/\s+/)
     return pairs.map((pair) => {
@@ -146,13 +187,20 @@ export function useSketch(getGraph: () => any) {
     })
   }
 
+  /**
+   * 对节点应用草图风格
+   * 使用 rough.js 渲染器将节点转换为手绘风格的 SVG 路径
+   *
+   * @param node - X6 Node 实例
+   */
   function applySketchToNode(node: any) {
     const graph = getGraph()
     if (!graph)
       return
     if (isSketchUnsupportedNode(node)) {
       return
-    }(graph as any).disableHistory?.()
+    }
+    (graph as any).disableHistory?.()
     ensureSketchTextFontsLoaded()
 
     const renderer = getSketchRenderer()
@@ -255,7 +303,8 @@ export function useSketch(getGraph: () => any) {
     const graph = getGraph()
     if (!graph) {
       return
-    }(graph as any).disableHistory?.()
+    }
+    (graph as any).disableHistory?.()
     ensureSketchTextFontsLoaded()
 
     let points: { x: number, y: number }[] = []
@@ -266,8 +315,10 @@ export function useSketch(getGraph: () => any) {
       if (d) {
         const re = /[ML]\s*([-.\deE]+)[,\s]+([-.\deE]+)/g
         let m: RegExpExecArray | null
-        while ((m = re.exec(d)) !== null) {
+        m = re.exec(d)
+        while (m !== null) {
           points.push({ x: Number.parseFloat(m[1]), y: Number.parseFloat(m[2]) })
+          m = re.exec(d)
         }
       }
     }
@@ -484,8 +535,12 @@ export function useSketch(getGraph: () => any) {
       return
     sketchElementIds.value.add(node.id)
     sketchRedrawing = true
-    try { applySketchToNode(node) }
-    finally { sketchRedrawing = false }
+    try {
+      applySketchToNode(node)
+    }
+    finally {
+      sketchRedrawing = false
+    }
     markSketchElementIds()
   }
 
@@ -494,8 +549,12 @@ export function useSketch(getGraph: () => any) {
       return
     sketchElementIds.value.add(edge.id)
     sketchRedrawing = true
-    try { applySketchToEdge(edge) }
-    finally { sketchRedrawing = false }
+    try {
+      applySketchToEdge(edge)
+    }
+    finally {
+      sketchRedrawing = false
+    }
     markSketchElementIds()
   }
 
@@ -505,8 +564,12 @@ export function useSketch(getGraph: () => any) {
     if (sketchRedrawing || !sketchElementIds.value.has(node.id))
       return
     sketchRedrawing = true
-    try { applySketchToNode(node) }
-    finally { sketchRedrawing = false }
+    try {
+      applySketchToNode(node)
+    }
+    finally {
+      sketchRedrawing = false
+    }
   }
 
   function onSketchNodeAttrsChange({ node }: any) {
@@ -515,16 +578,24 @@ export function useSketch(getGraph: () => any) {
     if (sketchRedrawing || !sketchElementIds.value.has(node.id))
       return
     sketchRedrawing = true
-    try { applySketchToNode(node) }
-    finally { sketchRedrawing = false }
+    try {
+      applySketchToNode(node)
+    }
+    finally {
+      sketchRedrawing = false
+    }
   }
 
   function onSketchEdgeChange({ edge }: any) {
     if (sketchRedrawing || !sketchElementIds.value.has(edge.id))
       return
     sketchRedrawing = true
-    try { applySketchToEdge(edge) }
-    finally { sketchRedrawing = false }
+    try {
+      applySketchToEdge(edge)
+    }
+    finally {
+      sketchRedrawing = false
+    }
   }
 
   return {

@@ -80,7 +80,7 @@ function assertConfig(config: AIConnectionConfig): asserts config is AIConnectio
 }
 
 function extractJson(text: string): GraphData {
-  const codeBlockMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/)
+  const codeBlockMatch = text.match(/```(?:json)?\s*([^`]*)```/)
   if (codeBlockMatch) {
     return JSON.parse(codeBlockMatch[1].trim())
   }
@@ -150,8 +150,9 @@ export async function generateGraph(
 
   while (true) {
     const { done, value } = await reader.read()
-    if (done)
+    if (done) {
       break
+    }
 
     const chunk = decoder.decode(value, { stream: true })
     for (const line of chunk.split('\n')) {
@@ -173,7 +174,8 @@ export async function generateGraph(
     }
   }
 
-  if (!fullContent)
+  if (!fullContent) {
     throw new Error('Empty response from API')
+  }
   return extractJson(fullContent)
 }

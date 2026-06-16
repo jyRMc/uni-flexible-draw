@@ -1,4 +1,4 @@
-﻿import type { Node } from '@antv/x6'
+import type { Node } from '@antv/x6'
 import { PRIMARY_COLOR } from '../theme'
 import { icons } from '@/assets/icons'
 

@@ -92,7 +92,7 @@ describe('useStyleEditor', () => {
           attrs[key] = { ...(attrs[key] ?? {}), ...a[key] }
         }
       },
-      setLabel: (l: string) => { /* no-op */ },
+      setLabel: (_l: string) => { /* no-op */ },
       setAttrByPath: (path: string, val: any) => {
         const parts = path.split('/')
         let target: any = attrs
@@ -126,7 +126,10 @@ describe('useStyleEditor', () => {
         target[keys[keys.length - 1]] = value
       },
       getLabels: () => labels,
-      setLabels: (l: any[]) => { labels.length = 0; labels.push(...l) },
+      setLabels: (l: any[]) => {
+        labels.length = 0
+        labels.push(...l)
+      },
       getRouter: () => null,
       getConnector: () => null,
       getData: () => ({}),

@@ -1,4 +1,23 @@
+/**
+ * 节点对齐组合式函数
+ * 提供多种对齐方式：左对齐、右对齐、顶部对齐、底部对齐、水平居中、垂直居中、水平等距、垂直等距
+ *
+ * @param getSelectedCells - 获取当前选中单元格的函数
+ */
 export function useAlignment(getSelectedCells: () => any[]) {
+  /**
+   * 对齐选中节点
+   *
+   * @param direction - 对齐方向，支持:
+   *   - 'left': 左对齐（以最左节点为基准）
+   *   - 'right': 右对齐（以最右节点为基准）
+   *   - 'top': 顶部对齐（以最顶部节点为基准）
+   *   - 'bottom': 底部对齐（以最底部节点为基准）
+   *   - 'center': 水平居中（所有节点中心对齐到选中节点中心点的平均值）
+   *   - 'middle': 垂直居中（所有节点中心对齐到选中节点中心点的平均值）
+   *   - 'h-equal': 水平等距分布
+   *   - 'v-equal': 垂直等距分布
+   */
   function alignNodes(direction: string): void {
     const nodes = getSelectedCells().filter((c: any) => c.isNode?.())
     if (nodes.length < 2)
