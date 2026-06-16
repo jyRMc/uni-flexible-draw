@@ -27,6 +27,8 @@ export interface FlexibleDrawProps {
   selectionDebounce?: number
 }
 
+defineOptions({ inheritAttrs: false })
+
 const props = withDefaults(defineProps<FlexibleDrawProps>(), {
   readonly: false,
   minimap: false,

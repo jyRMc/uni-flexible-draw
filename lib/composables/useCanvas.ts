@@ -576,13 +576,22 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
       )
 
       const cellsToClone = [...nodesToClone, ...edgesToClone]
-      const cloned
+      const clonedMap
         = typeof (graph as any).cloneCells === 'function'
           ? (graph as any).cloneCells(cellsToClone)
-          : []
+          : {}
+      const cloned = Object.values(clonedMap) as any[]
       if (cloned.length === 0) {
         return
-      }(graph as any).addCells(cloned)
+      }
+
+      for (const c of cloned) {
+        if (c.isNode?.()) {
+          graph.addNode(c)
+        } else if (c.isEdge?.()) {
+          graph.addEdge(c)
+        }
+      }
 
       // 选中克隆体
       if (typeof (graph as any).cleanSelection === 'function') {
@@ -1476,8 +1485,6 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
     })
 
     nodes.forEach((n: any) => {
-      const pos = n.getPosition()
-      n.setPosition({ x: pos.x - groupX, y: pos.y - groupY })
       group.addChild(n)
     })
 
@@ -1501,10 +1508,7 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
     const toSelect: any[] = []
     groups.forEach((group: any) => {
       const children = group.getChildren() ?? []
-      const gPos = group.getPosition()
       children.forEach((child: any) => {
-        const cPos = child.getPosition()
-        child.setPosition({ x: cPos.x + gPos.x, y: cPos.y + gPos.y })
         group.removeChild(child)
         toSelect.push(child)
       })
