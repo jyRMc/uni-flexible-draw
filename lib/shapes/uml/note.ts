@@ -1,4 +1,5 @@
 import type { Node } from '@antv/x6'
+import { polygonPorts } from '../ports/ports'
 
 export const umlNote: Node.Config = {
   inherit: 'rect',
@@ -24,18 +25,5 @@ export const umlNote: Node.Config = {
       textVerticalAnchor: 'middle',
     },
   },
-  ports: {
-    groups: {
-      top: { position: 'top', attrs: { circle: { r: 4, magnet: true, stroke: '#333', fill: '#fff' } } },
-      bottom: { position: 'bottom', attrs: { circle: { r: 4, magnet: true, stroke: '#333', fill: '#fff' } } },
-      left: { position: 'left', attrs: { circle: { r: 4, magnet: true, stroke: '#333', fill: '#fff' } } },
-      right: { position: 'right', attrs: { circle: { r: 4, magnet: true, stroke: '#333', fill: '#fff' } } },
-    },
-    items: [
-      { id: 'top', group: 'top' },
-      { id: 'bottom', group: 'bottom' },
-      { id: 'left', group: 'left' },
-      { id: 'right', group: 'right' },
-    ],
-  },
+  ports: polygonPorts(6, { stroke: '#333' }, '0,0 0.785714,0 1,0 1,1 0,1 0.785714,0.25'),
 }

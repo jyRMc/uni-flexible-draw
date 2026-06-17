@@ -1,5 +1,6 @@
 import type { Node } from '@antv/x6'
 import { rectPorts } from '../ports/ports'
+import { LABEL_FILL } from '../theme'
 
 export const flowchartStartEnd: Node.Config = {
   inherit: 'rect',
@@ -14,7 +15,7 @@ export const flowchartStartEnd: Node.Config = {
       ry: 30,
     },
     label: {
-      fill: '#334155',
+      fill: LABEL_FILL,
       fontSize: 14,
     },
   },

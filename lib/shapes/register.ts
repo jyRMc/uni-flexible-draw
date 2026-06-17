@@ -47,6 +47,7 @@ export function registerAllShapes(): void {
   NodeRegistry.register(BASIC_SHAPES.TEXT, basic.basicText)
   NodeRegistry.register(BASIC_SHAPES.IMAGE, basic.basicImage)
   NodeRegistry.register(BASIC_SHAPES.SVG, basic.basicSvg)
+  NodeRegistry.register(BASIC_SHAPES.GROUP, basic.basicGroup)
 
   // 流程图
   NodeRegistry.register(FLOWCHART_SHAPES.START_END, flowchart.flowchartStartEnd)
@@ -108,6 +109,7 @@ export function registerAllShapes(): void {
   NodeRegistry.register(ER_SHAPES.DERIVED, er.erDerived)
   NodeRegistry.register(ER_SHAPES.ASSOCIATIVE, er.erAssociative)
   NodeRegistry.register(ER_SHAPES.TOTAL_PARTICIPATION, er.erTotalParticipation)
+  NodeRegistry.register(ER_SHAPES.ANNOTATION, er.erAnnotation)
 
   // 数据流图
   NodeRegistry.register(DFD_SHAPES.PROCESS, dfd.dfdProcess)

@@ -1,6 +1,7 @@
 import type { Node } from '@antv/x6'
+import { ellipsePorts, polygonPorts } from '../ports/ports'
 
-const ports = {
+const rectPorts = {
   groups: {
     top: { position: 'top', attrs: { circle: { r: 4, magnet: true, stroke: '#333', fill: '#fff' } } },
     bottom: { position: 'bottom', attrs: { circle: { r: 4, magnet: true, stroke: '#333', fill: '#fff' } } },
@@ -31,7 +32,7 @@ export const umlEnum: Node.Config = {
     divider: { refX: 0, refY: 0.25, refWidth: 1, refHeight: 0.01, fill: '#333333', stroke: 'none' },
     label: { fill: '#333333', fontSize: 13, refX: 0.5, refY: 0.4, textAnchor: 'middle', textVerticalAnchor: 'middle' },
   },
-  ports,
+  ports: rectPorts,
 }
 
 export const umlObject: Node.Config = {
@@ -46,7 +47,7 @@ export const umlObject: Node.Config = {
     body: { fill: '#ffffff', stroke: '#333333', strokeWidth: 1.5, rx: 0, ry: 0 },
     label: { fill: '#333333', fontSize: 13, refX: 0.5, refY: 0.5, textAnchor: 'middle', textVerticalAnchor: 'middle', textDecoration: 'underline' },
   },
-  ports,
+  ports: rectPorts,
 }
 
 export const umlCollaboration: Node.Config = {
@@ -62,7 +63,7 @@ export const umlCollaboration: Node.Config = {
     body: { fill: '#f5f5f5', stroke: '#333333', strokeWidth: 1.5, strokeDasharray: '5 3' },
     label: { fill: '#333333', fontSize: 13 },
   },
-  ports,
+  ports: ellipsePorts(8, { stroke: '#333' }),
 }
 
 export const umlComposite: Node.Config = {
@@ -79,7 +80,7 @@ export const umlComposite: Node.Config = {
     innerBox: { refX: 0.1, refY: 0.55, refWidth: 0.8, refHeight: 0.35, fill: 'none', stroke: '#333333', strokeWidth: 1, strokeDasharray: '3 2' },
     label: { fill: '#333333', fontSize: 13, refX: 0.5, refY: 0.28, textAnchor: 'middle', textVerticalAnchor: 'middle' },
   },
-  ports,
+  ports: rectPorts,
 }
 
 export const umlNode: Node.Config = {
@@ -98,7 +99,7 @@ export const umlNode: Node.Config = {
     rightBar: { refX: 0.8, refY: 0, refWidth: 0.2, refHeight: 1, fill: '#d8d8d8', stroke: '#333333', strokeWidth: 1 },
     label: { fill: '#333333', fontSize: 13, refX: 0.4, refY: 0.6, textAnchor: 'middle', textVerticalAnchor: 'middle' },
   },
-  ports,
+  ports: rectPorts,
 }
 
 export const umlArtifact: Node.Config = {
@@ -113,5 +114,5 @@ export const umlArtifact: Node.Config = {
     body: { refD: 'M0,0 L0.8,0 L1,0.25 L1,1 L0,1 Z', fill: '#ffffff', stroke: '#333333', strokeWidth: 1.5 },
     label: { fill: '#333333', fontSize: 12, refX: 0.4, refY: 0.6, textAnchor: 'middle', textVerticalAnchor: 'middle' },
   },
-  ports,
+  ports: polygonPorts(5, { stroke: '#333' }, '0,0 0.8,0 1,0.25 1,1 0,1'),
 }

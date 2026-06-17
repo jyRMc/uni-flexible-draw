@@ -1,4 +1,5 @@
 import type { Node } from '@antv/x6'
+import { activationPorts, actorPorts, diamondPorts, lifelinePorts } from '../ports/ports'
 import { PRIMARY_COLOR } from '../theme'
 
 export const sequenceActor: Node.Config = {
@@ -23,20 +24,7 @@ export const sequenceActor: Node.Config = {
     actorLine: { x1: 30, y1: 68, x2: 30, y2: 90, stroke: '#333', strokeWidth: 1, strokeDasharray: '4 2' },
     label: { fill: '#333', fontSize: 11, refX: 0.5, refY: 0.95, textAnchor: 'middle', textVerticalAnchor: 'bottom' },
   },
-  ports: {
-    groups: {
-      top: { position: 'top', attrs: { circle: { r: 3, magnet: true, stroke: '#333', fill: '#fff' } } },
-      bottom: { position: 'bottom', attrs: { circle: { r: 3, magnet: true, stroke: '#333', fill: '#fff' } } },
-      left: { position: 'left', attrs: { circle: { r: 3, magnet: true, stroke: '#333', fill: '#fff' } } },
-      right: { position: 'right', attrs: { circle: { r: 3, magnet: true, stroke: '#333', fill: '#fff' } } },
-    },
-    items: [
-      { id: 'top', group: 'top' },
-      { id: 'bottom', group: 'bottom' },
-      { id: 'left', group: 'left' },
-      { id: 'right', group: 'right' },
-    ],
-  },
+  ports: actorPorts({ stroke: '#333' }),
 }
 
 export const sequenceLifeline: Node.Config = {
@@ -53,20 +41,7 @@ export const sequenceLifeline: Node.Config = {
     label: { fill: '#333', fontSize: 12, refX: 0.5, refY: 0.08, textAnchor: 'middle', textVerticalAnchor: 'middle' },
     lifeline: { x1: 60, y1: 30, x2: 60, y2: 200, stroke: PRIMARY_COLOR, strokeWidth: 1, strokeDasharray: '6 3' },
   },
-  ports: {
-    groups: {
-      top: { position: 'top', attrs: { circle: { r: 3, magnet: true, stroke: PRIMARY_COLOR, fill: '#fff' } } },
-      bottom: { position: 'bottom', attrs: { circle: { r: 3, magnet: true, stroke: PRIMARY_COLOR, fill: '#fff' } } },
-      left: { position: 'left', attrs: { circle: { r: 3, magnet: true, stroke: PRIMARY_COLOR, fill: '#fff' } } },
-      right: { position: 'right', attrs: { circle: { r: 3, magnet: true, stroke: PRIMARY_COLOR, fill: '#fff' } } },
-    },
-    items: [
-      { id: 'top', group: 'top' },
-      { id: 'bottom', group: 'bottom' },
-      { id: 'left', group: 'left' },
-      { id: 'right', group: 'right' },
-    ],
-  },
+  ports: lifelinePorts({ stroke: PRIMARY_COLOR }),
 }
 
 export const sequenceActivation: Node.Config = {
@@ -77,16 +52,7 @@ export const sequenceActivation: Node.Config = {
     body: { fill: '#e8f0fe', stroke: PRIMARY_COLOR, strokeWidth: 1.5, rx: 2, ry: 2 },
     label: { fill: '#333', fontSize: 10 },
   },
-  ports: {
-    groups: {
-      top: { position: 'top', attrs: { circle: { r: 3, magnet: true, stroke: PRIMARY_COLOR, fill: '#fff' } } },
-      bottom: { position: 'bottom', attrs: { circle: { r: 3, magnet: true, stroke: PRIMARY_COLOR, fill: '#fff' } } },
-    },
-    items: [
-      { id: 'top', group: 'top' },
-      { id: 'bottom', group: 'bottom' },
-    ],
-  },
+  ports: activationPorts({ stroke: PRIMARY_COLOR }),
 }
 
 export const sequenceFragmentAlt: Node.Config = {
@@ -98,12 +64,14 @@ export const sequenceFragmentAlt: Node.Config = {
     { tagName: 'rect', selector: 'tab' },
     { tagName: 'text', selector: 'tabLabel' },
     { tagName: 'rect', selector: 'divider' },
+    { tagName: 'text', selector: 'label' },
   ],
   attrs: {
     body: { fill: '#fff', stroke: '#999', strokeWidth: 1.5, rx: 2, ry: 2 },
     tab: { width: 50, height: 22, x: 0, y: 0, fill: '#f5f5f5', stroke: '#999', strokeWidth: 1 },
     tabLabel: { text: 'alt', fill: '#333', fontSize: 11, fontWeight: 'bold', x: 25, y: 14, textAnchor: 'middle', textVerticalAnchor: 'middle' },
     divider: { refX: 0, refY: 0.5, refWidth: 1, refHeight: 0.005, fill: '#999', stroke: 'none', strokeDasharray: '4 2' },
+    label: { fill: '#333', fontSize: 11, refX: 0.55, refY: 0.12, textAnchor: 'start', textVerticalAnchor: 'middle' },
   },
   ports: {
     groups: {
@@ -125,11 +93,13 @@ export const sequenceFragmentOpt: Node.Config = {
     { tagName: 'rect', selector: 'body' },
     { tagName: 'rect', selector: 'tab' },
     { tagName: 'text', selector: 'tabLabel' },
+    { tagName: 'text', selector: 'label' },
   ],
   attrs: {
     body: { fill: '#fff', stroke: '#999', strokeWidth: 1.5, rx: 2, ry: 2 },
     tab: { width: 40, height: 22, x: 0, y: 0, fill: '#f5f5f5', stroke: '#999', strokeWidth: 1 },
     tabLabel: { text: 'opt', fill: '#333', fontSize: 11, fontWeight: 'bold', x: 20, y: 14, textAnchor: 'middle', textVerticalAnchor: 'middle' },
+    label: { fill: '#333', fontSize: 11, refX: 0.55, refY: 0.12, textAnchor: 'start', textVerticalAnchor: 'middle' },
   },
   ports: {
     groups: {
@@ -151,11 +121,13 @@ export const sequenceFragmentLoop: Node.Config = {
     { tagName: 'rect', selector: 'body' },
     { tagName: 'rect', selector: 'tab' },
     { tagName: 'text', selector: 'tabLabel' },
+    { tagName: 'text', selector: 'label' },
   ],
   attrs: {
     body: { fill: '#fff', stroke: '#999', strokeWidth: 1.5, rx: 2, ry: 2 },
     tab: { width: 48, height: 22, x: 0, y: 0, fill: '#f5f5f5', stroke: '#999', strokeWidth: 1 },
     tabLabel: { text: 'loop', fill: '#333', fontSize: 11, fontWeight: 'bold', x: 24, y: 14, textAnchor: 'middle', textVerticalAnchor: 'middle' },
+    label: { fill: '#333', fontSize: 11, refX: 0.55, refY: 0.12, textAnchor: 'start', textVerticalAnchor: 'middle' },
   },
   ports: {
     groups: {
@@ -178,12 +150,14 @@ export const sequenceFragmentPar: Node.Config = {
     { tagName: 'rect', selector: 'tab' },
     { tagName: 'text', selector: 'tabLabel' },
     { tagName: 'rect', selector: 'divider' },
+    { tagName: 'text', selector: 'label' },
   ],
   attrs: {
     body: { fill: '#fff', stroke: '#999', strokeWidth: 1.5, rx: 2, ry: 2 },
     tab: { width: 38, height: 22, x: 0, y: 0, fill: '#f5f5f5', stroke: '#999', strokeWidth: 1 },
     tabLabel: { text: 'par', fill: '#333', fontSize: 11, fontWeight: 'bold', x: 19, y: 14, textAnchor: 'middle', textVerticalAnchor: 'middle' },
     divider: { refX: 0, refY: 0.5, refWidth: 1, refHeight: 0.005, fill: '#999', stroke: 'none', strokeDasharray: '4 2' },
+    label: { fill: '#333', fontSize: 11, refX: 0.55, refY: 0.12, textAnchor: 'start', textVerticalAnchor: 'middle' },
   },
   ports: {
     groups: {
@@ -205,11 +179,13 @@ export const sequenceFragmentCritical: Node.Config = {
     { tagName: 'rect', selector: 'body' },
     { tagName: 'rect', selector: 'tab' },
     { tagName: 'text', selector: 'tabLabel' },
+    { tagName: 'text', selector: 'label' },
   ],
   attrs: {
     body: { fill: '#fff', stroke: '#999', strokeWidth: 1.5, rx: 2, ry: 2 },
     tab: { width: 38, height: 22, x: 0, y: 0, fill: '#f5f5f5', stroke: '#999', strokeWidth: 1 },
     tabLabel: { text: 'crit', fill: '#333', fontSize: 11, fontWeight: 'bold', x: 19, y: 14, textAnchor: 'middle', textVerticalAnchor: 'middle' },
+    label: { fill: '#333', fontSize: 11, refX: 0.55, refY: 0.12, textAnchor: 'start', textVerticalAnchor: 'middle' },
   },
   ports: {
     groups: {
@@ -231,18 +207,5 @@ export const sequenceGateway: Node.Config = {
     body: { fill: '#fffde7', stroke: '#333', strokeWidth: 1.5, refPoints: '0,0.5 0.5,0 1,0.5 0.5,1' },
     label: { fill: '#333', fontSize: 10 },
   },
-  ports: {
-    groups: {
-      top: { position: 'top', attrs: { circle: { r: 3, magnet: true, stroke: '#333', fill: '#fff' } } },
-      bottom: { position: 'bottom', attrs: { circle: { r: 3, magnet: true, stroke: '#333', fill: '#fff' } } },
-      left: { position: 'left', attrs: { circle: { r: 3, magnet: true, stroke: '#333', fill: '#fff' } } },
-      right: { position: 'right', attrs: { circle: { r: 3, magnet: true, stroke: '#333', fill: '#fff' } } },
-    },
-    items: [
-      { id: 'top', group: 'top' },
-      { id: 'bottom', group: 'bottom' },
-      { id: 'left', group: 'left' },
-      { id: 'right', group: 'right' },
-    ],
-  },
+  ports: diamondPorts({ stroke: '#333' }),
 }

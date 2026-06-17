@@ -155,7 +155,7 @@ export class EdgeFactory {
       shape: edge.shape,
       source: edge.getSource() as EdgeData['source'],
       target: edge.getTarget() as EdgeData['target'],
-      label: (edge as any).label ?? (edge.getLabels()?.[0]?.attrs as any)?.text?.text,
+      label: (edge as any).label ?? (edge.getLabels()?.[0]?.attrs as any)?.text?.text ?? (edge.getLabels()?.[0]?.attrs as any)?.label?.text,
       data,
       vertices: edge.getVertices(),
       router: edge.getRouter() as EdgeData['router'],

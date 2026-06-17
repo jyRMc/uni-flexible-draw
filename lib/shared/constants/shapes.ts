@@ -129,6 +129,7 @@ export const ER_SHAPES = {
   DERIVED: 'er-derived',
   ASSOCIATIVE: 'er-associative',
   TOTAL_PARTICIPATION: 'er-total-participation',
+  ANNOTATION: 'er-annotation',
 } as const
 
 /**
@@ -244,6 +245,7 @@ export const RX_SUPPORTED_SHAPES: ReadonlySet<string> = new Set([
   ER_SHAPES.ENTITY, // body=rect(rx=0)
   ER_SHAPES.WEAK_ENTITY, // body=rect(markup, rx=0)
   ER_SHAPES.ASSOCIATIVE, // body=rect(markup)
+  ER_SHAPES.ANNOTATION, // body=rect(rx=8)
 
   // 数据流图 - rect 系列
   DFD_SHAPES.EXTERNAL_ENTITY, // body=rect(rx=0)
@@ -257,6 +259,11 @@ export const RX_SUPPORTED_SHAPES: ReadonlySet<string> = new Set([
   // 状态图 - rect 系列
   STATE_SHAPES.STATE, // body=rect(rx=12)
   STATE_SHAPES.COMPOSITE, // body=rect(rx=12)
+  STATE_SHAPES.SUBMACHINE, // body=rect(rx=12)
+  STATE_SHAPES.SHALLOW_HISTORY, // body=rect(rx=8)
+  STATE_SHAPES.DEEP_HISTORY, // body=rect(rx=8)
+  STATE_SHAPES.ENTRY_POINT, // body=rect(rx=12)
+  STATE_SHAPES.EXIT_POINT, // body=rect(rx=12)
   STATE_SHAPES.FORK, // body=rect(rx=0)
   STATE_SHAPES.JOIN, // body=rect(rx=0)
 ])
@@ -326,12 +333,8 @@ export const RX_UNSUPPORTED_SHAPES: ReadonlySet<string> = new Set([
   // 状态图 - circle/polygon 系列
   STATE_SHAPES.INITIAL,
   STATE_SHAPES.FINAL,
-  STATE_SHAPES.SHALLOW_HISTORY,
-  STATE_SHAPES.DEEP_HISTORY,
   STATE_SHAPES.JUNCTION,
   STATE_SHAPES.CHOICE, // polygon
-  STATE_SHAPES.ENTRY_POINT,
-  STATE_SHAPES.EXIT_POINT,
   STATE_SHAPES.TERMINATE,
   STATE_SHAPES.SIGNAL_SEND, // polygon
   STATE_SHAPES.SIGNAL_RECEIVE, // polygon

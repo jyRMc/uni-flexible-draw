@@ -1,5 +1,6 @@
 import type { Node } from '@antv/x6'
 import { documentPorts } from '../ports/ports'
+import { LABEL_FILL } from '../theme'
 
 export const flowchartDocument: Node.Config = {
   inherit: 'path',
@@ -26,7 +27,7 @@ export const flowchartDocument: Node.Config = {
       strokeLinejoin: 'round',
     },
     label: {
-      fill: '#334155',
+      fill: LABEL_FILL,
       fontSize: 14,
       refX: 0.5,
       refY: 0.55,

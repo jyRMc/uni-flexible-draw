@@ -50,6 +50,11 @@ describe('shape registration', () => {
   it('should register all edge shapes', () => {
     registerAllShapes()
     for (const name of Object.values(EDGE_SHAPES)) {
+      if (name === EDGE_SHAPES.LINE) {
+        // X6 内置 'edge'，不进入自定义 EdgeRegistry
+        expect(name).toBe('edge')
+        continue
+      }
       expect(EdgeRegistry.has(name)).toBe(true)
     }
   })

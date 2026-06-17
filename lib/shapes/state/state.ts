@@ -1,4 +1,5 @@
 import type { Node } from '@antv/x6'
+import { LABEL_FILL } from '../theme'
 
 const FILL = '#f8fafc'
 const STROKE = '#334155'
@@ -167,13 +168,17 @@ const signalSendPorts = polygonPorts(signalSendPoints)
 const signalReceivePorts = polygonPorts(signalReceivePoints)
 const terminatePorts = polygonPorts(terminatePoints)
 
+function relPort(x: number, y: number) {
+  return (args: any) => ({ x: args.bbox.width * x, y: args.bbox.height * y })
+}
+
 export const stateSimple: Node.Config = {
   inherit: 'rect',
   width: 140,
   height: 70,
   attrs: {
     body: { fill: FILL, stroke: STROKE, strokeWidth: 2, rx: 12, ry: 12 },
-    label: { fill: STROKE, fontSize: 16, fontWeight: 500 },
+    label: { fill: LABEL_FILL, fontSize: 16, fontWeight: 500 },
   },
   ports: rectPorts,
 }
@@ -192,7 +197,7 @@ export const stateComposite: Node.Config = {
     body: { fill: FILL, stroke: STROKE, strokeWidth: 2, rx: 12, ry: 12, refWidth: 1, refHeight: 1 },
     divider: { x1: '2.5%', y1: '33.333%', x2: '97.5%', y2: '33.333%', stroke: STROKE, strokeWidth: 2 },
     region: { refX: '12.5%', refY: '45.833%', refWidth: '75%', refHeight: '37.5%', rx: 6, ry: 6, fill: '#e2e8f0', stroke: '#94a3b8', strokeWidth: 1.5, strokeDasharray: '4 2' },
-    label: { fill: STROKE, fontSize: 14, fontWeight: 600, textAnchor: 'middle', textVerticalAnchor: 'top', refX: 0.5, refY: '10%' },
+    label: { fill: LABEL_FILL, fontSize: 14, fontWeight: 600, textAnchor: 'middle', textVerticalAnchor: 'top', refX: 0.5, refY: '10%' },
     regionLabel: { fill: '#64748b', fontSize: 12, textAnchor: 'middle', textVerticalAnchor: 'middle', refX: 0.5, refY: 0.67 },
   },
   ports: rectPorts,
@@ -209,7 +214,7 @@ export const stateSubmachine: Node.Config = {
   ],
   attrs: {
     body: { fill: FILL, stroke: STROKE, strokeWidth: 2, rx: 12, ry: 12, refWidth: 1, refHeight: 1 },
-    label: { fill: STROKE, fontSize: 16, fontWeight: 500, textAnchor: 'middle', textVerticalAnchor: 'middle', refX: 0.5, refY: 0.5 },
+    label: { fill: LABEL_FILL, fontSize: 16, fontWeight: 500, textAnchor: 'middle', textVerticalAnchor: 'middle', refX: 0.5, refY: 0.5 },
     badgePath: { refD: 'M 0.78125 0.71429 L 0.84375 0.71429 L 0.84375 0.85714 L 0.78125 0.85714 Z', fill: 'none', stroke: STROKE, strokeWidth: 1.5 },
     badge: { text: '::', fill: STROKE, fontSize: 10, fontFamily: 'monospace', textAnchor: 'middle', textVerticalAnchor: 'middle', refX: 0.8125, refY: 0.7857 },
   },
@@ -221,9 +226,13 @@ export const stateInitial: Node.Config = {
   height: 40,
   markup: [
     { tagName: 'circle', selector: 'body' },
+    { tagName: 'text', selector: 'label' },
   ],
-  attrs: { body: { fill: SOLID, stroke: SOLID, strokeWidth: 1, refCx: 0.5, refCy: 0.5, refR: 0.3 } },
-  ports: ellipsePorts(8),
+  attrs: {
+    body: { fill: SOLID, stroke: SOLID, strokeWidth: 1, refCx: 0.5, refCy: 0.5, refR: 0.3 },
+    label: { fill: '#fff', fontSize: 10, textAnchor: 'middle', textVerticalAnchor: 'middle', refX: 0.5, refY: 0.5 },
+  },
+  ports: ellipsePorts(8, { stroke: SOLID }, 0.3, 0.3),
 }
 
 export const stateFinal: Node.Config = {
@@ -232,48 +241,55 @@ export const stateFinal: Node.Config = {
   markup: [
     { tagName: 'circle', selector: 'outer' },
     { tagName: 'circle', selector: 'inner' },
+    { tagName: 'text', selector: 'label' },
   ],
   attrs: {
     outer: { refR: 0.35, refCx: 0.5, refCy: 0.5, fill: FILL, stroke: SOLID, strokeWidth: 2 },
     inner: { refR: 0.2, refCx: 0.5, refCy: 0.5, fill: SOLID, stroke: 'none' },
+    label: { fill: LABEL_FILL, fontSize: 10, textAnchor: 'middle', textVerticalAnchor: 'middle', refX: 0.5, refY: 0.5 },
   },
-  ports: ellipsePorts(8),
+  ports: ellipsePorts(8, { stroke: SOLID }, 0.35, 0.35),
 }
 
 export const stateShallowHistory: Node.Config = {
-  width: 50,
+  width: 60,
   height: 50,
   markup: [
-    { tagName: 'circle', selector: 'body' },
-    { tagName: 'text', selector: 'hLabel' },
+    { tagName: 'rect', selector: 'body' },
+    { tagName: 'text', selector: 'label' },
   ],
   attrs: {
-    body: { fill: FILL, stroke: STROKE, strokeWidth: 2, refR: 0.5, refCx: 0.5, refCy: 0.5 },
-    hLabel: { text: 'H', fill: STROKE, fontSize: 20, fontWeight: 600, textAnchor: 'middle', textVerticalAnchor: 'middle', refX: 0.5, refY: 0.5 },
+    body: { fill: FILL, stroke: STROKE, strokeWidth: 2, refWidth: 1, refHeight: 1, rx: 8, ry: 8 },
+    label: { text: 'H', fill: LABEL_FILL, fontSize: 20, fontWeight: 600, textAnchor: 'middle', textVerticalAnchor: 'middle', refX: 0.5, refY: 0.5 },
   },
-  ports: ellipsePorts(8),
+  ports: rectPorts,
 }
 
 export const stateDeepHistory: Node.Config = {
-  width: 50,
+  width: 60,
   height: 50,
   markup: [
-    { tagName: 'circle', selector: 'body' },
-    { tagName: 'text', selector: 'hLabel' },
+    { tagName: 'rect', selector: 'body' },
+    { tagName: 'text', selector: 'label' },
   ],
   attrs: {
-    body: { fill: FILL, stroke: STROKE, strokeWidth: 2, refR: 0.5, refCx: 0.5, refCy: 0.5 },
-    hLabel: { text: 'H*', fill: STROKE, fontSize: 18, fontWeight: 600, textAnchor: 'middle', textVerticalAnchor: 'middle', refX: 0.5, refY: 0.5 },
+    body: { fill: FILL, stroke: STROKE, strokeWidth: 2, refWidth: 1, refHeight: 1, rx: 8, ry: 8 },
+    label: { text: 'H*', fill: LABEL_FILL, fontSize: 20, fontWeight: 600, textAnchor: 'middle', textVerticalAnchor: 'middle', refX: 0.5, refY: 0.5 },
   },
-  ports: ellipsePorts(8),
+  ports: rectPorts,
 }
 
 export const stateJunction: Node.Config = {
   inherit: 'polygon',
   width: 40,
   height: 40,
+  markup: [
+    { tagName: 'polygon', selector: 'body' },
+    { tagName: 'text', selector: 'label' },
+  ],
   attrs: {
     body: { fill: STROKE, stroke: STROKE, strokeWidth: 2, refPoints: diamondVertexPoints },
+    label: { fill: '#fff', fontSize: 10, textAnchor: 'middle', textVerticalAnchor: 'middle', refX: 0.5, refY: 0.5 },
   },
   ports: diamondVertexPorts,
 }
@@ -283,11 +299,11 @@ export const stateChoice: Node.Config = {
   height: 50,
   markup: [
     { tagName: 'polygon', selector: 'body' },
-    { tagName: 'text', selector: 'qLabel' },
+    { tagName: 'text', selector: 'label' },
   ],
   attrs: {
     body: { fill: FILL, stroke: STROKE, strokeWidth: 2, refPoints: diamondVertexPoints },
-    qLabel: { text: '?', fill: STROKE, fontSize: 16, fontWeight: 600, textAnchor: 'middle', textVerticalAnchor: 'middle', refX: 0.5, refY: 0.5 },
+    label: { text: '?', fill: LABEL_FILL, fontSize: 16, fontWeight: 600, textAnchor: 'middle', textVerticalAnchor: 'middle', refX: 0.5, refY: 0.5 },
   },
   ports: diamondVertexPorts,
 }
@@ -301,13 +317,15 @@ export const stateFork: Node.Config = {
     { tagName: 'line', selector: 'branch1' },
     { tagName: 'line', selector: 'branch2' },
     { tagName: 'line', selector: 'branch3' },
+    { tagName: 'text', selector: 'label' },
   ],
   attrs: {
-    stem: { stroke: STROKE, strokeWidth: 2 },
-    bar: { stroke: STROKE, strokeWidth: 5, strokeLinecap: 'round' },
-    branch1: { stroke: STROKE, strokeWidth: 2 },
-    branch2: { stroke: STROKE, strokeWidth: 2 },
-    branch3: { stroke: STROKE, strokeWidth: 2 },
+    stem: { x1: 0.5, y1: 0.1667, x2: 0.5, y2: 0.5, stroke: STROKE, strokeWidth: 2 },
+    bar: { x1: 0.1667, y1: 0.5, x2: 0.8333, y2: 0.5, stroke: STROKE, strokeWidth: 5, strokeLinecap: 'round' },
+    branch1: { x1: 0.25, y1: 0.5, x2: 0.25, y2: 0.8333, stroke: STROKE, strokeWidth: 2 },
+    branch2: { x1: 0.5, y1: 0.5, x2: 0.5, y2: 0.8333, stroke: STROKE, strokeWidth: 2 },
+    branch3: { x1: 0.75, y1: 0.5, x2: 0.75, y2: 0.8333, stroke: STROKE, strokeWidth: 2 },
+    label: { fill: LABEL_FILL, fontSize: 12, textAnchor: 'middle', textVerticalAnchor: 'middle', refX: 0.5, refY: 0.5 },
   },
   ports: forkPorts,
 }
@@ -321,13 +339,15 @@ export const stateJoin: Node.Config = {
     { tagName: 'line', selector: 'branch3' },
     { tagName: 'line', selector: 'bar' },
     { tagName: 'line', selector: 'stem' },
+    { tagName: 'text', selector: 'label' },
   ],
   attrs: {
-    branch1: { stroke: STROKE, strokeWidth: 2 },
-    branch2: { stroke: STROKE, strokeWidth: 2 },
-    branch3: { stroke: STROKE, strokeWidth: 2 },
-    bar: { stroke: STROKE, strokeWidth: 5, strokeLinecap: 'round' },
-    stem: { stroke: STROKE, strokeWidth: 2 },
+    branch1: { x1: 0.25, y1: 0.1667, x2: 0.25, y2: 0.5, stroke: STROKE, strokeWidth: 2 },
+    branch2: { x1: 0.5, y1: 0.1667, x2: 0.5, y2: 0.5, stroke: STROKE, strokeWidth: 2 },
+    branch3: { x1: 0.75, y1: 0.1667, x2: 0.75, y2: 0.5, stroke: STROKE, strokeWidth: 2 },
+    bar: { x1: 0.1667, y1: 0.5, x2: 0.8333, y2: 0.5, stroke: STROKE, strokeWidth: 5, strokeLinecap: 'round' },
+    stem: { x1: 0.5, y1: 0.5, x2: 0.5, y2: 0.8333, stroke: STROKE, strokeWidth: 2 },
+    label: { fill: LABEL_FILL, fontSize: 12, textAnchor: 'middle', textVerticalAnchor: 'middle', refX: 0.5, refY: 0.5 },
   },
   ports: joinPorts,
 }
@@ -340,16 +360,29 @@ export const stateEntryPoint: Node.Config = {
     { tagName: 'text', selector: 'label' },
     { tagName: 'circle', selector: 'point' },
     { tagName: 'line', selector: 'arrowLine' },
-    { tagName: 'polygon', selector: 'arrowHead' },
+    { tagName: 'path', selector: 'arrowHead' },
   ],
   attrs: {
     body: { fill: FILL, stroke: STROKE, strokeWidth: 2, rx: 12, ry: 12, refX: '21.429%', refY: '7.143%', refWidth: '71.429%', refHeight: '85.714%' },
-    label: { fill: STROKE, fontSize: 14, fontWeight: 500, textAnchor: 'middle', textVerticalAnchor: 'middle', refX: 0.5714, refY: 0.5429 },
+    label: { fill: LABEL_FILL, fontSize: 14, fontWeight: 500, textAnchor: 'middle', textVerticalAnchor: 'middle', refX: 0.5714, refY: 0.5429 },
     point: { fill: FILL, stroke: STROKE, strokeWidth: 2, refCx: 0.2143, refCy: 0.5, refR: 0.0857 },
-    arrowLine: { stroke: STROKE, strokeWidth: 2 },
-    arrowHead: { refPoints: '0.1714,0.5 0.1286,0.4429 0.1286,0.5571', fill: STROKE },
+    arrowLine: { x1: 0.0357, y1: 0.5, x2: 0.1714, y2: 0.5, stroke: STROKE, strokeWidth: 2 },
+    arrowHead: { d: 'M 0 0 L -6 -4 L -6 4 Z', fill: STROKE, refX: 0.1714, refY: 0.5 },
   },
-  ports: rectPorts,
+  ports: {
+    groups: {
+      top: { position: relPort(0.5714, 0.0714), attrs: portAttrs },
+      bottom: { position: relPort(0.5714, 0.9286), attrs: portAttrs },
+      left: { position: relPort(0.2143, 0.5), attrs: portAttrs },
+      right: { position: relPort(0.9286, 0.5), attrs: portAttrs },
+    },
+    items: [
+      { id: 'port-top', group: 'top' },
+      { id: 'port-bottom', group: 'bottom' },
+      { id: 'port-left', group: 'left' },
+      { id: 'port-right', group: 'right' },
+    ],
+  },
 }
 
 export const stateExitPoint: Node.Config = {
@@ -362,18 +395,31 @@ export const stateExitPoint: Node.Config = {
     { tagName: 'line', selector: 'cross1' },
     { tagName: 'line', selector: 'cross2' },
     { tagName: 'line', selector: 'arrowLine' },
-    { tagName: 'polygon', selector: 'arrowHead' },
+    { tagName: 'path', selector: 'arrowHead' },
   ],
   attrs: {
     body: { fill: FILL, stroke: STROKE, strokeWidth: 2, rx: 12, ry: 12, refX: '3.571%', refY: '7.143%', refWidth: '71.429%', refHeight: '85.714%' },
-    label: { fill: STROKE, fontSize: 14, fontWeight: 500, textAnchor: 'middle', textVerticalAnchor: 'middle', refX: 0.3929, refY: 0.5429 },
+    label: { fill: LABEL_FILL, fontSize: 14, fontWeight: 500, textAnchor: 'middle', textVerticalAnchor: 'middle', refX: 0.3929, refY: 0.5429 },
     point: { fill: FILL, stroke: STROKE, strokeWidth: 2, refCx: 0.75, refCy: 0.5, refR: 0.0857 },
-    cross1: { stroke: STROKE, strokeWidth: 1.5 },
-    cross2: { stroke: STROKE, strokeWidth: 1.5 },
-    arrowLine: { stroke: STROKE, strokeWidth: 2 },
-    arrowHead: { refPoints: '0.9286,0.5 0.8857,0.4429 0.8857,0.5571', fill: STROKE },
+    cross1: { x1: 0.7286, y1: 0.4571, x2: 0.7714, y2: 0.5429, stroke: STROKE, strokeWidth: 1.5 },
+    cross2: { x1: 0.7714, y1: 0.4571, x2: 0.7286, y2: 0.5429, stroke: STROKE, strokeWidth: 1.5 },
+    arrowLine: { x1: 0.7929, y1: 0.5, x2: 0.9286, y2: 0.5, stroke: STROKE, strokeWidth: 2 },
+    arrowHead: { d: 'M 0 0 L 6 -4 L 6 4 Z', fill: STROKE, refX: 0.9286, refY: 0.5 },
   },
-  ports: rectPorts,
+  ports: {
+    groups: {
+      top: { position: relPort(0.3929, 0.0714), attrs: portAttrs },
+      bottom: { position: relPort(0.3929, 0.9286), attrs: portAttrs },
+      left: { position: relPort(0.0357, 0.5), attrs: portAttrs },
+      right: { position: relPort(0.75, 0.5), attrs: portAttrs },
+    },
+    items: [
+      { id: 'port-top', group: 'top' },
+      { id: 'port-bottom', group: 'bottom' },
+      { id: 'port-left', group: 'left' },
+      { id: 'port-right', group: 'right' },
+    ],
+  },
 }
 
 export const stateTerminate: Node.Config = {
@@ -382,10 +428,12 @@ export const stateTerminate: Node.Config = {
   markup: [
     { tagName: 'line', selector: 'cross1' },
     { tagName: 'line', selector: 'cross2' },
+    { tagName: 'text', selector: 'label' },
   ],
   attrs: {
-    cross1: { stroke: TERMINATE, strokeWidth: 3, strokeLinecap: 'round' },
-    cross2: { stroke: TERMINATE, strokeWidth: 3, strokeLinecap: 'round' },
+    cross1: { x1: 0.3, y1: 0.3, x2: 0.7, y2: 0.7, stroke: TERMINATE, strokeWidth: 3, strokeLinecap: 'round' },
+    cross2: { x1: 0.7, y1: 0.3, x2: 0.3, y2: 0.7, stroke: TERMINATE, strokeWidth: 3, strokeLinecap: 'round' },
+    label: { fill: TERMINATE, fontSize: 10, textAnchor: 'middle', textVerticalAnchor: 'middle', refX: 0.5, refY: 0.5 },
   },
   ports: terminatePorts,
 }
@@ -401,9 +449,9 @@ export const stateSignalSend: Node.Config = {
   ],
   attrs: {
     body: { fill: FILL, stroke: STROKE, strokeWidth: 2, refPoints: signalSendPoints },
-    label: { fill: STROKE, fontSize: 14, fontWeight: 500, textAnchor: 'middle', textVerticalAnchor: 'middle', refX: 0.5, refY: 0.5 },
-    flap1: { stroke: STROKE, strokeWidth: 1.5 },
-    flap2: { stroke: STROKE, strokeWidth: 1.5 },
+    label: { fill: LABEL_FILL, fontSize: 14, fontWeight: 500, textAnchor: 'middle', textVerticalAnchor: 'middle', refX: 0.5, refY: 0.5 },
+    flap1: { x1: 0.75, y1: 0.0714, x2: 0.96875, y2: 0.5, stroke: STROKE, strokeWidth: 1.5 },
+    flap2: { x1: 0.75, y1: 0.9286, x2: 0.96875, y2: 0.5, stroke: STROKE, strokeWidth: 1.5 },
   },
   ports: signalSendPorts,
 }
@@ -419,9 +467,9 @@ export const stateSignalReceive: Node.Config = {
   ],
   attrs: {
     body: { fill: FILL, stroke: STROKE, strokeWidth: 2, refPoints: signalReceivePoints },
-    label: { fill: STROKE, fontSize: 14, fontWeight: 500, textAnchor: 'middle', textVerticalAnchor: 'middle', refX: 0.5, refY: 0.5 },
-    flap1: { stroke: STROKE, strokeWidth: 1.5 },
-    flap2: { stroke: STROKE, strokeWidth: 1.5 },
+    label: { fill: LABEL_FILL, fontSize: 14, fontWeight: 500, textAnchor: 'middle', textVerticalAnchor: 'middle', refX: 0.5, refY: 0.5 },
+    flap1: { x1: 0.25, y1: 0.0714, x2: 0.03125, y2: 0.5, stroke: STROKE, strokeWidth: 1.5 },
+    flap2: { x1: 0.25, y1: 0.9286, x2: 0.03125, y2: 0.5, stroke: STROKE, strokeWidth: 1.5 },
   },
   ports: signalReceivePorts,
 }

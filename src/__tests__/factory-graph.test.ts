@@ -154,13 +154,13 @@ describe('edgeFactory', () => {
   it('should create a basic line edge', () => {
     const edge = EdgeFactory.createEdge(graph, {
       id: 'e1',
-      shape: 'edge-line',
+      shape: 'edge',
       source: { x: 0, y: 0 },
       target: { x: 100, y: 100 },
       style: { stroke: '#333', strokeWidth: 2 },
     })
     expect(edge.id).toBe('e1')
-    expect(edge.shape).toBe('edge-line')
+    expect(edge.shape).toBe('edge')
   })
 
   it('should create a sketch edge with custom connector', () => {
@@ -178,7 +178,7 @@ describe('edgeFactory', () => {
   it('should round-trip EdgeData through toData', () => {
     const input = {
       id: 'e3',
-      shape: 'edge-arrow',
+      shape: 'edge',
       source: { x: 0, y: 0 },
       target: { x: 100, y: 100 },
       label: 'EdgeLabel',

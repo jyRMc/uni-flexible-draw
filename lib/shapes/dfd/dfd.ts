@@ -1,4 +1,5 @@
 import type { Node } from '@antv/x6'
+import { ellipsePorts } from '../ports/ports'
 
 const ports = {
   groups: {
@@ -23,7 +24,7 @@ export const dfdProcess: Node.Config = {
     body: { fill: '#e8f5e9', stroke: '#2e7d32', strokeWidth: 1.5 },
     label: { fill: '#2e7d32', fontSize: 12 },
   },
-  ports,
+  ports: ellipsePorts(8, { stroke: '#2e7d32' }),
 }
 
 export const dfdDataStore: Node.Config = {
@@ -79,5 +80,5 @@ export const dfdMultipleProcess: Node.Config = {
     body: { fill: '#e8f5e9', stroke: '#2e7d32', strokeWidth: 1.5 },
     label: { fill: '#2e7d32', fontSize: 12 },
   },
-  ports,
+  ports: ellipsePorts(8, { stroke: '#2e7d32' }, 0.47, 0.47),
 }

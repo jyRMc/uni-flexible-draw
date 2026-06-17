@@ -1,5 +1,6 @@
 import type { Node } from '@antv/x6'
 import { multiDocumentPorts } from '../ports/ports'
+import { LABEL_FILL } from '../theme'
 
 export const flowchartMultiDocument: Node.Config = {
   inherit: 'path',
@@ -42,7 +43,7 @@ export const flowchartMultiDocument: Node.Config = {
       strokeLinejoin: 'round',
     },
     label: {
-      fill: '#334155',
+      fill: LABEL_FILL,
       fontSize: 14,
       refX: 0.5,
       refY: 0.6,

@@ -9,4 +9,5 @@ export {
   erDerived,
   erAssociative,
   erTotalParticipation,
+  erAnnotation,
 } from './er'

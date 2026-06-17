@@ -168,7 +168,7 @@ describe('project group coordinate behavior', () => {
     graph.addNode(node2)
     graph.addEdge({
       id: 'e1',
-      shape: 'edge-line',
+      shape: 'edge',
       source: { cell: 'n1' },
       target: { cell: 'n2' },
     })

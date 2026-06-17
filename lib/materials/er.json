@@ -12,7 +12,8 @@
     { "id": "er-key-attribute", "name": "键属性", "shape": "er-key-attribute", "defaultSize": { "width": 80, "height": 40 }, "defaultLabel": "key" },
     { "id": "er-multivalued", "name": "多值属性", "shape": "er-multivalued", "defaultSize": { "width": 80, "height": 40 }, "defaultLabel": "mval" },
     { "id": "er-derived", "name": "派生属性", "shape": "er-derived", "defaultSize": { "width": 80, "height": 40 }, "defaultLabel": "derived" },
-    { "id": "er-associative", "name": "关联实体", "shape": "er-associative", "defaultSize": { "width": 100, "height": 50 }, "defaultLabel": "Assoc" },
-    { "id": "er-total-participation", "name": "完全参与", "shape": "er-total-participation", "defaultSize": { "width": 80, "height": 60 }, "defaultLabel": "Total" }
+    { "id": "er-associative", "name": "关联实体", "shape": "er-associative", "defaultSize": { "width": 160, "height": 100 }, "defaultLabel": "Assoc" },
+    { "id": "er-total-participation", "name": "完全参与", "shape": "er-total-participation", "defaultSize": { "width": 120, "height": 120 }, "defaultLabel": "Total" },
+    { "id": "er-annotation", "name": "注释", "shape": "er-annotation", "defaultSize": { "width": 160, "height": 70 }, "defaultLabel": "Note" }
   ]
 }

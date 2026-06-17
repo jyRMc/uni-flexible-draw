@@ -1,5 +1,6 @@
 import type { Node } from '@antv/x6'
 import { PRIMARY_COLOR } from '@uni-draw/shared'
+import { polygonPorts } from '../ports/ports'
 
 export const basicCross: Node.Config = {
   inherit: 'polygon',
@@ -17,18 +18,5 @@ export const basicCross: Node.Config = {
       fontSize: 14,
     },
   },
-  ports: {
-    groups: {
-      top: { position: 'top', attrs: { circle: { r: 4, magnet: true, stroke: '#ff4d4f', fill: '#fff' } } },
-      bottom: { position: 'bottom', attrs: { circle: { r: 4, magnet: true, stroke: '#ff4d4f', fill: '#fff' } } },
-      left: { position: 'left', attrs: { circle: { r: 4, magnet: true, stroke: '#ff4d4f', fill: '#fff' } } },
-      right: { position: 'right', attrs: { circle: { r: 4, magnet: true, stroke: '#ff4d4f', fill: '#fff' } } },
-    },
-    items: [
-      { id: 'top', group: 'top' },
-      { id: 'bottom', group: 'bottom' },
-      { id: 'left', group: 'left' },
-      { id: 'right', group: 'right' },
-    ],
-  },
+  ports: polygonPorts(12, { stroke: PRIMARY_COLOR }, '0.35,0 0.65,0 0.65,0.35 1,0.35 1,0.65 0.65,0.65 0.65,1 0.35,1 0.35,0.65 0,0.65 0,0.35 0.35,0.35'),
 }

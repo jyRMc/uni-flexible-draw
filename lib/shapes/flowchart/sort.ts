@@ -1,5 +1,6 @@
 import type { Node } from '@antv/x6'
 import { polygonPorts } from '../ports/ports'
+import { LABEL_FILL } from '../theme'
 
 const refPoints = '0.5,0.1 0.916667,0.9 0.083333,0.9'
 
@@ -15,7 +16,7 @@ export const flowchartSort: Node.Config = {
       strokeWidth: 2,
     },
     label: {
-      fill: '#334155',
+      fill: LABEL_FILL,
       fontSize: 14,
     },
   },

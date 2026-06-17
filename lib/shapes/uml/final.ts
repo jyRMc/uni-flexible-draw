@@ -1,4 +1,5 @@
 import type { Node } from '@antv/x6'
+import { ellipsePorts } from '../ports/ports'
 
 export const umlFinal: Node.Config = {
   inherit: 'circle',
@@ -7,6 +8,7 @@ export const umlFinal: Node.Config = {
   markup: [
     { tagName: 'circle', selector: 'outer' },
     { tagName: 'circle', selector: 'inner' },
+    { tagName: 'text', selector: 'label' },
   ],
   attrs: {
     outer: {
@@ -24,19 +26,14 @@ export const umlFinal: Node.Config = {
       fill: '#333333',
       stroke: 'none',
     },
-  },
-  ports: {
-    groups: {
-      top: { position: 'top', attrs: { circle: { r: 3, magnet: true, stroke: '#333', fill: '#fff' } } },
-      bottom: { position: 'bottom', attrs: { circle: { r: 3, magnet: true, stroke: '#333', fill: '#fff' } } },
-      left: { position: 'left', attrs: { circle: { r: 3, magnet: true, stroke: '#333', fill: '#fff' } } },
-      right: { position: 'right', attrs: { circle: { r: 3, magnet: true, stroke: '#333', fill: '#fff' } } },
+    label: {
+      fill: '#333',
+      fontSize: 10,
+      refX: 0.5,
+      refY: 1.25,
+      textAnchor: 'middle',
+      textVerticalAnchor: 'top',
     },
-    items: [
-      { id: 'top', group: 'top' },
-      { id: 'bottom', group: 'bottom' },
-      { id: 'left', group: 'left' },
-      { id: 'right', group: 'right' },
-    ],
   },
+  ports: ellipsePorts(8, { stroke: '#333' }, 0.4667, 0.4667),
 }

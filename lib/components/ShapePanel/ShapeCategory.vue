@@ -1,8 +1,34 @@
+<template>
+  <div class="shape-category">
+    <div class="shape-category-header" @click="toggle">
+      <span class="shape-category-arrow" :class="{ expanded: isExpanded }">›</span>
+      <span class="shape-category-name">{{ displayLibraryName }}</span>
+      <span class="shape-category-count">{{ library.items.length }}</span>
+    </div>
+    <div v-show="isExpanded" class="shape-category-items">
+      <div
+        v-for="item in library.items"
+        :key="item.id"
+        class="shape-category-item"
+        :title="item.name"
+        draggable="true"
+        @dragstart="(e: DragEvent) => onDragStart(item, e)"
+        @click="onSelect(item)"
+      >
+        <div v-if="isEdgePreviewShape(item)" class="shape-svg-preview" v-html="getEdgePreviewSvg(item)"></div>
+        <div v-else-if="isSvgPreviewShape(item)" class="shape-svg-preview" v-html="getShapePreviewSVG(item.shape)"></div>
+        <span v-else class="shape-icon-font iconfont" :class="getShapeIconClass(item.shape)" aria-hidden="true"></span>
+      </div>
+    </div>
+  </div>
+</template>
+
 <script setup lang="ts">
 import '../../icon/iconfont.css'
 import { computed, ref } from 'vue'
 import type { MaterialItem, MaterialLibrary } from '@uni-draw/shared'
 import { useLocale } from '../../locale'
+import { getShapePreviewSVG } from './ShapePreviewRenderer'
 
 export interface ShapeCategoryProps {
   library: MaterialLibrary
@@ -150,6 +176,11 @@ function isEdgePreviewShape(item: MaterialItem): boolean {
   return item.shape === 'edge' || item.shape === 'edge-sketch'
 }
 
+function isSvgPreviewShape(item: MaterialItem): boolean {
+  const cat = item.shape.split('-')[0]
+  return cat === 'flowchart' || cat === 'er' || cat === 'state'
+}
+
 function getEdgePreviewSvg(item: MaterialItem): string {
   const stroke = 'currentColor'
   const line = `fill="none" stroke="${stroke}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"`
@@ -208,30 +239,6 @@ function getEdgePreviewSvg(item: MaterialItem): string {
   return `<svg viewBox="0 0 44 28" xmlns="http://www.w3.org/2000/svg">${srcArrow}${path}${tgtArrow}</svg>`
 }
 </script>
-
-<template>
-  <div class="shape-category">
-    <div class="shape-category-header" @click="toggle">
-      <span class="shape-category-arrow" :class="{ expanded: isExpanded }">›</span>
-      <span class="shape-category-name">{{ displayLibraryName }}</span>
-      <span class="shape-category-count">{{ library.items.length }}</span>
-    </div>
-    <div v-show="isExpanded" class="shape-category-items">
-      <div
-        v-for="item in library.items"
-        :key="item.id"
-        class="shape-category-item"
-        :title="item.name"
-        draggable="true"
-        @dragstart="(e: DragEvent) => onDragStart(item, e)"
-        @click="onSelect(item)"
-      >
-        <div v-if="isEdgePreviewShape(item)" class="shape-svg-preview" v-html="getEdgePreviewSvg(item)" />
-        <span v-else class="shape-icon-font iconfont" :class="getShapeIconClass(item.shape)" aria-hidden="true" />
-      </div>
-    </div>
-  </div>
-</template>
 
 <style scoped>
 .shape-category {

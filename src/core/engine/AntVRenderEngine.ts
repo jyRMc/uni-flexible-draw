@@ -115,6 +115,19 @@ export class AntVRenderEngine {
           })
         },
       },
+      // 允许拖拽节点进入/离开组合区域
+      embedding: {
+        enabled: true,
+        findParent({ node }: { node: any }) {
+          const bbox = node.getBBox()
+          return this.getNodes().filter((n: any) => {
+            if (n.id === node.id) return false
+            if (n.shape !== 'basic-group') return false
+            const nBBox = n.getBBox()
+            return bbox.isIntersectWithRect(nBBox)
+          })
+        },
+      },
     })
 
     // 安装 Selection 插件（点击/框选节点和边）
@@ -127,6 +140,7 @@ export class AntVRenderEngine {
         showNodeSelectionBox: true,
         showEdgeSelectionBox: false,
         selectEdgeOnMoved: true,
+        eventTypes: ['leftMouseDown'],
       }),
     )
 

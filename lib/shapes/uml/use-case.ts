@@ -1,4 +1,5 @@
 import type { Node } from '@antv/x6'
+import { ellipsePorts } from '../ports/ports'
 
 export const umlUseCase: Node.Config = {
   inherit: 'ellipse',
@@ -15,18 +16,5 @@ export const umlUseCase: Node.Config = {
       fontSize: 12,
     },
   },
-  ports: {
-    groups: {
-      top: { position: 'top', attrs: { circle: { r: 4, magnet: true, stroke: '#333', fill: '#fff' } } },
-      bottom: { position: 'bottom', attrs: { circle: { r: 4, magnet: true, stroke: '#333', fill: '#fff' } } },
-      left: { position: 'left', attrs: { circle: { r: 4, magnet: true, stroke: '#333', fill: '#fff' } } },
-      right: { position: 'right', attrs: { circle: { r: 4, magnet: true, stroke: '#333', fill: '#fff' } } },
-    },
-    items: [
-      { id: 'top', group: 'top' },
-      { id: 'bottom', group: 'bottom' },
-      { id: 'left', group: 'left' },
-      { id: 'right', group: 'right' },
-    ],
-  },
+  ports: ellipsePorts(8, { stroke: '#333' }),
 }

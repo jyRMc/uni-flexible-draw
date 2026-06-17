@@ -79,43 +79,43 @@ export function getShapePreviewSVG(shape: string): string {
 
     // ── Flowchart ───────────────────────────────────────────────────────
     case 'flowchart-start-end':
-      return `<svg width="48" height="32" viewBox="0 0 48 32" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="2" width="44" height="28" rx="14" ry="14" fill="#f8fafc" stroke="#334155" stroke-width="2"/></svg>`
+      return `<svg width="48" height="32" viewBox="0 0 48 32" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="2" width="44" height="28" rx="14" ry="14" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/></svg>`
     case 'flowchart-process':
-      return `<svg width="48" height="32" viewBox="0 0 48 32" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="2" width="44" height="28" fill="#f8fafc" stroke="#334155" stroke-width="2"/></svg>`
+      return `<svg width="48" height="32" viewBox="0 0 48 32" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="2" width="44" height="28" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/></svg>`
     case 'flowchart-decision':
-      return `<svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg"><polygon points="20,4 36,20 20,36 4,20" fill="#f8fafc" stroke="#334155" stroke-width="2"/></svg>`
+      return `<svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg"><polygon points="20,4 36,20 20,36 4,20" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/></svg>`
     case 'flowchart-input-output':
-      return `<svg width="48" height="32" viewBox="0 0 48 32" xmlns="http://www.w3.org/2000/svg"><polygon points="10,2 46,2 38,30 2,30" fill="#f8fafc" stroke="#334155" stroke-width="2"/></svg>`
+      return `<svg width="48" height="32" viewBox="0 0 48 32" xmlns="http://www.w3.org/2000/svg"><polygon points="10,2 46,2 38,30 2,30" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/></svg>`
     case 'flowchart-predefined':
-      return `<svg width="48" height="32" viewBox="0 0 48 32" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="2" width="44" height="28" fill="#f8fafc" stroke="#334155" stroke-width="2"/><line x1="8" y1="2" x2="8" y2="30" stroke="#334155" stroke-width="1.5"/><line x1="40" y1="2" x2="40" y2="30" stroke="#334155" stroke-width="1.5"/></svg>`
+      return `<svg width="48" height="32" viewBox="0 0 48 32" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="2" width="44" height="28" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/><line x1="8" y1="2" x2="8" y2="30" stroke="${stroke}" stroke-width="1.5"/><line x1="40" y1="2" x2="40" y2="30" stroke="${stroke}" stroke-width="1.5"/></svg>`
     case 'flowchart-connector':
-      return `<svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><circle cx="16" cy="16" r="12" fill="#f8fafc" stroke="#334155" stroke-width="2"/><text x="16" y="20" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="600" fill="#1e293b" text-anchor="middle">1</text></svg>`
+      return `<svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><circle cx="16" cy="16" r="12" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/><text x="16" y="20" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="600" fill="${stroke}" text-anchor="middle">1</text></svg>`
     case 'flowchart-off-page-connector':
-      return `<svg width="48" height="32" viewBox="0 0 48 32" xmlns="http://www.w3.org/2000/svg"><polygon points="2,2 38,2 46,16 38,30 2,30" fill="#f8fafc" stroke="#334155" stroke-width="2"/></svg>`
+      return `<svg width="48" height="32" viewBox="0 0 48 32" xmlns="http://www.w3.org/2000/svg"><polygon points="2,2 38,2 46,16 38,30 2,30" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/></svg>`
     case 'flowchart-document':
-      return `<svg width="48" height="40" viewBox="0 0 48 40" xmlns="http://www.w3.org/2000/svg"><path d="M 4 4 L 32 4 L 44 16 L 44 36 L 4 36 Z" fill="#f8fafc" stroke="#334155" stroke-width="2" stroke-linejoin="round"/><polyline points="32,4 32,16 44,16" fill="none" stroke="#334155" stroke-width="2" stroke-linejoin="round"/></svg>`
+      return `<svg width="48" height="40" viewBox="0 0 48 40" xmlns="http://www.w3.org/2000/svg"><path d="M 4 4 L 32 4 L 44 16 L 44 36 L 4 36 Z" fill="${fill}" stroke="${stroke}" stroke-width="${sw}" stroke-linejoin="round"/><polyline points="32,4 32,16 44,16" fill="none" stroke="${stroke}" stroke-width="${sw}" stroke-linejoin="round"/></svg>`
     case 'flowchart-multi-document':
-      return `<svg width="48" height="44" viewBox="0 0 48 44" xmlns="http://www.w3.org/2000/svg"><path d="M 8 8 L 36 8 L 44 16 L 44 40 L 8 40 Z" fill="#f8fafc" stroke="#334155" stroke-width="1.5" stroke-linejoin="round"/><polyline points="36,8 36,16 44,16" fill="none" stroke="#334155" stroke-width="1.5" stroke-linejoin="round"/><path d="M 4 4 L 32 4 L 40 12 L 40 36 L 4 36 Z" fill="#f8fafc" stroke="#334155" stroke-width="1.5" stroke-linejoin="round"/><polyline points="32,4 32,12 40,12" fill="none" stroke="#334155" stroke-width="1.5" stroke-linejoin="round"/></svg>`
+      return `<svg width="48" height="44" viewBox="0 0 48 44" xmlns="http://www.w3.org/2000/svg"><path d="M 8 8 L 36 8 L 44 16 L 44 40 L 8 40 Z" fill="${fill}" stroke="${stroke}" stroke-width="1.5" stroke-linejoin="round"/><polyline points="36,8 36,16 44,16" fill="none" stroke="${stroke}" stroke-width="1.5" stroke-linejoin="round"/><path d="M 4 4 L 32 4 L 40 12 L 40 36 L 4 36 Z" fill="${fill}" stroke="${stroke}" stroke-width="1.5" stroke-linejoin="round"/><polyline points="32,4 32,12 40,12" fill="none" stroke="${stroke}" stroke-width="1.5" stroke-linejoin="round"/></svg>`
     case 'flowchart-preparation':
-      return `<svg width="48" height="32" viewBox="0 0 48 32" xmlns="http://www.w3.org/2000/svg"><polygon points="12,2 36,2 46,16 36,30 12,30 2,16" fill="#f8fafc" stroke="#334155" stroke-width="2"/></svg>`
+      return `<svg width="48" height="32" viewBox="0 0 48 32" xmlns="http://www.w3.org/2000/svg"><polygon points="12,2 36,2 46,16 36,30 12,30 2,16" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/></svg>`
     case 'flowchart-manual-operation':
-      return `<svg width="48" height="32" viewBox="0 0 48 32" xmlns="http://www.w3.org/2000/svg"><polygon points="2,2 46,2 38,30 10,30" fill="#f8fafc" stroke="#334155" stroke-width="2"/></svg>`
+      return `<svg width="48" height="32" viewBox="0 0 48 32" xmlns="http://www.w3.org/2000/svg"><polygon points="2,2 46,2 38,30 10,30" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/></svg>`
     case 'flowchart-delay':
-      return `<svg width="48" height="32" viewBox="0 0 48 32" xmlns="http://www.w3.org/2000/svg"><path d="M 16 2 L 46 2 L 46 30 L 16 30 A 14 14 0 0 1 16 2 Z" fill="#f8fafc" stroke="#334155" stroke-width="2"/></svg>`
+      return `<svg width="48" height="32" viewBox="0 0 48 32" xmlns="http://www.w3.org/2000/svg"><path d="M 16 2 L 46 2 L 46 30 L 16 30 A 14 14 0 0 1 16 2 Z" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/></svg>`
     case 'flowchart-database':
-      return `<svg width="48" height="40" viewBox="0 0 48 40" xmlns="http://www.w3.org/2000/svg"><ellipse cx="24" cy="8" rx="20" ry="6" fill="#f8fafc" stroke="#334155" stroke-width="2"/><path d="M 4 8 L 4 32 A 20 6 0 0 0 44 32 L 44 8 A 20 6 0 0 1 4 8" fill="#f8fafc" stroke="#334155" stroke-width="2"/><ellipse cx="24" cy="32" rx="20" ry="6" fill="none" stroke="#334155" stroke-width="2"/></svg>`
+      return `<svg width="48" height="40" viewBox="0 0 48 40" xmlns="http://www.w3.org/2000/svg"><ellipse cx="24" cy="8" rx="20" ry="6" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/><path d="M 4 8 L 4 32 A 20 6 0 0 0 44 32 L 44 8 A 20 6 0 0 1 4 8" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/><ellipse cx="24" cy="32" rx="20" ry="6" fill="none" stroke="${stroke}" stroke-width="${sw}"/></svg>`
     case 'flowchart-display':
-      return `<svg width="48" height="32" viewBox="0 0 48 32" xmlns="http://www.w3.org/2000/svg"><polygon points="2,16 12,2 46,2 46,30 12,30" fill="#f8fafc" stroke="#334155" stroke-width="2"/></svg>`
+      return `<svg width="48" height="32" viewBox="0 0 48 32" xmlns="http://www.w3.org/2000/svg"><polygon points="2,16 12,2 46,2 46,30 12,30" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/></svg>`
     case 'flowchart-annotation':
-      return `<svg width="48" height="32" viewBox="0 0 48 32" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="2" width="44" height="28" rx="4" ry="4" fill="#f8fafc" stroke="#334155" stroke-width="2" stroke-dasharray="4 2"/></svg>`
+      return `<svg width="48" height="32" viewBox="0 0 48 32" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="2" width="44" height="28" rx="4" ry="4" fill="${fill}" stroke="${stroke}" stroke-width="${sw}" stroke-dasharray="4 2"/></svg>`
     case 'flowchart-merge':
-      return `<svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><polygon points="16,4 28,16 16,28 4,16" fill="#334155"/></svg>`
+      return `<svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><polygon points="16,4 28,16 16,28 4,16" fill="${stroke}"/></svg>`
     case 'flowchart-sort':
-      return `<svg width="48" height="32" viewBox="0 0 48 32" xmlns="http://www.w3.org/2000/svg"><polygon points="24,4 44,28 4,28" fill="#f8fafc" stroke="#334155" stroke-width="2"/></svg>`
+      return `<svg width="48" height="32" viewBox="0 0 48 32" xmlns="http://www.w3.org/2000/svg"><polygon points="24,4 44,28 4,28" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/></svg>`
     case 'flowchart-stored-data':
-      return `<svg width="48" height="32" viewBox="0 0 48 32" xmlns="http://www.w3.org/2000/svg"><path d="M 2 2 L 38 2 A 14 14 0 0 1 38 30 L 2 30 Z" fill="#f8fafc" stroke="#334155" stroke-width="2"/></svg>`
+      return `<svg width="48" height="32" viewBox="0 0 48 32" xmlns="http://www.w3.org/2000/svg"><path d="M 2 2 L 38 2 A 14 14 0 0 1 38 30 L 2 30 Z" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/></svg>`
     case 'flowchart-internal-storage':
-      return `<svg viewBox="0 0 40 28" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="2" width="36" height="24" fill="#e6f7ff" stroke="#1890ff" stroke-width="2"/><line x1="10" y1="2" x2="10" y2="26" stroke="#1890ff" stroke-width="2"/><line x1="2" y1="10" x2="38" y2="10" stroke="#1890ff" stroke-width="2"/></svg>`
+      return `<svg viewBox="0 0 40 28" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="2" width="36" height="24" fill="${fill}" stroke="${stroke}" stroke-width="2"/><line x1="10" y1="2" x2="10" y2="26" stroke="${stroke}" stroke-width="2"/><line x1="2" y1="10" x2="38" y2="10" stroke="${stroke}" stroke-width="2"/></svg>`
 
     // ── Edge / Connector ────────────────────────────────────────────────
     case 'edge-line':
@@ -167,59 +167,61 @@ export function getShapePreviewSVG(shape: string): string {
 
     // ── ER ────────────────────────────────────────────────────────────
     case 'er-entity':
-      return `<svg viewBox="0 0 44 28" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="2" width="40" height="24" fill="#fff2e8" stroke="#fa8c16" stroke-width="2"/></svg>`
+      return `<svg viewBox="0 0 44 28" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="2" width="40" height="24" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/></svg>`
     case 'er-weak-entity':
-      return `<svg viewBox="0 0 44 28" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="2" width="40" height="24" fill="#fff2e8" stroke="#fa8c16" stroke-width="2"/><rect x="5" y="5" width="34" height="18" fill="none" stroke="#fa8c16" stroke-width="1"/></svg>`
+      return `<svg viewBox="0 0 44 28" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="2" width="40" height="24" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/><rect x="5" y="5" width="34" height="18" fill="none" stroke="${stroke}" stroke-width="1"/></svg>`
     case 'er-relationship':
-      return `<svg viewBox="0 0 44 28" xmlns="http://www.w3.org/2000/svg"><polygon points="22,2 42,14 22,26 2,14" fill="#fff2e8" stroke="#fa8c16" stroke-width="2"/></svg>`
+      return `<svg viewBox="0 0 44 28" xmlns="http://www.w3.org/2000/svg"><polygon points="22,2 42,14 22,26 2,14" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/></svg>`
     case 'er-identifying-relationship':
-      return `<svg viewBox="0 0 44 28" xmlns="http://www.w3.org/2000/svg"><polygon points="22,2 42,14 22,26 2,14" fill="#fff2e8" stroke="#fa8c16" stroke-width="2"/><polygon points="22,5 39,14 22,23 5,14" fill="none" stroke="#fa8c16" stroke-width="1"/></svg>`
+      return `<svg viewBox="0 0 44 28" xmlns="http://www.w3.org/2000/svg"><polygon points="22,2 42,14 22,26 2,14" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/><polygon points="22,5 39,14 22,23 5,14" fill="none" stroke="${stroke}" stroke-width="1"/></svg>`
     case 'er-attribute':
-      return `<svg viewBox="0 0 36 28" xmlns="http://www.w3.org/2000/svg"><ellipse cx="18" cy="14" rx="16" ry="12" fill="#fff2e8" stroke="#fa8c16" stroke-width="2"/></svg>`
+      return `<svg viewBox="0 0 36 28" xmlns="http://www.w3.org/2000/svg"><ellipse cx="18" cy="14" rx="16" ry="12" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/></svg>`
     case 'er-key-attribute':
-      return `<svg viewBox="0 0 36 28" xmlns="http://www.w3.org/2000/svg"><ellipse cx="18" cy="14" rx="16" ry="12" fill="#fff2e8" stroke="#fa8c16" stroke-width="2"/><line x1="4" y1="22" x2="32" y2="22" stroke="#fa8c16" stroke-width="1.5"/></svg>`
+      return `<svg viewBox="0 0 36 28" xmlns="http://www.w3.org/2000/svg"><ellipse cx="18" cy="14" rx="16" ry="12" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/><line x1="4" y1="22" x2="32" y2="22" stroke="${stroke}" stroke-width="1.5"/></svg>`
     case 'er-multivalued':
-      return `<svg viewBox="0 0 36 28" xmlns="http://www.w3.org/2000/svg"><ellipse cx="18" cy="14" rx="16" ry="12" fill="#fff2e8" stroke="#fa8c16" stroke-width="2"/><ellipse cx="18" cy="14" rx="12" ry="8" fill="none" stroke="#fa8c16" stroke-width="1"/></svg>`
+      return `<svg viewBox="0 0 36 28" xmlns="http://www.w3.org/2000/svg"><ellipse cx="18" cy="14" rx="16" ry="12" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/><ellipse cx="18" cy="14" rx="12" ry="8" fill="none" stroke="${stroke}" stroke-width="1"/></svg>`
     case 'er-derived':
-      return `<svg viewBox="0 0 36 28" xmlns="http://www.w3.org/2000/svg"><ellipse cx="18" cy="14" rx="16" ry="12" fill="#fff2e8" stroke="#fa8c16" stroke-width="2" stroke-dasharray="4 2"/></svg>`
+      return `<svg viewBox="0 0 36 28" xmlns="http://www.w3.org/2000/svg"><ellipse cx="18" cy="14" rx="16" ry="12" fill="${fill}" stroke="${stroke}" stroke-width="${sw}" stroke-dasharray="4 2"/></svg>`
     case 'er-associative':
-      return `<svg viewBox="0 0 44 28" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="2" width="40" height="24" fill="#fff2e8" stroke="#fa8c16" stroke-width="2"/></svg>`
+      return `<svg viewBox="0 0 44 28" xmlns="http://www.w3.org/2000/svg"><polygon points="22,2 39,12 22,22 5,12" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/><rect x="5" y="22" width="34" height="5" rx="1" ry="1" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/></svg>`
     case 'er-total-participation':
-      return `<svg viewBox="0 0 44 28" xmlns="http://www.w3.org/2000/svg"><polygon points="22,2 42,14 22,26 2,14" fill="#fff2e8" stroke="#fa8c16" stroke-width="2"/><line x1="22" y1="2" x2="22" y2="26" stroke="#fa8c16" stroke-width="1.5"/></svg>`
+      return `<svg viewBox="0 0 44 28" xmlns="http://www.w3.org/2000/svg"><polygon points="22,2 42,14 22,26 2,14" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/><line x1="22" y1="2" x2="22" y2="26" stroke="${stroke}" stroke-width="1.5"/></svg>`
+    case 'er-annotation':
+      return `<svg viewBox="0 0 44 28" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="2" width="40" height="24" rx="3" ry="3" fill="${fill}" stroke="${stroke}" stroke-width="${sw}" stroke-dasharray="4 2"/></svg>`
 
     // ── State ─────────────────────────────────────────────────────────
     case 'state-initial':
-      return `<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg"><circle cx="20" cy="20" r="10" fill="#1a1a1a"/></svg>`
+      return `<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg"><circle cx="20" cy="20" r="10" fill="${stroke}"/></svg>`
     case 'state-final':
-      return `<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg"><circle cx="20" cy="20" r="12" fill="none" stroke="#1a1a1a" stroke-width="2"/><circle cx="20" cy="20" r="6" fill="#1a1a1a"/></svg>`
+      return `<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg"><circle cx="20" cy="20" r="12" fill="none" stroke="${stroke}" stroke-width="2"/><circle cx="20" cy="20" r="6" fill="${stroke}"/></svg>`
     case 'state-simple':
-      return `<svg viewBox="0 0 48 32" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="2" width="44" height="28" rx="6" ry="6" fill="#f8fafc" stroke="#334155" stroke-width="2"/></svg>`
+      return `<svg viewBox="0 0 48 32" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="2" width="44" height="28" rx="6" ry="6" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/></svg>`
     case 'state-composite':
-      return `<svg viewBox="0 0 48 36" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="2" width="44" height="32" rx="6" ry="6" fill="#f8fafc" stroke="#334155" stroke-width="2"/><line x1="2" y1="12" x2="46" y2="12" stroke="#334155" stroke-width="2"/></svg>`
+      return `<svg viewBox="0 0 48 36" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="2" width="44" height="32" rx="6" ry="6" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/><line x1="2" y1="12" x2="46" y2="12" stroke="${stroke}" stroke-width="${sw}"/></svg>`
     case 'state-submachine':
-      return `<svg viewBox="0 0 48 32" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="2" width="44" height="28" rx="6" ry="6" fill="#f8fafc" stroke="#334155" stroke-width="2"/><text x="40" y="22" font-family="monospace" font-size="8" fill="#334155" text-anchor="middle">::</text></svg>`
+      return `<svg viewBox="0 0 48 32" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="2" width="44" height="28" rx="6" ry="6" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/><text x="40" y="22" font-family="monospace" font-size="8" fill="${stroke}" text-anchor="middle">::</text></svg>`
     case 'state-shallow-history':
-      return `<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><circle cx="16" cy="16" r="14" fill="#f8fafc" stroke="#334155" stroke-width="2"/><text x="16" y="20" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="600" fill="#1e293b" text-anchor="middle">H</text></svg>`
+      return `<svg viewBox="0 0 40 32" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="2" width="32" height="28" rx="4" ry="4" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/><text x="20" y="20" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="600" fill="${stroke}" text-anchor="middle">H</text></svg>`
     case 'state-deep-history':
-      return `<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><circle cx="16" cy="16" r="14" fill="#f8fafc" stroke="#334155" stroke-width="2"/><text x="16" y="20" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="600" fill="#1e293b" text-anchor="middle">H*</text></svg>`
+      return `<svg viewBox="0 0 40 32" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="2" width="32" height="28" rx="4" ry="4" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/><text x="20" y="20" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="600" fill="${stroke}" text-anchor="middle">H*</text></svg>`
     case 'state-junction':
-      return `<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><polygon points="16,4 28,16 16,28 4,16" fill="#334155"/></svg>`
+      return `<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><polygon points="16,4 28,16 16,28 4,16" fill="${stroke}"/></svg>`
     case 'state-choice':
-      return `<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><polygon points="16,4 28,16 16,28 4,16" fill="#f8fafc" stroke="#334155" stroke-width="2"/><text x="16" y="19" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="600" fill="#1e293b" text-anchor="middle">?</text></svg>`
+      return `<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><polygon points="16,4 28,16 16,28 4,16" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/><text x="16" y="19" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="600" fill="${stroke}" text-anchor="middle">?</text></svg>`
     case 'state-fork':
-      return `<svg viewBox="0 0 48 32" xmlns="http://www.w3.org/2000/svg"><line x1="24" y1="2" x2="24" y2="12" stroke="#334155" stroke-width="2"/><line x1="4" y1="12" x2="44" y2="12" stroke="#334155" stroke-width="4" stroke-linecap="round"/><line x1="12" y1="12" x2="12" y2="30" stroke="#334155" stroke-width="2"/><line x1="24" y1="12" x2="24" y2="30" stroke="#334155" stroke-width="2"/><line x1="36" y1="12" x2="36" y2="30" stroke="#334155" stroke-width="2"/></svg>`
+      return `<svg viewBox="0 0 48 32" xmlns="http://www.w3.org/2000/svg"><line x1="24" y1="2" x2="24" y2="12" stroke="${stroke}" stroke-width="2"/><line x1="4" y1="12" x2="44" y2="12" stroke="${stroke}" stroke-width="4" stroke-linecap="round"/><line x1="12" y1="12" x2="12" y2="30" stroke="${stroke}" stroke-width="2"/><line x1="24" y1="12" x2="24" y2="30" stroke="${stroke}" stroke-width="2"/><line x1="36" y1="12" x2="36" y2="30" stroke="${stroke}" stroke-width="2"/></svg>`
     case 'state-join':
-      return `<svg viewBox="0 0 48 32" xmlns="http://www.w3.org/2000/svg"><line x1="12" y1="2" x2="12" y2="12" stroke="#334155" stroke-width="2"/><line x1="24" y1="2" x2="24" y2="12" stroke="#334155" stroke-width="2"/><line x1="36" y1="2" x2="36" y2="12" stroke="#334155" stroke-width="2"/><line x1="4" y1="12" x2="44" y2="12" stroke="#334155" stroke-width="4" stroke-linecap="round"/><line x1="24" y1="12" x2="24" y2="30" stroke="#334155" stroke-width="2"/></svg>`
+      return `<svg viewBox="0 0 48 32" xmlns="http://www.w3.org/2000/svg"><line x1="12" y1="2" x2="12" y2="12" stroke="${stroke}" stroke-width="2"/><line x1="24" y1="2" x2="24" y2="12" stroke="${stroke}" stroke-width="2"/><line x1="36" y1="2" x2="36" y2="12" stroke="${stroke}" stroke-width="2"/><line x1="4" y1="12" x2="44" y2="12" stroke="${stroke}" stroke-width="4" stroke-linecap="round"/><line x1="24" y1="12" x2="24" y2="30" stroke="${stroke}" stroke-width="2"/></svg>`
     case 'state-entry-point':
-      return `<svg viewBox="0 0 48 32" xmlns="http://www.w3.org/2000/svg"><rect x="10" y="2" width="36" height="28" rx="4" ry="4" fill="#f8fafc" stroke="#334155" stroke-width="2"/><circle cx="10" cy="16" r="4" fill="#f8fafc" stroke="#334155" stroke-width="2"/><line x1="2" y1="16" x2="6" y2="16" stroke="#334155" stroke-width="1.5"/><polygon points="6,16 3,13 3,19" fill="#334155"/></svg>`
+      return `<svg viewBox="0 0 48 32" xmlns="http://www.w3.org/2000/svg"><rect x="10" y="2" width="36" height="28" rx="4" ry="4" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/><circle cx="10" cy="16" r="4" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/><line x1="2" y1="16" x2="6" y2="16" stroke="${stroke}" stroke-width="1.5"/><polygon points="6,16 3,13 3,19" fill="${stroke}"/></svg>`
     case 'state-exit-point':
-      return `<svg viewBox="0 0 48 32" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="2" width="36" height="28" rx="4" ry="4" fill="#f8fafc" stroke="#334155" stroke-width="2"/><circle cx="38" cy="16" r="4" fill="#f8fafc" stroke="#334155" stroke-width="2"/><line x1="38" y1="13" x2="38" y2="19" stroke="#334155" stroke-width="1"/><line x1="35" y1="13" x2="41" y2="19" stroke="#334155" stroke-width="1"/><line x1="42" y1="16" x2="46" y2="16" stroke="#334155" stroke-width="1.5"/><polygon points="46,16 43,13 43,19" fill="#334155"/></svg>`
+      return `<svg viewBox="0 0 48 32" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="2" width="36" height="28" rx="4" ry="4" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/><circle cx="38" cy="16" r="4" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/><line x1="38" y1="13" x2="38" y2="19" stroke="${stroke}" stroke-width="1"/><line x1="35" y1="13" x2="41" y2="19" stroke="${stroke}" stroke-width="1"/><line x1="42" y1="16" x2="46" y2="16" stroke="${stroke}" stroke-width="1.5"/><polygon points="46,16 43,13 43,19" fill="${stroke}"/></svg>`
     case 'state-terminate':
-      return `<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><line x1="8" y1="8" x2="24" y2="24" stroke="#dc2626" stroke-width="2.5" stroke-linecap="round"/><line x1="24" y1="8" x2="8" y2="24" stroke="#dc2626" stroke-width="2.5" stroke-linecap="round"/></svg>`
+      return `<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><line x1="8" y1="8" x2="24" y2="24" stroke="${stroke}" stroke-width="2.5" stroke-linecap="round"/><line x1="24" y1="8" x2="8" y2="24" stroke="${stroke}" stroke-width="2.5" stroke-linecap="round"/></svg>`
     case 'state-signal-send':
-      return `<svg viewBox="0 0 48 32" xmlns="http://www.w3.org/2000/svg"><polygon points="2,16 12,2 36,2 46,16 36,30 12,30" fill="#f8fafc" stroke="#334155" stroke-width="2"/></svg>`
+      return `<svg viewBox="0 0 48 32" xmlns="http://www.w3.org/2000/svg"><polygon points="2,16 12,2 36,2 46,16 36,30 12,30" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/></svg>`
     case 'state-signal-receive':
-      return `<svg viewBox="0 0 48 32" xmlns="http://www.w3.org/2000/svg"><polygon points="12,2 36,2 46,16 36,30 12,30 2,16" fill="#f8fafc" stroke="#334155" stroke-width="2"/></svg>`
+      return `<svg viewBox="0 0 48 32" xmlns="http://www.w3.org/2000/svg"><polygon points="12,2 36,2 46,16 36,30 12,30 2,16" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/></svg>`
 
     // ── DFD ──────────────────────────────────────────────────────────
     case 'dfd-process':

@@ -1,0 +1,1179 @@
+{
+  "canvas": {
+    "backgroundColor": "#f8f9fa",
+    "grid": {
+      "size": 10,
+      "visible": true,
+      "type": "dot",
+      "color": "#d9d9d9"
+    },
+    "zoom": 0.8,
+    "offset": { "x": 0, "y": 0 }
+  },
+  "meta": {
+    "title": "综合图表示例",
+    "type": "custom",
+    "createdAt": "2026-06-16T00:00:00.000Z",
+    "version": "1.0.0",
+    "aiGenerated": false,
+    "ext": { "description": "包含流程图、UML类图、ER图、状态图、DFD、时序图、泳道图及各类基础/特殊节点" }
+  },
+  "nodes": [
+    {
+      "id": "title-text",
+      "shape": "basic-text",
+      "position": { "x": 400, "y": 10 },
+      "size": { "width": 400, "height": 40 },
+      "label": "综合图表示例 — 涵盖所有图形类型",
+      "data": { "textAlign": "center" },
+      "style": { "fill": "transparent", "stroke": "none" },
+      "zIndex": 10
+    },
+
+    {
+      "id": "group-flowchart",
+      "shape": "basic-group",
+      "position": { "x": 30, "y": 60 },
+      "size": { "width": 520, "height": 420 },
+      "label": { "text": "流程图区域", "position": "top", "style": { "fill": "#999", "fontSize": 12 } },
+      "style": { "fill": "rgba(24,144,255,0.03)", "stroke": "#91d5ff", "strokeWidth": 1, "strokeDasharray": "6 4", "rx": 8 },
+      "zIndex": 0
+    },
+    {
+      "id": "fc-start",
+      "shape": "flowchart-start-end",
+      "position": { "x": 220, "y": 100 },
+      "size": { "width": 120, "height": 44 },
+      "label": "开始",
+      "style": { "fill": "#e6f7ff", "stroke": "#1890ff", "strokeWidth": 2 },
+      "parent": "group-flowchart"
+    },
+    {
+      "id": "fc-input",
+      "shape": "flowchart-input-output",
+      "position": { "x": 200, "y": 180 },
+      "size": { "width": 160, "height": 56 },
+      "label": "输入用户信息",
+      "style": { "fill": "#fff7e6", "stroke": "#fa8c16", "strokeWidth": 2 },
+      "parent": "group-flowchart"
+    },
+    {
+      "id": "fc-process",
+      "shape": "flowchart-process",
+      "position": { "x": 210, "y": 270 },
+      "size": { "width": 140, "height": 56 },
+      "label": "验证数据",
+      "style": { "fill": "#ffffff", "stroke": "#1890ff", "strokeWidth": 2, "rx": 4 },
+      "parent": "group-flowchart"
+    },
+    {
+      "id": "fc-decision",
+      "shape": "flowchart-decision",
+      "position": { "x": 200, "y": 360 },
+      "size": { "width": 160, "height": 80 },
+      "label": "是否合法？",
+      "style": { "fill": "#fffbe6", "stroke": "#faad14", "strokeWidth": 2 },
+      "parent": "group-flowchart"
+    },
+    {
+      "id": "fc-db",
+      "shape": "flowchart-database",
+      "position": { "x": 60, "y": 350 },
+      "size": { "width": 100, "height": 70 },
+      "label": "数据库",
+      "style": { "fill": "#f0f5ff", "stroke": "#2f54eb", "strokeWidth": 2 },
+      "parent": "group-flowchart"
+    },
+    {
+      "id": "fc-doc",
+      "shape": "flowchart-document",
+      "position": { "x": 400, "y": 350 },
+      "size": { "width": 120, "height": 70 },
+      "label": "生成报告",
+      "style": { "fill": "#f6ffed", "stroke": "#52c41a", "strokeWidth": 2 },
+      "parent": "group-flowchart"
+    },
+    {
+      "id": "fc-end",
+      "shape": "flowchart-start-end",
+      "position": { "x": 410, "y": 100 },
+      "size": { "width": 100, "height": 44 },
+      "label": "结束",
+      "style": { "fill": "#fff1f0", "stroke": "#ff4d4f", "strokeWidth": 2 },
+      "parent": "group-flowchart"
+    },
+    {
+      "id": "fc-predefined",
+      "shape": "flowchart-predefined",
+      "position": { "x": 60, "y": 180 },
+      "size": { "width": 120, "height": 56 },
+      "label": "调用SDK",
+      "style": { "fill": "#f9f0ff", "stroke": "#722ed1", "strokeWidth": 2 },
+      "parent": "group-flowchart"
+    },
+    {
+      "id": "fc-merge",
+      "shape": "flowchart-merge",
+      "position": { "x": 420, "y": 260 },
+      "size": { "width": 60, "height": 60 },
+      "label": "合并",
+      "style": { "fill": "#e6fffb", "stroke": "#13c2c2", "strokeWidth": 2 },
+      "parent": "group-flowchart"
+    },
+    {
+      "id": "fc-connector",
+      "shape": "flowchart-connector",
+      "position": { "x": 60, "y": 275 },
+      "size": { "width": 24, "height": 24 },
+      "style": { "fill": "#d9d9d9", "stroke": "#595959" },
+      "parent": "group-flowchart"
+    },
+
+    {
+      "id": "group-uml",
+      "shape": "basic-group",
+      "position": { "x": 590, "y": 60 },
+      "size": { "width": 560, "height": 420 },
+      "label": { "text": "UML 类图区域", "position": "top", "style": { "fill": "#999", "fontSize": 12 } },
+      "style": { "fill": "rgba(114,46,209,0.03)", "stroke": "#d3adf7", "strokeWidth": 1, "strokeDasharray": "6 4", "rx": 8 },
+      "zIndex": 0
+    },
+    {
+      "id": "uml-class-order",
+      "shape": "uml-class",
+      "position": { "x": 620, "y": 100 },
+      "size": { "width": 180, "height": 140 },
+      "data": {
+        "regionData": {
+          "regions": [
+            { "id": "name", "label": "Order" },
+            { "id": "attributes", "label": "- id: UUID\n- total: Decimal\n- status: String" },
+            { "id": "methods", "label": "+ pay(): void\n+ cancel(): void\n+ getStatus(): String" }
+          ],
+          "dividers": [
+            { "id": "d1", "position": 0.2 },
+            { "id": "d2", "position": 0.58 }
+          ]
+        }
+      },
+      "parent": "group-uml"
+    },
+    {
+      "id": "uml-interface",
+      "shape": "uml-interface",
+      "position": { "x": 870, "y": 100 },
+      "size": { "width": 180, "height": 120 },
+      "data": {
+        "regionData": {
+          "regions": [
+            { "id": "name", "label": "<<interface>>\nPayable" },
+            { "id": "attributes", "label": "" },
+            { "id": "methods", "label": "+ pay(amount: Decimal)\n+ refund(): boolean" }
+          ],
+          "dividers": [
+            { "id": "d1", "position": 0.3 },
+            { "id": "d2", "position": 0.45 }
+          ]
+        }
+      },
+      "parent": "group-uml"
+    },
+    {
+      "id": "uml-abstract",
+      "shape": "uml-abstract",
+      "position": { "x": 620, "y": 280 },
+      "size": { "width": 180, "height": 120 },
+      "data": {
+        "regionData": {
+          "regions": [
+            { "id": "name", "label": "<<abstract>>\nBaseEntity" },
+            { "id": "attributes", "label": "# id: UUID\n# createdAt: Date" },
+            { "id": "methods", "label": "+ toString(): String" }
+          ],
+          "dividers": [
+            { "id": "d1", "position": 0.28 },
+            { "id": "d2", "position": 0.58 }
+          ]
+        }
+      },
+      "parent": "group-uml"
+    },
+    {
+      "id": "uml-enum",
+      "shape": "uml-enum",
+      "position": { "x": 870, "y": 280 },
+      "size": { "width": 180, "height": 120 },
+      "data": {
+        "regionData": {
+          "regions": [
+            { "id": "name", "label": "<<enumeration>>\nOrderStatus" },
+            { "id": "attributes", "label": "PENDING\nPAID\nCANCELLED\nREFUNDED" }
+          ],
+          "dividers": [
+            { "id": "d1", "position": 0.3 }
+          ]
+        }
+      },
+      "parent": "group-uml"
+    },
+    {
+      "id": "uml-note",
+      "shape": "uml-note",
+      "position": { "x": 1060, "y": 200 },
+      "size": { "width": 140, "height": 80 },
+      "label": "注释：\nOrder 实现了\nPayable 接口",
+      "style": { "fill": "#fffbe6", "stroke": "#d4b106" },
+      "parent": "group-uml"
+    },
+    {
+      "id": "uml-actor",
+      "shape": "uml-actor",
+      "position": { "x": 1080, "y": 100 },
+      "size": { "width": 40, "height": 80 },
+      "label": { "text": "用户", "position": "bottom", "style": { "fontSize": 11 } },
+      "parent": "group-uml"
+    },
+
+    {
+      "id": "group-basic",
+      "shape": "basic-group",
+      "position": { "x": 30, "y": 520 },
+      "size": { "width": 520, "height": 340 },
+      "label": { "text": "基础图形 & 特殊节点区域", "position": "top", "style": { "fill": "#999", "fontSize": 12 } },
+      "style": { "fill": "rgba(82,196,26,0.03)", "stroke": "#b7eb8f", "strokeWidth": 1, "strokeDasharray": "6 4", "rx": 8 },
+      "zIndex": 0
+    },
+    {
+      "id": "basic-rect-1",
+      "shape": "basic-rect",
+      "position": { "x": 50, "y": 570 },
+      "size": { "width": 100, "height": 60 },
+      "label": "矩形",
+      "style": { "fill": "#e6f7ff", "stroke": "#1890ff", "strokeWidth": 2 },
+      "parent": "group-basic"
+    },
+    {
+      "id": "basic-rounded-rect-1",
+      "shape": "basic-rounded-rect",
+      "position": { "x": 170, "y": 570 },
+      "size": { "width": 100, "height": 60 },
+      "label": "圆角矩形",
+      "style": { "fill": "#f6ffed", "stroke": "#52c41a", "strokeWidth": 2 },
+      "parent": "group-basic"
+    },
+    {
+      "id": "basic-circle-1",
+      "shape": "basic-circle",
+      "position": { "x": 295, "y": 565 },
+      "size": { "width": 60, "height": 60 },
+      "label": "圆",
+      "style": { "fill": "#fff7e6", "stroke": "#fa8c16", "strokeWidth": 2 },
+      "parent": "group-basic"
+    },
+    {
+      "id": "basic-diamond-1",
+      "shape": "basic-diamond",
+      "position": { "x": 375, "y": 560 },
+      "size": { "width": 80, "height": 70 },
+      "label": "菱形",
+      "style": { "fill": "#f9f0ff", "stroke": "#722ed1", "strokeWidth": 2 },
+      "parent": "group-basic"
+    },
+    {
+      "id": "basic-triangle-1",
+      "shape": "basic-triangle",
+      "position": { "x": 470, "y": 560 },
+      "size": { "width": 80, "height": 70 },
+      "label": "三角",
+      "style": { "fill": "#fff1f0", "stroke": "#ff4d4f", "strokeWidth": 2 },
+      "parent": "group-basic"
+    },
+    {
+      "id": "basic-hexagon-1",
+      "shape": "basic-hexagon",
+      "position": { "x": 50, "y": 660 },
+      "size": { "width": 80, "height": 70 },
+      "label": "六边形",
+      "style": { "fill": "#e6fffb", "stroke": "#13c2c2", "strokeWidth": 2 },
+      "parent": "group-basic"
+    },
+    {
+      "id": "basic-star-1",
+      "shape": "basic-star",
+      "position": { "x": 155, "y": 660 },
+      "size": { "width": 70, "height": 70 },
+      "label": "五角星",
+      "style": { "fill": "#fffbe6", "stroke": "#faad14", "strokeWidth": 2 },
+      "parent": "group-basic"
+    },
+    {
+      "id": "basic-parallelogram-1",
+      "shape": "basic-parallelogram",
+      "position": { "x": 245, "y": 660 },
+      "size": { "width": 100, "height": 60 },
+      "label": "平行四边形",
+      "style": { "fill": "#f0f5ff", "stroke": "#2f54eb", "strokeWidth": 2 },
+      "parent": "group-basic"
+    },
+    {
+      "id": "basic-cloud-1",
+      "shape": "basic-cloud",
+      "position": { "x": 365, "y": 655 },
+      "size": { "width": 120, "height": 70 },
+      "label": "云朵",
+      "style": { "fill": "#e6f7ff", "stroke": "#69c0ff", "strokeWidth": 2 },
+      "parent": "group-basic"
+    },
+    {
+      "id": "basic-cylinder-1",
+      "shape": "basic-cylinder",
+      "position": { "x": 50, "y": 760 },
+      "size": { "width": 100, "height": 70 },
+      "label": "圆柱体",
+      "style": { "fill": "#f0f5ff", "stroke": "#2f54eb", "strokeWidth": 2 },
+      "parent": "group-basic"
+    },
+    {
+      "id": "basic-cross-1",
+      "shape": "basic-cross",
+      "position": { "x": 170, "y": 760 },
+      "size": { "width": 70, "height": 70 },
+      "label": "十字",
+      "style": { "fill": "#fff1f0", "stroke": "#ff7a45", "strokeWidth": 2 },
+      "parent": "group-basic"
+    },
+    {
+      "id": "basic-document-1",
+      "shape": "basic-document",
+      "position": { "x": 260, "y": 755 },
+      "size": { "width": 100, "height": 70 },
+      "label": "文档",
+      "style": { "fill": "#f6ffed", "stroke": "#73d13d", "strokeWidth": 2 },
+      "parent": "group-basic"
+    },
+    {
+      "id": "basic-trapezoid-1",
+      "shape": "basic-trapezoid",
+      "position": { "x": 380, "y": 760 },
+      "size": { "width": 100, "height": 60 },
+      "label": "梯形",
+      "style": { "fill": "#f9f0ff", "stroke": "#9254de", "strokeWidth": 2 },
+      "parent": "group-basic"
+    },
+
+    {
+      "id": "group-table",
+      "shape": "basic-group",
+      "position": { "x": 590, "y": 520 },
+      "size": { "width": 300, "height": 200 },
+      "label": { "text": "表格节点", "position": "top", "style": { "fill": "#999", "fontSize": 12 } },
+      "style": { "fill": "rgba(250,173,20,0.03)", "stroke": "#ffe58f", "strokeWidth": 1, "strokeDasharray": "6 4", "rx": 8 },
+      "zIndex": 0
+    },
+    {
+      "id": "table-1",
+      "shape": "basic-table",
+      "position": { "x": 610, "y": 560 },
+      "size": { "width": 260, "height": 140 },
+      "data": {
+        "table": {
+          "rows": 4,
+          "cols": 3,
+          "cells": [
+            ["ID", "姓名", "角色"],
+            ["001", "张三", "管理员"],
+            ["002", "李四", "开发者"],
+            ["003", "王五", "测试员"]
+          ]
+        }
+      },
+      "parent": "group-table"
+    },
+
+    {
+      "id": "group-image",
+      "shape": "basic-group",
+      "position": { "x": 920, "y": 520 },
+      "size": { "width": 230, "height": 200 },
+      "label": { "text": "图片节点", "position": "top", "style": { "fill": "#999", "fontSize": 12 } },
+      "style": { "fill": "rgba(24,144,255,0.03)", "stroke": "#91d5ff", "strokeWidth": 1, "strokeDasharray": "6 4", "rx": 8 },
+      "zIndex": 0
+    },
+    {
+      "id": "image-1",
+      "shape": "basic-image",
+      "position": { "x": 945, "y": 560 },
+      "size": { "width": 180, "height": 140 },
+      "data": {
+        "imageHref": "https://uniplore-va-studio-dev-test.oss-cn-chengdu.aliyuncs.com/aac75bf2-1bf5-4c3b-af8b-8945fb40c367.png",
+        "imageFit": "contain"
+      },
+      "parent": "group-image"
+    },
+
+    {
+      "id": "group-er",
+      "shape": "basic-group",
+      "position": { "x": 30, "y": 900 },
+      "size": { "width": 520, "height": 310 },
+      "label": { "text": "ER 实体关系图区域", "position": "top", "style": { "fill": "#999", "fontSize": 12 } },
+      "style": { "fill": "rgba(47,84,235,0.03)", "stroke": "#adc6ff", "strokeWidth": 1, "strokeDasharray": "6 4", "rx": 8 },
+      "zIndex": 0
+    },
+    {
+      "id": "er-entity-student",
+      "shape": "er-entity",
+      "position": { "x": 60, "y": 950 },
+      "size": { "width": 130, "height": 50 },
+      "label": "Student",
+      "style": { "fill": "#e6f7ff", "stroke": "#1890ff", "strokeWidth": 2 },
+      "parent": "group-er"
+    },
+    {
+      "id": "er-key-stu",
+      "shape": "er-key-attribute",
+      "position": { "x": 55, "y": 1030 },
+      "size": { "width": 80, "height": 40 },
+      "label": "student_id",
+      "style": { "fill": "#fffbe6", "stroke": "#faad14", "strokeWidth": 1.5 },
+      "parent": "group-er"
+    },
+    {
+      "id": "er-attr-name",
+      "shape": "er-attribute",
+      "position": { "x": 155, "y": 1030 },
+      "size": { "width": 80, "height": 40 },
+      "label": "name",
+      "style": { "fill": "#f6ffed", "stroke": "#52c41a", "strokeWidth": 1.5 },
+      "parent": "group-er"
+    },
+    {
+      "id": "er-relationship-enroll",
+      "shape": "er-relationship",
+      "position": { "x": 250, "y": 950 },
+      "size": { "width": 90, "height": 60 },
+      "label": "Enrolls",
+      "style": { "fill": "#fff7e6", "stroke": "#fa8c16", "strokeWidth": 2 },
+      "parent": "group-er"
+    },
+    {
+      "id": "er-entity-course",
+      "shape": "er-entity",
+      "position": { "x": 400, "y": 950 },
+      "size": { "width": 120, "height": 50 },
+      "label": "Course",
+      "style": { "fill": "#f0f5ff", "stroke": "#2f54eb", "strokeWidth": 2 },
+      "parent": "group-er"
+    },
+    {
+      "id": "er-key-course",
+      "shape": "er-key-attribute",
+      "position": { "x": 385, "y": 1030 },
+      "size": { "width": 80, "height": 40 },
+      "label": "course_id",
+      "style": { "fill": "#fffbe6", "stroke": "#faad14", "strokeWidth": 1.5 },
+      "parent": "group-er"
+    },
+    {
+      "id": "er-attr-title",
+      "shape": "er-attribute",
+      "position": { "x": 480, "y": 1030 },
+      "size": { "width": 80, "height": 40 },
+      "label": "title",
+      "style": { "fill": "#f6ffed", "stroke": "#52c41a", "strokeWidth": 1.5 },
+      "parent": "group-er"
+    },
+    {
+      "id": "er-weak-entity",
+      "shape": "er-weak-entity",
+      "position": { "x": 250, "y": 1080 },
+      "size": { "width": 120, "height": 50 },
+      "label": "Section",
+      "style": { "fill": "#e6fffb", "stroke": "#13c2c2", "strokeWidth": 2 },
+      "parent": "group-er"
+    },
+    {
+      "id": "er-multivalued",
+      "shape": "er-multivalued",
+      "position": { "x": 60, "y": 1100 },
+      "size": { "width": 80, "height": 40 },
+      "label": "phones",
+      "style": { "fill": "#fff1f0", "stroke": "#ff4d4f", "strokeWidth": 1.5 },
+      "parent": "group-er"
+    },
+    {
+      "id": "er-derived",
+      "shape": "er-derived",
+      "position": { "x": 160, "y": 1100 },
+      "size": { "width": 80, "height": 40 },
+      "label": "age",
+      "style": { "fill": "#f9f0ff", "stroke": "#722ed1", "strokeWidth": 1.5 },
+      "parent": "group-er"
+    },
+
+    {
+      "id": "group-state",
+      "shape": "basic-group",
+      "position": { "x": 590, "y": 760 },
+      "size": { "width": 560, "height": 230 },
+      "label": { "text": "状态图区域", "position": "top", "style": { "fill": "#999", "fontSize": 12 } },
+      "style": { "fill": "rgba(255,77,79,0.03)", "stroke": "#ffa39e", "strokeWidth": 1, "strokeDasharray": "6 4", "rx": 8 },
+      "zIndex": 0
+    },
+    {
+      "id": "state-init",
+      "shape": "state-initial",
+      "position": { "x": 620, "y": 820 },
+      "size": { "width": 40, "height": 40 },
+      "parent": "group-state"
+    },
+    {
+      "id": "state-idle",
+      "shape": "state-simple",
+      "position": { "x": 700, "y": 800 },
+      "size": { "width": 130, "height": 60 },
+      "label": "Idle",
+      "style": { "fill": "#e6f7ff", "stroke": "#1890ff", "strokeWidth": 2 },
+      "parent": "group-state"
+    },
+    {
+      "id": "state-loading",
+      "shape": "state-simple",
+      "position": { "x": 880, "y": 800 },
+      "size": { "width": 130, "height": 60 },
+      "label": "Loading",
+      "style": { "fill": "#fff7e6", "stroke": "#fa8c16", "strokeWidth": 2 },
+      "parent": "group-state"
+    },
+    {
+      "id": "state-composite-1",
+      "shape": "state-composite",
+      "position": { "x": 700, "y": 890 },
+      "size": { "width": 200, "height": 90 },
+      "label": "Processing",
+      "style": { "fill": "#f6ffed", "stroke": "#52c41a", "strokeWidth": 2 },
+      "parent": "group-state"
+    },
+    {
+      "id": "state-fork-1",
+      "shape": "state-fork",
+      "position": { "x": 950, "y": 910 },
+      "size": { "width": 20, "height": 60 },
+      "style": { "fill": "#333333", "stroke": "#333333" },
+      "parent": "group-state"
+    },
+    {
+      "id": "state-final-1",
+      "shape": "state-final",
+      "position": { "x": 1060, "y": 820 },
+      "size": { "width": 40, "height": 40 },
+      "parent": "group-state"
+    },
+    {
+      "id": "state-choice-1",
+      "shape": "state-choice",
+      "position": { "x": 1060, "y": 900 },
+      "size": { "width": 50, "height": 50 },
+      "parent": "group-state"
+    },
+
+    {
+      "id": "group-dfd",
+      "shape": "basic-group",
+      "position": { "x": 30, "y": 1250 },
+      "size": { "width": 520, "height": 250 },
+      "label": { "text": "数据流图 (DFD) 区域", "position": "top", "style": { "fill": "#999", "fontSize": 12 } },
+      "style": { "fill": "rgba(19,194,194,0.03)", "stroke": "#87e8de", "strokeWidth": 1, "strokeDasharray": "6 4", "rx": 8 },
+      "zIndex": 0
+    },
+    {
+      "id": "dfd-ext-user",
+      "shape": "dfd-external-entity",
+      "position": { "x": 60, "y": 1310 },
+      "size": { "width": 120, "height": 50 },
+      "label": "用户",
+      "style": { "fill": "#e6f7ff", "stroke": "#1890ff", "strokeWidth": 2 },
+      "parent": "group-dfd"
+    },
+    {
+      "id": "dfd-process-order",
+      "shape": "dfd-process",
+      "position": { "x": 245, "y": 1300 },
+      "size": { "width": 80, "height": 80 },
+      "label": "1.0\n处理订单",
+      "style": { "fill": "#fff7e6", "stroke": "#fa8c16", "strokeWidth": 2 },
+      "parent": "group-dfd"
+    },
+    {
+      "id": "dfd-store",
+      "shape": "dfd-data-store",
+      "position": { "x": 390, "y": 1320 },
+      "size": { "width": 130, "height": 40 },
+      "label": "D1 订单表",
+      "style": { "fill": "#f6ffed", "stroke": "#52c41a", "strokeWidth": 2 },
+      "parent": "group-dfd"
+    },
+    {
+      "id": "dfd-process-notify",
+      "shape": "dfd-process",
+      "position": { "x": 245, "y": 1405 },
+      "size": { "width": 80, "height": 80 },
+      "label": "2.0\n发送通知",
+      "style": { "fill": "#f9f0ff", "stroke": "#722ed1", "strokeWidth": 2 },
+      "parent": "group-dfd"
+    },
+    {
+      "id": "dfd-ext-email",
+      "shape": "dfd-external-entity",
+      "position": { "x": 395, "y": 1425 },
+      "size": { "width": 120, "height": 50 },
+      "label": "邮件系统",
+      "style": { "fill": "#e6fffb", "stroke": "#13c2c2", "strokeWidth": 2 },
+      "parent": "group-dfd"
+    },
+
+    {
+      "id": "group-swimlane",
+      "shape": "basic-group",
+      "position": { "x": 590, "y": 1030 },
+      "size": { "width": 560, "height": 220 },
+      "label": { "text": "泳道图区域", "position": "top", "style": { "fill": "#999", "fontSize": 12 } },
+      "style": { "fill": "rgba(250,140,22,0.03)", "stroke": "#ffd591", "strokeWidth": 1, "strokeDasharray": "6 4", "rx": 8 },
+      "zIndex": 0
+    },
+    {
+      "id": "swimlane-1",
+      "shape": "swimlane-horizontal",
+      "position": { "x": 610, "y": 1070 },
+      "size": { "width": 520, "height": 70 },
+      "label": "前端",
+      "data": {
+        "regionData": {
+          "regions": [
+            { "id": "label", "label": "前端" },
+            { "id": "content", "label": "" }
+          ],
+          "dividers": [
+            { "id": "d1", "position": 0.15 }
+          ]
+        }
+      },
+      "style": { "fill": "#e6f7ff", "stroke": "#1890ff", "strokeWidth": 1 },
+      "parent": "group-swimlane"
+    },
+    {
+      "id": "swimlane-2",
+      "shape": "swimlane-horizontal",
+      "position": { "x": 610, "y": 1140 },
+      "size": { "width": 520, "height": 70 },
+      "label": "后端",
+      "data": {
+        "regionData": {
+          "regions": [
+            { "id": "label", "label": "后端" },
+            { "id": "content", "label": "" }
+          ],
+          "dividers": [
+            { "id": "d1", "position": 0.15 }
+          ]
+        }
+      },
+      "style": { "fill": "#fff7e6", "stroke": "#fa8c16", "strokeWidth": 1 },
+      "parent": "group-swimlane"
+    },
+
+    {
+      "id": "group-sequence",
+      "shape": "basic-group",
+      "position": { "x": 30, "y": 1540 },
+      "size": { "width": 520, "height": 340 },
+      "label": { "text": "时序图区域", "position": "top", "style": { "fill": "#999", "fontSize": 12 } },
+      "style": { "fill": "rgba(114,46,209,0.03)", "stroke": "#efdbff", "strokeWidth": 1, "strokeDasharray": "6 4", "rx": 8 },
+      "zIndex": 0
+    },
+    {
+      "id": "seq-actor-client",
+      "shape": "sequence-actor",
+      "position": { "x": 80, "y": 1580 },
+      "size": { "width": 60, "height": 90 },
+      "label": "Client",
+      "parent": "group-sequence"
+    },
+    {
+      "id": "seq-lifeline-client",
+      "shape": "sequence-lifeline",
+      "position": { "x": 75, "y": 1680 },
+      "size": { "width": 70, "height": 180 },
+      "label": "client",
+      "parent": "group-sequence"
+    },
+    {
+      "id": "seq-actor-server",
+      "shape": "sequence-actor",
+      "position": { "x": 280, "y": 1580 },
+      "size": { "width": 60, "height": 90 },
+      "label": "Server",
+      "parent": "group-sequence"
+    },
+    {
+      "id": "seq-lifeline-server",
+      "shape": "sequence-lifeline",
+      "position": { "x": 275, "y": 1680 },
+      "size": { "width": 70, "height": 180 },
+      "label": "server",
+      "parent": "group-sequence"
+    },
+    {
+      "id": "seq-actor-db",
+      "shape": "sequence-actor",
+      "position": { "x": 460, "y": 1580 },
+      "size": { "width": 60, "height": 90 },
+      "label": "Database",
+      "parent": "group-sequence"
+    },
+    {
+      "id": "seq-lifeline-db",
+      "shape": "sequence-lifeline",
+      "position": { "x": 455, "y": 1680 },
+      "size": { "width": 70, "height": 180 },
+      "label": "db",
+      "parent": "group-sequence"
+    },
+    {
+      "id": "seq-activation-1",
+      "shape": "sequence-activation",
+      "position": { "x": 302, "y": 1710 },
+      "size": { "width": 16, "height": 60 },
+      "style": { "fill": "#1890ff", "stroke": "#096dd9" },
+      "parent": "group-sequence"
+    },
+    {
+      "id": "seq-fragment-alt",
+      "shape": "sequence-fragment-alt",
+      "position": { "x": 60, "y": 1730 },
+      "size": { "width": 480, "height": 120 },
+      "data": {
+        "regionData": {
+          "regions": [
+            { "id": "condition", "label": "alt [登录成功]" },
+            { "id": "else", "label": "[登录失败]" }
+          ],
+          "dividers": [
+            { "id": "d1", "position": 0.5 }
+          ]
+        }
+      },
+      "parent": "group-sequence"
+    },
+
+    {
+      "id": "basic-pentagon-1",
+      "shape": "basic-pentagon",
+      "position": { "x": 1170, "y": 560 },
+      "size": { "width": 80, "height": 70 },
+      "label": "五边形",
+      "style": { "fill": "#e6f7ff", "stroke": "#1890ff", "strokeWidth": 2 }
+    },
+    {
+      "id": "basic-octagon-1",
+      "shape": "basic-octagon",
+      "position": { "x": 1170, "y": 660 },
+      "size": { "width": 80, "height": 70 },
+      "label": "八边形",
+      "style": { "fill": "#f9f0ff", "stroke": "#722ed1", "strokeWidth": 2 }
+    },
+    {
+      "id": "flowchart-internal-storage-1",
+      "shape": "flowchart-internal-storage",
+      "position": { "x": 1170, "y": 760 },
+      "size": { "width": 100, "height": 60 },
+      "label": "内部存储",
+      "style": { "fill": "#fff7e6", "stroke": "#fa8c16", "strokeWidth": 2 }
+    },
+    {
+      "id": "text-note-1",
+      "shape": "basic-text",
+      "position": { "x": 1170, "y": 850 },
+      "size": { "width": 160, "height": 50 },
+      "label": "这是一段纯文本\n支持多行显示",
+      "data": { "textAlign": "left" },
+      "style": { "fill": "#fffbe6", "stroke": "#d4b106", "strokeWidth": 1 }
+    },
+
+    {
+      "id": "er-identifying-rel",
+      "shape": "er-identifying-relationship",
+      "position": { "x": 390, "y": 1100 },
+      "size": { "width": 90, "height": 60 },
+      "label": "Has",
+      "style": { "fill": "#fff1f0", "stroke": "#ff4d4f", "strokeWidth": 2 },
+      "parent": "group-er"
+    },
+    {
+      "id": "er-associative",
+      "shape": "er-associative",
+      "position": { "x": 250, "y": 1150 },
+      "size": { "width": 100, "height": 50 },
+      "label": "Grade",
+      "style": { "fill": "#f0f5ff", "stroke": "#2f54eb", "strokeWidth": 2 },
+      "parent": "group-er"
+    },
+
+    {
+      "id": "dfd-multiple-1",
+      "shape": "dfd-multiple-process",
+      "position": { "x": 100, "y": 1405 },
+      "size": { "width": 80, "height": 80 },
+      "label": "1.1\n子处理",
+      "style": { "fill": "#e6f7ff", "stroke": "#1890ff", "strokeWidth": 2 },
+      "parent": "group-dfd"
+    },
+
+    {
+      "id": "swimlane-phase-1",
+      "shape": "swimlane-phase",
+      "position": { "x": 610, "y": 1210 },
+      "size": { "width": 520, "height": 36 },
+      "label": "阶段：审核 → 开发 → 测试 → 上线",
+      "style": { "fill": "#f0f5ff", "stroke": "#2f54eb", "strokeWidth": 1 },
+      "parent": "group-swimlane"
+    },
+
+    {
+      "id": "state-shallow-hist",
+      "shape": "state-shallow-history",
+      "position": { "x": 620, "y": 900 },
+      "size": { "width": 50, "height": 50 },
+      "parent": "group-state"
+    },
+    {
+      "id": "state-deep-hist",
+      "shape": "state-deep-history",
+      "position": { "x": 620, "y": 960 },
+      "size": { "width": 50, "height": 50 },
+      "parent": "group-state"
+    },
+    {
+      "id": "state-join-1",
+      "shape": "state-join",
+      "position": { "x": 1010, "y": 910 },
+      "size": { "width": 20, "height": 60 },
+      "style": { "fill": "#333333", "stroke": "#333333" },
+      "parent": "group-state"
+    },
+
+    {
+      "id": "seq-activation-2",
+      "shape": "sequence-activation",
+      "position": { "x": 482, "y": 1750 },
+      "size": { "width": 16, "height": 50 },
+      "style": { "fill": "#52c41a", "stroke": "#389e0d" },
+      "parent": "group-sequence"
+    },
+    {
+      "id": "seq-gateway-1",
+      "shape": "sequence-gateway",
+      "position": { "x": 290, "y": 1780 },
+      "size": { "width": 40, "height": 40 },
+      "parent": "group-sequence"
+    }
+  ],
+  "edges": [
+    {
+      "id": "e-fc-start-input",
+      "shape": "edge",
+      "source": "fc-start",
+      "target": "fc-input",
+      "style": { "stroke": "#1890ff", "strokeWidth": 2, "targetMarker": { "name": "classic", "size": 8, "fill": "#1890ff" } },
+      "router": { "name": "normal" },
+      "connector": { "name": "rounded", "args": { "radius": 8 } }
+    },
+    {
+      "id": "e-fc-input-process",
+      "shape": "edge",
+      "source": "fc-input",
+      "target": "fc-process",
+      "style": { "stroke": "#333", "strokeWidth": 2, "targetMarker": { "name": "block", "size": 8 } },
+      "connector": { "name": "smooth" }
+    },
+    {
+      "id": "e-fc-process-decision",
+      "shape": "edge",
+      "source": "fc-process",
+      "target": "fc-decision",
+      "style": { "stroke": "#333", "strokeWidth": 2, "targetMarker": { "name": "classic", "size": 8 } }
+    },
+    {
+      "id": "e-fc-decision-db",
+      "shape": "edge",
+      "source": { "cell": "fc-decision", "port": "left" },
+      "target": "fc-db",
+      "label": "是",
+      "style": { "stroke": "#52c41a", "strokeWidth": 2, "targetMarker": { "name": "classic", "size": 8, "fill": "#52c41a" } },
+      "router": { "name": "orth", "args": { "padding": 20 } },
+      "connector": { "name": "rounded", "args": { "radius": 8 } }
+    },
+    {
+      "id": "e-fc-decision-doc",
+      "shape": "edge",
+      "source": { "cell": "fc-decision", "port": "right" },
+      "target": "fc-doc",
+      "label": "否",
+      "style": { "stroke": "#ff4d4f", "strokeWidth": 2, "strokeDasharray": "6 4", "targetMarker": { "name": "classic", "size": 8, "fill": "#ff4d4f" } }
+    },
+    {
+      "id": "e-fc-doc-end",
+      "shape": "edge",
+      "source": "fc-doc",
+      "target": "fc-end",
+      "style": { "stroke": "#333", "strokeWidth": 2, "targetMarker": { "name": "classic", "size": 8 } },
+      "router": { "name": "orth" },
+      "connector": { "name": "rounded" }
+    },
+    {
+      "id": "e-fc-predefined-input",
+      "shape": "edge",
+      "source": "fc-predefined",
+      "target": "fc-input",
+      "style": { "stroke": "#722ed1", "strokeWidth": 2, "targetMarker": { "name": "diamond", "size": 8, "fill": "#722ed1" } },
+      "connector": { "name": "smooth" }
+    },
+
+    {
+      "id": "e-uml-implements",
+      "shape": "edge",
+      "source": "uml-class-order",
+      "target": "uml-interface",
+      "label": "<<implements>>",
+      "style": {
+        "stroke": "#722ed1",
+        "strokeWidth": 2,
+        "strokeDasharray": "8 4",
+        "targetMarker": { "name": "block", "size": 10, "fill": "transparent", "stroke": "#722ed1" }
+      }
+    },
+    {
+      "id": "e-uml-extends",
+      "shape": "edge",
+      "source": "uml-class-order",
+      "target": "uml-abstract",
+      "label": "<<extends>>",
+      "style": {
+        "stroke": "#333",
+        "strokeWidth": 2,
+        "targetMarker": { "name": "block", "size": 10, "fill": "transparent", "stroke": "#333" }
+      },
+      "connector": { "name": "smooth" }
+    },
+    {
+      "id": "e-uml-note",
+      "shape": "edge",
+      "source": "uml-note",
+      "target": "uml-class-order",
+      "style": {
+        "stroke": "#d4b106",
+        "strokeWidth": 1,
+        "strokeDasharray": "4 4",
+        "sourceMarker": { "name": "none" },
+        "targetMarker": { "name": "none" }
+      }
+    },
+
+    {
+      "id": "e-er-student-enroll",
+      "shape": "edge",
+      "source": "er-entity-student",
+      "target": "er-relationship-enroll",
+      "style": { "stroke": "#333", "strokeWidth": 2, "targetMarker": { "name": "none" }, "sourceMarker": { "name": "none" } }
+    },
+    {
+      "id": "e-er-enroll-course",
+      "shape": "edge",
+      "source": "er-relationship-enroll",
+      "target": "er-entity-course",
+      "style": { "stroke": "#333", "strokeWidth": 2, "targetMarker": { "name": "none" }, "sourceMarker": { "name": "none" } }
+    },
+    {
+      "id": "e-er-student-key",
+      "shape": "edge",
+      "source": "er-entity-student",
+      "target": "er-key-stu",
+      "style": { "stroke": "#999", "strokeWidth": 1, "targetMarker": { "name": "none" }, "sourceMarker": { "name": "none" } }
+    },
+    {
+      "id": "e-er-student-name",
+      "shape": "edge",
+      "source": "er-entity-student",
+      "target": "er-attr-name",
+      "style": { "stroke": "#999", "strokeWidth": 1, "targetMarker": { "name": "none" }, "sourceMarker": { "name": "none" } }
+    },
+    {
+      "id": "e-er-course-key",
+      "shape": "edge",
+      "source": "er-entity-course",
+      "target": "er-key-course",
+      "style": { "stroke": "#999", "strokeWidth": 1, "targetMarker": { "name": "none" }, "sourceMarker": { "name": "none" } }
+    },
+    {
+      "id": "e-er-course-title",
+      "shape": "edge",
+      "source": "er-entity-course",
+      "target": "er-attr-title",
+      "style": { "stroke": "#999", "strokeWidth": 1, "targetMarker": { "name": "none" }, "sourceMarker": { "name": "none" } }
+    },
+
+    {
+      "id": "e-state-init-idle",
+      "shape": "edge",
+      "source": "state-init",
+      "target": "state-idle",
+      "style": { "stroke": "#333", "strokeWidth": 2, "targetMarker": { "name": "classic", "size": 8 } }
+    },
+    {
+      "id": "e-state-idle-loading",
+      "shape": "edge",
+      "source": "state-idle",
+      "target": "state-loading",
+      "label": "请求数据",
+      "style": { "stroke": "#fa8c16", "strokeWidth": 2, "targetMarker": { "name": "classic", "size": 8, "fill": "#fa8c16" } }
+    },
+    {
+      "id": "e-state-loading-composite",
+      "shape": "edge",
+      "source": "state-loading",
+      "target": "state-composite-1",
+      "label": "数据到达",
+      "style": { "stroke": "#52c41a", "strokeWidth": 2, "targetMarker": { "name": "classic", "size": 8, "fill": "#52c41a" } },
+      "router": { "name": "orth" },
+      "connector": { "name": "rounded" }
+    },
+    {
+      "id": "e-state-composite-final",
+      "shape": "edge",
+      "source": "state-composite-1",
+      "target": "state-fork-1",
+      "style": { "stroke": "#333", "strokeWidth": 2, "targetMarker": { "name": "classic", "size": 8 } }
+    },
+    {
+      "id": "e-state-fork-join",
+      "shape": "edge",
+      "source": "state-fork-1",
+      "target": "state-join-1",
+      "style": { "stroke": "#333", "strokeWidth": 1.5, "targetMarker": { "name": "classic", "size": 6 } }
+    },
+    {
+      "id": "e-state-join-final",
+      "shape": "edge",
+      "source": "state-join-1",
+      "target": "state-final-1",
+      "style": { "stroke": "#333", "strokeWidth": 2, "targetMarker": { "name": "classic", "size": 8 } },
+      "router": { "name": "orth" }
+    },
+
+    {
+      "id": "e-dfd-user-process",
+      "shape": "edge",
+      "source": "dfd-ext-user",
+      "target": "dfd-process-order",
+      "label": "提交订单",
+      "style": { "stroke": "#1890ff", "strokeWidth": 2, "targetMarker": { "name": "classic", "size": 8, "fill": "#1890ff" } }
+    },
+    {
+      "id": "e-dfd-process-store",
+      "shape": "edge",
+      "source": "dfd-process-order",
+      "target": "dfd-store",
+      "label": "写入",
+      "style": { "stroke": "#52c41a", "strokeWidth": 2, "targetMarker": { "name": "classic", "size": 8, "fill": "#52c41a" } }
+    },
+    {
+      "id": "e-dfd-process-notify",
+      "shape": "edge",
+      "source": "dfd-process-order",
+      "target": "dfd-process-notify",
+      "label": "触发通知",
+      "style": { "stroke": "#722ed1", "strokeWidth": 2, "strokeDasharray": "6 4", "targetMarker": { "name": "classic", "size": 8, "fill": "#722ed1" } },
+      "router": { "name": "orth" },
+      "connector": { "name": "rounded" }
+    },
+    {
+      "id": "e-dfd-notify-email",
+      "shape": "edge",
+      "source": "dfd-process-notify",
+      "target": "dfd-ext-email",
+      "label": "发送",
+      "style": { "stroke": "#13c2c2", "strokeWidth": 2, "targetMarker": { "name": "classic", "size": 8, "fill": "#13c2c2" } }
+    },
+
+    {
+      "id": "e-seq-client-server",
+      "shape": "edge",
+      "source": "seq-actor-client",
+      "target": "seq-actor-server",
+      "label": "login(user, pwd)",
+      "style": { "stroke": "#1890ff", "strokeWidth": 2, "targetMarker": { "name": "classic", "size": 8, "fill": "#1890ff" } }
+    },
+    {
+      "id": "e-seq-server-db",
+      "shape": "edge",
+      "source": "seq-lifeline-server",
+      "target": "seq-lifeline-db",
+      "label": "SELECT * FROM users",
+      "style": { "stroke": "#52c41a", "strokeWidth": 2, "targetMarker": { "name": "classic", "size": 8, "fill": "#52c41a" } },
+      "vertices": [{ "x": 390, "y": 1730 }]
+    },
+    {
+      "id": "e-seq-db-server",
+      "shape": "edge",
+      "source": "seq-lifeline-db",
+      "target": "seq-lifeline-server",
+      "label": "返回结果",
+      "style": { "stroke": "#52c41a", "strokeWidth": 2, "strokeDasharray": "6 4", "targetMarker": { "name": "classic", "size": 8, "fill": "#52c41a" } },
+      "vertices": [{ "x": 390, "y": 1780 }]
+    },
+
+    {
+      "id": "e-sketch-demo",
+      "shape": "edge-sketch",
+      "source": "basic-pentagon-1",
+      "target": "basic-octagon-1",
+      "label": "手绘边",
+      "style": { "stroke": "#722ed1", "strokeWidth": 2, "targetMarker": { "name": "classic", "size": 8, "fill": "#722ed1" } }
+    },
+    {
+      "id": "e-manhattan-demo",
+      "shape": "edge",
+      "source": "basic-rect-1",
+      "target": "basic-rounded-rect-1",
+      "label": "manhattan路由",
+      "style": { "stroke": "#333", "strokeWidth": 1.5, "targetMarker": { "name": "circle", "size": 6, "fill": "#333" } },
+      "router": { "name": "manhattan", "args": { "padding": 20 } },
+      "connector": { "name": "rounded", "args": { "radius": 8 } }
+    },
+    {
+      "id": "e-metro-demo",
+      "shape": "edge",
+      "source": "basic-circle-1",
+      "target": "basic-diamond-1",
+      "label": "metro路由",
+      "style": { "stroke": "#fa8c16", "strokeWidth": 2, "targetMarker": { "name": "diamond", "size": 8, "fill": "#fa8c16" } },
+      "router": { "name": "metro" },
+      "connector": { "name": "smooth" }
+    },
+
+    {
+      "id": "e-er-identifying",
+      "shape": "edge",
+      "source": "er-weak-entity",
+      "target": "er-identifying-rel",
+      "style": { "stroke": "#333", "strokeWidth": 2, "strokeDasharray": "4 4", "targetMarker": { "name": "none" }, "sourceMarker": { "name": "none" } }
+    },
+    {
+      "id": "e-er-assoc",
+      "shape": "edge",
+      "source": "er-relationship-enroll",
+      "target": "er-associative",
+      "style": { "stroke": "#333", "strokeWidth": 1.5, "targetMarker": { "name": "classic", "size": 6 } }
+    }
+  ]
+}

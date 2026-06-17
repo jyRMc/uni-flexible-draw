@@ -39,8 +39,68 @@ export function rectPorts(style?: PortStyle): PortsConfig {
   }
 }
 
-/** 圆形/椭圆：边界均匀分布 count 个连接点（默认 8 个） */
-export function ellipsePorts(count = 8, style?: PortStyle): PortsConfig {
+/** 云朵：按可见轮廓特征放置 4 个连接点 */
+export function cloudPorts(style?: PortStyle): PortsConfig {
+  const attrs = portAttrs(style)
+  const groups: PortsConfig['groups'] = {}
+  const items: PortsConfig['items'] = []
+  const points = [
+    { id: 'top', x: 0.5, y: 0.143 },
+    { id: 'right', x: 1, y: 0.5 },
+    { id: 'bottom', x: 0.5, y: 0.8 },
+    { id: 'left', x: 0, y: 0.5 },
+  ]
+  for (const p of points) {
+    groups[p.id] = {
+      position(args: any) {
+        const bbox = args.bbox
+        return { x: bbox.width * p.x, y: bbox.height * p.y }
+      },
+      attrs,
+    }
+    items.push({ id: `port-${p.id}`, group: p.id })
+  }
+  return { groups, items }
+}
+
+/** 基础文档：带卷边和圆弧左侧的 7 个轮廓特征点 */
+export function basicDocumentPorts(style?: PortStyle): PortsConfig {
+  const attrs = portAttrs(style)
+  const groups: PortsConfig['groups'] = {}
+  const items: PortsConfig['items'] = []
+  const points = [
+    { id: 'topLeft', x: 0.1, y: 0.1 },
+    { id: 'topRight', x: 0.6, y: 0.1 },
+    { id: 'fold', x: 0.9, y: 0.288 },
+    { id: 'rightBottom', x: 0.9, y: 0.95 },
+    { id: 'bottomRight', x: 0.85, y: 1 },
+    { id: 'bottomLeft', x: 0.15, y: 1 },
+    { id: 'leftMid', x: 0.1, y: 0.5 },
+  ]
+  for (const p of points) {
+    groups[p.id] = {
+      position(args: any) {
+        const bbox = args.bbox
+        return { x: bbox.width * p.x, y: bbox.height * p.y }
+      },
+      attrs,
+    }
+    items.push({ id: `port-${p.id}`, group: p.id })
+  }
+  return { groups, items }
+}
+
+/**
+ * 圆形/椭圆：边界均匀分布 count 个连接点（默认 8 个）
+ *
+ * @param count - 连接点数量
+ * @param style - 连接点样式
+ * @param rx - x 方向半径占宽度的比例，默认 0.5（贴外接矩形）
+ * @param ry - y 方向半径占高度的比例，默认 0.5
+ * @param cx - 圆心 x 占宽度的比例，默认 0.5
+ * @param cy - 圆心 y 占高度的比例，默认 0.5
+ */
+export function ellipsePorts(count = 8, style?: PortStyle, rx = 0.5, ry = 0.5, cx = 0.5, cy = 0.5): PortsConfig {
   const attrs = portAttrs(style)
   const groups: PortsConfig['groups'] = {}
   const items: PortsConfig['items'] = []
@@ -50,11 +110,9 @@ export function ellipsePorts(count = 8, style?: PortStyle): PortsConfig {
     groups[gid] = {
       position(args: any) {
         const bbox = args.bbox
-        const cx = bbox.width / 2
-        const cy = bbox.height / 2
         return {
-          x: cx + cx * Math.cos(angle),
-          y: cy + cy * Math.sin(angle),
+          x: bbox.width * cx + bbox.width * rx * Math.cos(angle),
+          y: bbox.height * cy + bbox.height * ry * Math.sin(angle),
         }
       },
       attrs,
@@ -565,4 +623,133 @@ export function multiDocumentPorts(style?: PortStyle): PortsConfig {
     items.push({ id: `port-${p.id}`, group: p.id })
   }
   return { groups, items }
+}
+
+/** 延迟节点：矩形右侧 + 左侧半圆，取 4 个几何特征连接点 */
+export function delayPorts(style?: PortStyle): PortsConfig {
+  const attrs = portAttrs(style)
+  return {
+    groups: {
+      top: {
+        position(args: any) {
+          const bbox = args.bbox
+          return { x: bbox.width * 0.640625, y: bbox.height * 0.071429 }
+        },
+        attrs,
+      },
+      right: {
+        position(args: any) {
+          const bbox = args.bbox
+          return { x: bbox.width * 0.96875, y: bbox.height * 0.5 }
+        },
+        attrs,
+      },
+      bottom: {
+        position(args: any) {
+          const bbox = args.bbox
+          return { x: bbox.width * 0.640625, y: bbox.height * 0.928571 }
+        },
+        attrs,
+      },
+      left: {
+        position(args: any) {
+          const bbox = args.bbox
+          return { x: bbox.width * 0.125, y: bbox.height * 0.5 }
+        },
+        attrs,
+      },
+    },
+    items: [
+      { id: 'port-top', group: 'top' },
+      { id: 'port-right', group: 'right' },
+      { id: 'port-bottom', group: 'bottom' },
+      { id: 'port-left', group: 'left' },
+    ],
+  }
+}
+
+/** 存储数据节点：矩形左侧 + 右侧半圆，取 4 个几何特征连接点 */
+export function storedDataPorts(style?: PortStyle): PortsConfig {
+  const attrs = portAttrs(style)
+  return {
+    groups: {
+      top: {
+        position(args: any) {
+          const bbox = args.bbox
+          return { x: bbox.width * 0.4375, y: bbox.height * 0.071429 }
+        },
+        attrs,
+      },
+      right: {
+        position(args: any) {
+          const bbox = args.bbox
+          return { x: bbox.width * 1.03125, y: bbox.height * 0.5 }
+        },
+        attrs,
+      },
+      bottom: {
+        position(args: any) {
+          const bbox = args.bbox
+          return { x: bbox.width * 0.4375, y: bbox.height * 0.928571 }
+        },
+        attrs,
+      },
+      left: {
+        position(args: any) {
+          const bbox = args.bbox
+          return { x: bbox.width * 0.03125, y: bbox.height * 0.5 }
+        },
+        attrs,
+      },
+    },
+    items: [
+      { id: 'port-top', group: 'top' },
+      { id: 'port-right', group: 'right' },
+      { id: 'port-bottom', group: 'bottom' },
+      { id: 'port-left', group: 'left' },
+    ],
+  }
+}
+
+/** 数据库圆柱：上下椭圆中心 + 左右侧壁中点 */
+export function databasePorts(style?: PortStyle): PortsConfig {
+  const attrs = portAttrs(style)
+  return {
+    groups: {
+      top: {
+        position(args: any) {
+          const bbox = args.bbox
+          return { x: bbox.width * 0.5, y: bbox.height * 0.166667 }
+        },
+        attrs,
+      },
+      bottom: {
+        position(args: any) {
+          const bbox = args.bbox
+          return { x: bbox.width * 0.5, y: bbox.height * 0.833333 }
+        },
+        attrs,
+      },
+      left: {
+        position(args: any) {
+          const bbox = args.bbox
+          return { x: 0, y: bbox.height * 0.5 }
+        },
+        attrs,
+      },
+      right: {
+        position(args: any) {
+          const bbox = args.bbox
+          return { x: bbox.width, y: bbox.height * 0.5 }
+        },
+        attrs,
+      },
+    },
+    items: [
+      { id: 'port-top', group: 'top' },
+      { id: 'port-bottom', group: 'bottom' },
+      { id: 'port-left', group: 'left' },
+      { id: 'port-right', group: 'right' },
+    ],
+  }
 }

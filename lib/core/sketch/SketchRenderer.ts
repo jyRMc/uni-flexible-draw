@@ -171,6 +171,69 @@ export class SketchRenderer {
     const drawable = this.generator.curve(pts, options)
     return drawableToD(drawable)
   }
+
+  /**
+   * SVG Path → 手绘路径 d
+   * 支持归一化坐标（≤1 的值会按 width/height 缩放，>1 的值视为绝对像素）
+   */
+  path(normalizedD: string, width: number, height: number, opts: SketchRenderOptions = {}): string {
+    const absoluteD = normalizeRefD(normalizedD, width, height)
+    const options = toRoughOptions(opts, width, height)
+    const drawable = this.generator.path(absoluteD, { ...options, preserveVertices: true })
+    return drawableToD(drawable)
+  }
+}
+
+/**
+ * 将归一化 path 转为绝对像素 path。
+ * 仅处理绝对命令（M/L/H/V/Q/C/S/T/A/Z），其中 A 命令的 flag 参数不参与缩放。
+ */
+function normalizeRefD(d: string, width: number, height: number): string {
+  const tokens = d.match(/[-+]?(?:\d*\.\d+|\d+)(?:e[-+]?\d+)?|[a-z]/gi) ?? []
+  const outTokens: string[] = []
+  let cmd = ''
+  let argIndex = 0
+  const argsPerCmd: Record<string, number> = {
+    M: 2,
+    L: 2,
+    H: 1,
+    V: 1,
+    Q: 4,
+    T: 2,
+    C: 6,
+    S: 4,
+    A: 7,
+  }
+  for (const t of tokens) {
+    if (/^[a-z]$/i.test(t)) {
+      cmd = t.toUpperCase()
+      argIndex = 0
+      outTokens.push(t)
+      continue
+    }
+    let val = Number(t)
+    if (Number.isFinite(val)) {
+      if (cmd === 'A') {
+        // A: rx, ry, x-axis-rotation, large-arc-flag, sweep-flag, x, y
+        const isFlag = argIndex === 3 || argIndex === 4
+        if (!isFlag && Math.abs(val) <= 1) {
+          val = argIndex === 0 || argIndex === 1 || argIndex === 5 ? val * (argIndex === 5 ? width : argIndex === 1 ? height : width) : val
+        }
+      }
+      else if (Math.abs(val) <= 1) {
+        // 奇数下标通常为 y（1-based 的 2/4/6...），按命令参数表判断
+        const total = argsPerCmd[cmd] ?? 0
+        const isY = total > 0 && ((argIndex + 1) % 2 === 0)
+        val = val * (isY ? height : width)
+      }
+      outTokens.push(String(val))
+      argIndex++
+    }
+    else {
+      outTokens.push(t)
+    }
+  }
+  return outTokens.join(' ')
 }
 
 /** 全局单例 */

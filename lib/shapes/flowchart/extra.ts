@@ -1,5 +1,6 @@
 import type { Node } from '@antv/x6'
-import { diamondPorts, ellipsePorts, rectPorts } from '../ports/ports'
+import { ellipsePorts, polygonPorts, rectPorts } from '../ports/ports'
+import { LABEL_FILL } from '../theme'
 
 export const flowchartPredefined: Node.Config = {
   inherit: 'rect',
@@ -38,7 +39,7 @@ export const flowchartPredefined: Node.Config = {
       stroke: 'none',
     },
     label: {
-      fill: '#334155',
+      fill: LABEL_FILL,
       fontSize: 14,
     },
   },
@@ -99,12 +100,13 @@ export const flowchartConnector: Node.Config = {
   height: 50,
   attrs: {
     body: {
+      refR: 0.36,
       fill: '#f8fafc',
       stroke: '#334155',
       strokeWidth: 2,
     },
     label: {
-      fill: '#334155',
+      fill: LABEL_FILL,
       fontSize: 14,
       refX: 0.5,
       refY: 0.55,
@@ -112,7 +114,7 @@ export const flowchartConnector: Node.Config = {
       textVerticalAnchor: 'middle',
     },
   },
-  ports: ellipsePorts(8, { stroke: '#334155' }),
+  ports: ellipsePorts(8, { stroke: '#334155' }, 0.36, 0.36),
 }
 
 export const flowchartMerge: Node.Config = {
@@ -127,5 +129,5 @@ export const flowchartMerge: Node.Config = {
       strokeWidth: 2,
     },
   },
-  ports: diamondPorts({ stroke: '#334155' }),
+  ports: polygonPorts(4, { stroke: '#334155' }, '0.5,0.15 0.85,0.5 0.5,0.85 0.15,0.5'),
 }

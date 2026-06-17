@@ -152,7 +152,8 @@ export function useSketch(getGraph: () => any) {
       return
     if (isSketchUnsupportedNode(node)) {
       return
-    }(graph as any).disableHistory?.()
+    }
+    ;(graph as any).disableHistory?.()
     ensureSketchTextFontsLoaded()
 
     const renderer = getSketchRenderer()
@@ -210,6 +211,12 @@ export function useSketch(getGraph: () => any) {
       if (bodyTag === 'ellipse' || bodyTag === 'circle') {
         d = renderer.ellipse(size.width, size.height, opts)
       }
+      else if (bodyTag === 'path') {
+        const rawD = body.refD ?? body.d
+        d = rawD
+          ? renderer.path(String(rawD), size.width, size.height, opts)
+          : renderer.rect(size.width, size.height, 0, opts)
+      }
       else {
         d = renderer.rect(size.width, size.height, 0, opts)
       }
@@ -255,7 +262,8 @@ export function useSketch(getGraph: () => any) {
     const graph = getGraph()
     if (!graph) {
       return
-    }(graph as any).disableHistory?.()
+    }
+    ;(graph as any).disableHistory?.()
     ensureSketchTextFontsLoaded()
 
     let points: { x: number, y: number }[] = []
@@ -265,9 +273,10 @@ export function useSketch(getGraph: () => any) {
       const d = pathEl?.getAttribute('d')
       if (d) {
         const re = /[ML]\s*([-.\deE]+)[,\s]+([-.\deE]+)/g
-        let m: RegExpExecArray | null
-        while ((m = re.exec(d)) !== null) {
+        let m: RegExpExecArray | null = re.exec(d)
+        while (m !== null) {
           points.push({ x: Number.parseFloat(m[1]), y: Number.parseFloat(m[2]) })
+          m = re.exec(d)
         }
       }
     }
@@ -484,8 +493,12 @@ export function useSketch(getGraph: () => any) {
       return
     sketchElementIds.value.add(node.id)
     sketchRedrawing = true
-    try { applySketchToNode(node) }
-    finally { sketchRedrawing = false }
+    try {
+      applySketchToNode(node)
+    }
+    finally {
+      sketchRedrawing = false
+    }
     markSketchElementIds()
   }
 
@@ -494,8 +507,12 @@ export function useSketch(getGraph: () => any) {
       return
     sketchElementIds.value.add(edge.id)
     sketchRedrawing = true
-    try { applySketchToEdge(edge) }
-    finally { sketchRedrawing = false }
+    try {
+      applySketchToEdge(edge)
+    }
+    finally {
+      sketchRedrawing = false
+    }
     markSketchElementIds()
   }
 
@@ -505,8 +522,12 @@ export function useSketch(getGraph: () => any) {
     if (sketchRedrawing || !sketchElementIds.value.has(node.id))
       return
     sketchRedrawing = true
-    try { applySketchToNode(node) }
-    finally { sketchRedrawing = false }
+    try {
+      applySketchToNode(node)
+    }
+    finally {
+      sketchRedrawing = false
+    }
   }
 
   function onSketchNodeAttrsChange({ node }: any) {
@@ -515,16 +536,24 @@ export function useSketch(getGraph: () => any) {
     if (sketchRedrawing || !sketchElementIds.value.has(node.id))
       return
     sketchRedrawing = true
-    try { applySketchToNode(node) }
-    finally { sketchRedrawing = false }
+    try {
+      applySketchToNode(node)
+    }
+    finally {
+      sketchRedrawing = false
+    }
   }
 
   function onSketchEdgeChange({ edge }: any) {
     if (sketchRedrawing || !sketchElementIds.value.has(edge.id))
       return
     sketchRedrawing = true
-    try { applySketchToEdge(edge) }
-    finally { sketchRedrawing = false }
+    try {
+      applySketchToEdge(edge)
+    }
+    finally {
+      sketchRedrawing = false
+    }
   }
 
   return {

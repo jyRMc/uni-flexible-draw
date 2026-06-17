@@ -8,6 +8,7 @@ export const basicGroup: Node.Config = {
   inherit: 'rect',
   width: 160,
   height: 120,
+  droppable: true,
   attrs: {
     body: {
       fill: 'rgba(0,0,0,0.02)',

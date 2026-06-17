@@ -8,6 +8,7 @@ import {
   ExportService,
   GraphEventBus,
   GraphManager,
+  GroupManager,
   MiniMapTool,
   NodeFactory,
   PanTool,
@@ -205,6 +206,7 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
 
   let engine: AntVRenderEngine | null = null
   let graphManager: GraphManager | null = null
+  let groupManager: GroupManager | null = null
   let exportService: ExportService | null = null
   let eventBus: GraphEventBus | null = null
   let zoomTool: ZoomTool | null = null
@@ -404,6 +406,7 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
     })
 
     graphManager = new GraphManager(graph, eventBus)
+    groupManager = new GroupManager(graph)
     exportService = new ExportService(graph)
     zoomTool = new ZoomTool(graph)
     panTool = new PanTool(graph)
@@ -669,9 +672,23 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
     })
 
     // 监听选中节点的属性变更（大小/位置/样式），实现双向绑定
-    graph.on('node:change:size', ({ node }: any) => {
+    graph.on('node:change:size', ({ node, options }: any) => {
       if (selectedNodeData.value && selectedNodeData.value.id === node.id) {
         selectedNodeData.value = NodeFactory.toData(node)
+      }
+      // 组合尺寸变化时，同步按比例调整内部子元素的尺寸和定位
+      if (node.shape === 'basic-group' && groupManager && !options?.fitGroupSize && !groupManager.isFittingSize(node)) {
+        const previousSize = node.previous('size')
+        if (previousSize) {
+          groupManager.syncChildrenOnResize(node, previousSize)
+        }
+      }
+      // 组合内子元素尺寸变化时，更新组合容器尺寸
+      if (node.shape !== 'basic-group' && groupManager) {
+        const parent = node.getParent?.()
+        if (parent?.shape === 'basic-group' && !groupManager.isFittingSize(parent)) {
+          groupManager.fitGroupSize(parent)
+        }
       }
     })
     graph.on('node:change:attrs', ({ node }: any) => {
@@ -687,6 +704,38 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
     graph.on('node:change:position', ({ node }: any) => {
       if (selectedNodeData.value && selectedNodeData.value.id === node.id) {
         selectedNodeData.value = NodeFactory.toData(node)
+      }
+    })
+
+    // 节点拖入/拖出组合区域时，更新相关组合容器尺寸
+    const nodeMovePrevParent = new Map<string, any>()
+    graph.on('node:move', ({ node }: any) => {
+      const parent = node.getParent?.()
+      if (parent?.shape === 'basic-group') {
+        nodeMovePrevParent.set(node.id, parent)
+      } else {
+        nodeMovePrevParent.delete(node.id)
+      }
+    })
+    graph.on('node:moved', ({ node }: any) => {
+      if (!groupManager) return
+      const prevParent = nodeMovePrevParent.get(node.id)
+      const currentParent = node.getParent?.()
+      nodeMovePrevParent.delete(node.id)
+
+      // 子元素从组内拖出到组外：解除父子关系，重算旧组合边界
+      if (prevParent?.shape === 'basic-group') {
+        const nodeBBox = node.getBBox()
+        const groupBBox = prevParent.getBBox()
+        if (!nodeBBox.isIntersectWithRect(groupBBox)) {
+          prevParent.unembed(node)
+        }
+        groupManager.fitGroupSize(prevParent)
+      }
+
+      // 拖入新组合（X6 embedding 已自动嵌入），重算新组合边界
+      if (currentParent?.shape === 'basic-group' && currentParent !== prevParent) {
+        groupManager.fitGroupSize(currentParent)
       }
     })
 
@@ -787,7 +836,7 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
     const nodeSelectionCount = selected.filter((cell: any) => cell.isNode?.()).length
     const edgeSelectionCount = selected.filter((cell: any) => cell.isEdge?.()).length
     const allSelectedLocked = selected.length > 0 && selected.every((cell: any) => cell.getData?.()?.locked === true)
-    const nextCanGroup = nodeSelectionCount >= 2
+    const nextCanGroup = nodeSelectionCount >= 2 && !selected.some((cell: any) => cell.isNode?.() && (cell.shape === 'basic-group' || cell.getParent?.()))
     const nextCanUngroup = selected.some((cell: any) => cell.isNode?.() && (cell.getChildren?.() ?? []).length > 0)
     canGroup.value = nextCanGroup
     canUngroup.value = nextCanUngroup
@@ -1376,7 +1425,14 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
       if (cell.isNode()) {
         const node = cell as any
         const currentScale = node.getScale?.() ?? { sx: 1, sy: 1 }
+        const pos = node.getPosition()
+        const size = node.getSize()
         node.scale(-currentScale.sx, currentScale.sy)
+        // 补偿位置偏移，保持视觉中心不变
+        node.setPosition({
+          x: pos.x + size.width * Math.abs(currentScale.sx),
+          y: pos.y,
+        })
       }
     })
   }
@@ -1387,7 +1443,14 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
       if (cell.isNode()) {
         const node = cell as any
         const currentScale = node.getScale?.() ?? { sx: 1, sy: 1 }
+        const pos = node.getPosition()
+        const size = node.getSize()
         node.scale(currentScale.sx, -currentScale.sy)
+        // 补偿位置偏移，保持视觉中心不变
+        node.setPosition({
+          x: pos.x,
+          y: pos.y + size.height * Math.abs(currentScale.sy),
+        })
       }
     })
   }
@@ -1418,11 +1481,16 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
     if (nodes.length < 2)
       return
 
+    // 不允许将组合节点或已在组合内的子节点再次组合
+    const validNodes = nodes.filter((n: any) => n.shape !== 'basic-group' && !n.getParent?.())
+    if (validNodes.length < 2)
+      return
+
     let minX = Infinity
     let minY = Infinity
     let maxX = -Infinity
     let maxY = -Infinity
-    nodes.forEach((n: any) => {
+    validNodes.forEach((n: any) => {
       const pos = n.getPosition()
       const size = n.getSize()
       minX = Math.min(minX, pos.x)
@@ -1437,10 +1505,10 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
     const groupW = maxX - minX + padding * 2
     const groupH = maxY - minY + padding * 2
 
-    const minZIndex = Math.min(...nodes.map((n: any) => n.getZIndex?.() ?? 0))
+    const minZIndex = Math.min(...validNodes.map((n: any) => n.getZIndex?.() ?? 0))
     const group = graph.addNode({
       id: shortId('group'),
-      shape: 'rect',
+      shape: 'basic-group',
       x: groupX,
       y: groupY,
       width: groupW,
@@ -1457,7 +1525,8 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
       data: { isGroup: true },
     })
 
-    nodes.forEach((n: any) => {
+    // X6 v2: addChild 后子节点坐标自动转为相对坐标，无需手动转换
+    validNodes.forEach((n: any) => {
       group.addChild(n)
     })
 
@@ -1474,18 +1543,32 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
     if (!graph)
       return
     const cells = getSelectedCells()
-    const groups = cells.filter((c: any) => c.isNode?.() && (c.getChildren?.() ?? []).length > 0)
+    const groups = cells.filter((c: any) => c.isNode?.() && c.shape === 'basic-group' && (c.getChildren?.() ?? []).length > 0)
     if (groups.length === 0)
       return
 
     const toSelect: any[] = []
     groups.forEach((group: any) => {
       const children = group.getChildren() ?? []
-      children.forEach((child: any) => {
-        group.removeChild(child)
+      // 保存子节点的世界坐标（X6 中子节点 getPosition() 返回世界坐标）
+      const childWorldPositions = children.map((child: any) => ({
+        child,
+        position: child.getPosition(),
+      }))
+
+      // 使用 unembed 逐个解除父子关系，子节点保留在画布中不被删除
+      childWorldPositions.forEach(({ child }: any) => {
+        group.unembed(child)
         toSelect.push(child)
       })
+
+      // 此时 group 已无子节点，remove 不会级联删除任何子元素
       group.remove()
+
+      // 确保子节点世界坐标不变（unembed 可能改变内部坐标表示）
+      childWorldPositions.forEach(({ child, position }: any) => {
+        child.setPosition(position)
+      })
     })
 
     if (toSelect.length > 0) {

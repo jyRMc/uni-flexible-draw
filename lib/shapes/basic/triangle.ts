@@ -1,4 +1,5 @@
 import type { Node } from '@antv/x6'
+import { trianglePorts } from '../ports/ports'
 import { PRIMARY_COLOR } from '../theme'
 
 export const basicTriangle: Node.Config = {
@@ -17,18 +18,5 @@ export const basicTriangle: Node.Config = {
       fontSize: 14,
     },
   },
-  ports: {
-    groups: {
-      top: { position: 'top', attrs: { circle: { r: 4, magnet: true, stroke: PRIMARY_COLOR, fill: '#fff' } } },
-      bottom: { position: 'bottom', attrs: { circle: { r: 4, magnet: true, stroke: PRIMARY_COLOR, fill: '#fff' } } },
-      left: { position: 'left', attrs: { circle: { r: 4, magnet: true, stroke: PRIMARY_COLOR, fill: '#fff' } } },
-      right: { position: 'right', attrs: { circle: { r: 4, magnet: true, stroke: PRIMARY_COLOR, fill: '#fff' } } },
-    },
-    items: [
-      { id: 'top', group: 'top' },
-      { id: 'bottom', group: 'bottom' },
-      { id: 'left', group: 'left' },
-      { id: 'right', group: 'right' },
-    ],
-  },
+  ports: trianglePorts({ stroke: PRIMARY_COLOR }),
 }

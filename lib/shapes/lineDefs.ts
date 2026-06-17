@@ -45,11 +45,14 @@ export const shapeLineDefs: Record<string, Record<string, LineDef>> = {
     cross2: { x1: 0.7, y1: 0.3, x2: 0.3, y2: 0.7 },
   },
   'flowchart-database': {
-    leftLine: { x1: 0, y1: 0.28, x2: 0, y2: 0.72 },
-    rightLine: { x1: 1, y1: 0.28, x2: 1, y2: 0.72 },
+    leftLine: { x1: 0, y1: 1 / 6, x2: 0, y2: 5 / 6 },
+    rightLine: { x1: 1, y1: 1 / 6, x2: 1, y2: 5 / 6 },
+  },
+  'er-key-attribute': {
+    underline: { x1: 0.125, y1: 0.6875, x2: 0.875, y2: 0.6875 },
   },
   'basic-cylinder': {
-    leftLine: { x1: 0, y1: 0.24, x2: 0, y2: 0.76 },
-    rightLine: { x1: 1, y1: 0.24, x2: 1, y2: 0.76 },
+    leftLine: { x1: 0, y1: 0.12, x2: 0, y2: 0.88 },
+    rightLine: { x1: 1, y1: 0.12, x2: 1, y2: 0.88 },
   },
 }

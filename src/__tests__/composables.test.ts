@@ -166,7 +166,7 @@ describe('useStyleEditor', () => {
 
     updateEdgeStyle('e1', { label: 'New Label' })
     expect(edge.getLabels()).toHaveLength(1)
-    expect(edge.getLabels()[0].attrs.label.text).toBe('New Label')
+    expect(edge.getLabels()[0].attrs.text.text).toBe('New Label')
   })
 
   it('should clear edge labels when label is empty', () => {
