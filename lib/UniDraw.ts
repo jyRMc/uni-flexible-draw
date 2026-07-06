@@ -261,9 +261,11 @@ export class UniDraw {
   // ── Layout construction ────────────────────────────────────────────────────
 
   private buildLayout(): void {
-    const showToolbar = this.opts.showToolbar !== false
-    const showSidebar = this.opts.showShapePanel !== false
-    const showProperties = this.opts.showPropertiesPanel !== false
+    // 只读模式隐藏工具栏、侧边栏、属性面板
+    const isReadonly = this.opts.readonly === true
+    const showToolbar = !isReadonly && this.opts.showToolbar !== false
+    const showSidebar = !isReadonly && this.opts.showShapePanel !== false
+    const showProperties = !isReadonly && this.opts.showPropertiesPanel !== false
 
     const body = el('div', 'ud-body')
     if (showSidebar)
@@ -272,11 +274,13 @@ export class UniDraw {
     const canvasWrap = el('div', 'ud-canvas-area') as HTMLDivElement
     const canvasDom = el('div', 'ud-canvas')
     canvasWrap.appendChild(canvasDom)
-    canvasWrap.addEventListener('dragover', (event: DragEvent) => event.preventDefault())
-    canvasWrap.addEventListener('drop', (event: DragEvent) => {
-      event.preventDefault()
-      this.handleExternalDrop(event)
-    })
+    if (!isReadonly) {
+      canvasWrap.addEventListener('dragover', (event: DragEvent) => event.preventDefault())
+      canvasWrap.addEventListener('drop', (event: DragEvent) => {
+        event.preventDefault()
+        this.handleExternalDrop(event)
+      })
+    }
     ;(this as any)._canvasEl = canvasDom
 
     if (showProperties)
@@ -761,7 +765,7 @@ export class UniDraw {
       name: asset.name,
       shape: asset.type === 'svg' ? 'basic-svg' : 'basic-image',
       defaultSize: { width: 80, height: 80 },
-      defaultLabel: asset.name,
+      defaultLabel: "", //asset.name,
       data: asset.type === 'svg'
         ? { imageHref, svgContent: asset.content }
         : { imageHref },
@@ -798,28 +802,34 @@ export class UniDraw {
     const x = center.x - item.defaultSize.width / 2 + (position ? 0 : (Math.random() * 40 - 20))
     const y = center.y - item.defaultSize.height / 2 + (position ? 0 : (Math.random() * 40 - 20))
     const imageHref = typeof item.data?.imageHref === 'string' ? item.data.imageHref : ''
-    graph.addNode({
-      shape: item.shape,
-      x,
-      y,
-      width: item.defaultSize.width,
-      height: item.defaultSize.height,
-      label: item.defaultLabel ?? item.name,
-      attrs: {
-        ...(imageHref
-          ? { image: { 'xlink:href': imageHref, 'refWidth': '100%', 'refHeight': '100%', 'x': 0, 'y': 0 } }
-          : {
-              body: {
-                fill: item.defaultStyle?.fill ?? '#fff',
-                stroke: item.defaultStyle?.stroke ?? PRIMARY_COLOR,
-                strokeWidth: item.defaultStyle?.strokeWidth ?? 1.5,
-              },
-            }),
-        label: { fill: '#333', fontSize: 12 },
-      },
-      ports: item.defaultPorts,
-      ...(item.data ? { data: { ...item.data } } : {}),
-    })
+    graph.startBatch('add-node-from-material')
+    try {
+      graph.addNode({
+        shape: item.shape,
+        x,
+        y,
+        width: item.defaultSize.width,
+        height: item.defaultSize.height,
+        label: item.defaultLabel ?? item.name,
+        attrs: {
+          ...(imageHref
+            ? { image: { 'xlink:href': imageHref, 'refWidth': '100%', 'refHeight': '100%', 'x': 0, 'y': 0 } }
+            : {
+                body: {
+                  fill: item.defaultStyle?.fill ?? '#fff',
+                  stroke: item.defaultStyle?.stroke ?? PRIMARY_COLOR,
+                  strokeWidth: item.defaultStyle?.strokeWidth ?? 1.5,
+                },
+              }),
+          label: { fill: '#333', fontSize: 12 },
+        },
+        ports: item.defaultPorts,
+        ...(item.data ? { data: { ...item.data } } : {}),
+      })
+    }
+    finally {
+      graph.stopBatch('add-node-from-material')
+    }
     this.opts.onDataChange?.(this.getData())
   }
 
@@ -829,18 +839,25 @@ export class UniDraw {
       return
     const center = position ?? this.getCanvasCenterPosition()
     const halfWidth = Math.max((item.defaultSize?.width ?? 100) / 2, 40)
-    graph.addEdge({
-      shape: item.shape,
-      source: { x: center.x - halfWidth, y: center.y },
-      target: { x: center.x + halfWidth, y: center.y },
-      ...(item.defaultLabel ? { label: item.defaultLabel } : {}),
-      ...(item.data ? { data: { ...item.data } } : {}),
-    })
+    graph.startBatch('add-edge-from-material')
+    try {
+      graph.addEdge({
+        shape: item.shape,
+        source: { x: center.x - halfWidth, y: center.y },
+        target: { x: center.x + halfWidth, y: center.y },
+        ...(item.defaultLabel ? { label: item.defaultLabel } : {}),
+        ...(item.data ? { data: { ...item.data } } : {}),
+      })
+    }
+    finally {
+      graph.stopBatch('add-edge-from-material')
+    }
     this.opts.onDataChange?.(this.getData())
   }
 
   private applyTemplate(template: TemplateItem): void {
-    this.setData(template.data)
+    // 模板应用需要记录为一次可撤销操作，使 undo 能回退到应用前的状态
+    this.setData(template.data, { recordHistory: true })
     this.selectedNodeId = null
     this.selectedEdgeId = null
     this.updatePropertiesPanel()
@@ -1256,14 +1273,20 @@ export class UniDraw {
     return this.graphManager?.exportData() ?? { canvas: {}, nodes: [], edges: [] }
   }
 
-  setData(data: GraphData): void {
-    this.graphManager?.loadData(data)
+  setData(data: GraphData, options?: { recordHistory?: boolean }): void {
+    this.graphManager?.loadData(data, options)
   }
 
   clear(): void {
     const g = (this as any)._graph
     if (g) {
-      g.clearCells()
+      g.startBatch('clear-canvas')
+      try {
+        g.clearCells()
+      }
+      finally {
+        g.stopBatch('clear-canvas')
+      }
       this.eventBus.emit('data:changed', this.getData())
     }
   }
@@ -1326,12 +1349,16 @@ export class UniDraw {
   zoomFit(): void { this.zoomTool?.zoomToFit({ padding: 24 }) }
 
   selectAll(): void {
+    if (this.opts.readonly)
+      return
     const g = (this as any)._graph
     if (g)
       g.select?.(g.getCells())
   }
 
   deleteSelection(): void {
+    if (this.opts.readonly)
+      return
     const g = (this as any)._graph
     if (g)
       g.removeCells?.(g.getSelectedCells?.() ?? [])

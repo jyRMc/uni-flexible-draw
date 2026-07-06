@@ -9,7 +9,7 @@ import {
   AlignStartVertical,
   AlignVerticalSpaceBetween,
   Brush,
-  FileCode,
+  FileCode2,
   FileJson,
   Group,
   Hand,
@@ -144,14 +144,14 @@ function emitAction(action: string) {
       <Trash2 :size="16" />
     </button>
     <div class="tb-divider" />
-    <button class="tb-btn" :title="t.toolbar.exportJson" @click="emitAction('export:json')">
+    <button class="tb-btn tb-btn-hidden" :title="t.toolbar.exportJson" @click="emitAction('export:json')">
       <FileJson :size="16" />
     </button>
     <button class="tb-btn" :title="t.toolbar.exportPng" @click="emitAction('export:png')">
       <ImageDown :size="16" />
     </button>
     <button class="tb-btn" :title="t.toolbar.exportSvg" @click="emitAction('export:svg')">
-      <FileCode :size="16" />
+      <FileCode2 :size="16" />
     </button>
   </div>
 </template>
@@ -187,6 +187,9 @@ function emitAction(action: string) {
   cursor: pointer;
   color: #555;
   transition: all 0.15s;
+}
+.tb-btn-hidden {
+  display: none;
 }
 
 .tb-btn:hover:not(:disabled) {

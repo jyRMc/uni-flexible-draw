@@ -16,6 +16,31 @@ export function isMultiRegionShape(shape: string): boolean {
   return MULTI_REGION_SHAPES.has(shape)
 }
 
+/**
+ * 获取多区域节点主标签文本所在的 attrs 路径
+ * 返回形如 "nameLabel/text" 或 "topLabel/text" 的路径
+ */
+export function getMultiRegionLabelPath(shape: string): string | undefined {
+  if (shape === 'uml-class')
+    return 'nameLabel/text'
+  if (shape === 'uml-abstract' || shape === 'uml-interface' || shape === 'uml-enum')
+    return 'nameLabel/text'
+  if (shape === 'sequence-fragment-alt' || shape === 'sequence-fragment-par')
+    return 'topLabel/text'
+  if (shape === 'swimlane-horizontal' || shape === 'swimlane-vertical' || shape === 'swimlane-pool')
+    return 'label/text'
+  return undefined
+}
+
+/**
+ * 获取多区域节点主标签样式属性的基础选择器名
+ * 用于设置 fontSize / fill 等样式
+ */
+export function getMultiRegionLabelBase(shape: string): string | undefined {
+  const path = getMultiRegionLabelPath(shape)
+  return path ? path.replace(/\/text$/, '') : undefined
+}
+
 export function getDefaultRegionData(shape: string): RegionData | undefined {
   if (shape === 'uml-class') {
     return {

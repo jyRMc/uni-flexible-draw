@@ -17,6 +17,17 @@ import {
   inferStrokeStyleName,
 } from '@uni-draw/shared'
 import { buildTableAttrs, normalizeTableData } from '../shapes/basic/table'
+import {
+  BODY_STYLE_SHAPE_SELECTORS,
+  getShapeFixedLabel,
+  isShapeLabelSupported,
+} from '../shared/constants/shapes'
+import {
+  getMultiRegionLabelBase,
+  getMultiRegionLabelPath,
+  getDefaultRegionData,
+  isMultiRegionShape,
+} from '../shapes/utils/regionNodes'
 
 export interface EdgeViewData {
   id: string
@@ -53,7 +64,7 @@ export function useStyleEditor(
     const lineType = getEdgeLineType(router, connector, data)
 
     const labels = edge.getLabels?.() ?? []
-    const label = labels[0]?.attrs?.text?.text ?? ''
+    const label = labels[0]?.attrs?.text?.text ?? labels[0]?.attrs?.label?.text ?? ''
     const labelPosition = labels[0]?.position
       ? (typeof labels[0].position === 'number'
           ? 'center'
@@ -77,6 +88,12 @@ export function useStyleEditor(
     }
   }
 
+  function getNodeLabelPath(shape: string): string | undefined {
+    if (!isMultiRegionShape(shape))
+      return 'label/text'
+    return getMultiRegionLabelPath(shape)
+  }
+
   function updateNodeStyle(id: string, style: Record<string, unknown>): void {
     const graph = getGraph()
     if (!graph)
@@ -93,27 +110,138 @@ export function useStyleEditor(
         bodyAttrs[k] = style[k]
     }
     if (Object.keys(bodyAttrs).length > 0) {
-      if (node.shape === 'basic-cylinder') {
-        const { fill, stroke, strokeWidth } = bodyAttrs as any
+      const customSelectors = BODY_STYLE_SHAPE_SELECTORS[node.shape]
+      if (customSelectors) {
+        const mappedAttrs: Record<string, any> = {}
+        for (const selector of customSelectors) {
+          const isLine = selector === 'actorBody' || selector === 'actorArms' || selector === 'actorLegL'
+            || selector === 'actorLegR' || selector === 'actorLine' || selector === 'lifeline'
+            || selector === 'stem' || selector === 'bar' || selector === 'branch1'
+            || selector === 'branch2' || selector === 'branch3' || selector === 'cross1'
+            || selector === 'cross2'
+          const selectorAttrs: Record<string, any> = {}
+          if ('stroke' in bodyAttrs)
+            selectorAttrs.stroke = bodyAttrs.stroke
+          if ('strokeWidth' in bodyAttrs)
+            selectorAttrs.strokeWidth = bodyAttrs.strokeWidth
+          if ('strokeDasharray' in bodyAttrs && selector !== 'actorLine')
+            selectorAttrs.strokeDasharray = bodyAttrs.strokeDasharray
+          if ('opacity' in bodyAttrs)
+            selectorAttrs.opacity = bodyAttrs.opacity
+          if ('fill' in bodyAttrs && !isLine)
+            selectorAttrs.fill = bodyAttrs.fill
+          if (Object.keys(selectorAttrs).length > 0)
+            mappedAttrs[selector] = selectorAttrs
+        }
+        if (Object.keys(mappedAttrs).length > 0)
+          node.setAttrs(mappedAttrs)
+      }
+      else if (node.shape === 'basic-cylinder') {
+        const { fill, stroke, strokeWidth, strokeDasharray, rx, ry, opacity } = bodyAttrs as any
         const cylAttrs: Record<string, any> = {}
         if (fill !== undefined) {
           cylAttrs.bodyFill = { fill }
           cylAttrs.topCap = { fill }
           cylAttrs.bottomCap = { fill }
         }
-        if (stroke !== undefined || strokeWidth !== undefined) {
+        if (stroke !== undefined || strokeWidth !== undefined || strokeDasharray !== undefined) {
           const sv: any = {}
           if (stroke !== undefined)
             sv.stroke = stroke
           if (strokeWidth !== undefined)
             sv.strokeWidth = strokeWidth
+          if (strokeDasharray !== undefined)
+            sv.strokeDasharray = strokeDasharray
           cylAttrs.topCap = { ...(cylAttrs.topCap ?? {}), ...sv }
           cylAttrs.bottomCap = { ...(cylAttrs.bottomCap ?? {}), ...sv }
-          cylAttrs.leftLine = sv
-          cylAttrs.rightLine = sv
+          cylAttrs.leftLine = { ...(cylAttrs.leftLine ?? {}), ...sv }
+          cylAttrs.rightLine = { ...(cylAttrs.rightLine ?? {}), ...sv }
+        }
+        if (rx !== undefined || ry !== undefined) {
+          const rr: any = {}
+          if (rx !== undefined)
+            rr.rx = rx
+          if (ry !== undefined)
+            rr.ry = ry
+          cylAttrs.bodyFill = { ...(cylAttrs.bodyFill ?? {}), ...rr }
+        }
+        if (opacity !== undefined) {
+          cylAttrs.bodyFill = { ...(cylAttrs.bodyFill ?? {}), opacity }
+          cylAttrs.topCap = { ...(cylAttrs.topCap ?? {}), opacity }
+          cylAttrs.bottomCap = { ...(cylAttrs.bottomCap ?? {}), opacity }
+          cylAttrs.leftLine = { ...(cylAttrs.leftLine ?? {}), opacity }
+          cylAttrs.rightLine = { ...(cylAttrs.rightLine ?? {}), opacity }
         }
         if (Object.keys(cylAttrs).length > 0)
           node.setAttrs(cylAttrs)
+      }
+      else if (node.shape === 'flowchart-database') {
+        const { fill, stroke, strokeWidth, strokeDasharray, rx, ry, opacity } = bodyAttrs as any
+        const dbAttrs: Record<string, any> = {}
+        if (fill !== undefined) {
+          dbAttrs.bodyFill = { fill }
+          dbAttrs.topCap = { fill }
+          dbAttrs.bottomCap = { fill }
+        }
+        if (stroke !== undefined || strokeWidth !== undefined || strokeDasharray !== undefined) {
+          const sv: any = {}
+          if (stroke !== undefined)
+            sv.stroke = stroke
+          if (strokeWidth !== undefined)
+            sv.strokeWidth = strokeWidth
+          if (strokeDasharray !== undefined)
+            sv.strokeDasharray = strokeDasharray
+          dbAttrs.bottomCap = { ...(dbAttrs.bottomCap ?? {}), ...sv }
+          dbAttrs.leftLine = { ...(dbAttrs.leftLine ?? {}), ...sv }
+          dbAttrs.rightLine = { ...(dbAttrs.rightLine ?? {}), ...sv }
+          dbAttrs.topCap = { ...(dbAttrs.topCap ?? {}), ...sv }
+        }
+        if (rx !== undefined || ry !== undefined) {
+          const rr: any = {}
+          if (rx !== undefined)
+            rr.rx = rx
+          if (ry !== undefined)
+            rr.ry = ry
+          dbAttrs.bodyFill = { ...(dbAttrs.bodyFill ?? {}), ...rr }
+        }
+        if (opacity !== undefined) {
+          dbAttrs.bottomCap = { ...(dbAttrs.bottomCap ?? {}), opacity }
+          dbAttrs.bodyFill = { ...(dbAttrs.bodyFill ?? {}), opacity }
+          dbAttrs.leftLine = { ...(dbAttrs.leftLine ?? {}), opacity }
+          dbAttrs.rightLine = { ...(dbAttrs.rightLine ?? {}), opacity }
+          dbAttrs.topCap = { ...(dbAttrs.topCap ?? {}), opacity }
+        }
+        if (Object.keys(dbAttrs).length > 0)
+          node.setAttrs(dbAttrs)
+      }
+      else if (node.shape === 'flowchart-multi-document') {
+        const { fill, stroke, strokeWidth, strokeDasharray, opacity } = bodyAttrs as any
+        const mdAttrs: Record<string, any> = {}
+        if (fill !== undefined) {
+          mdAttrs.back = { fill }
+          mdAttrs.front = { fill }
+        }
+        if (stroke !== undefined || strokeWidth !== undefined || strokeDasharray !== undefined) {
+          const sv: any = {}
+          if (stroke !== undefined)
+            sv.stroke = stroke
+          if (strokeWidth !== undefined)
+            sv.strokeWidth = strokeWidth
+          if (strokeDasharray !== undefined)
+            sv.strokeDasharray = strokeDasharray
+          mdAttrs.back = { ...(mdAttrs.back ?? {}), ...sv }
+          mdAttrs.foldBack = { ...(mdAttrs.foldBack ?? {}), ...sv }
+          mdAttrs.front = { ...(mdAttrs.front ?? {}), ...sv }
+          mdAttrs.foldFront = { ...(mdAttrs.foldFront ?? {}), ...sv }
+        }
+        if (opacity !== undefined) {
+          mdAttrs.back = { ...(mdAttrs.back ?? {}), opacity }
+          mdAttrs.foldBack = { ...(mdAttrs.foldBack ?? {}), opacity }
+          mdAttrs.front = { ...(mdAttrs.front ?? {}), opacity }
+          mdAttrs.foldFront = { ...(mdAttrs.foldFront ?? {}), opacity }
+        }
+        if (Object.keys(mdAttrs).length > 0)
+          node.setAttrs(mdAttrs)
       }
       else if (node.shape === 'basic-table') {
         const table = normalizeTableData((node.getData?.() ?? {}).table)
@@ -137,28 +265,46 @@ export function useStyleEditor(
       }
     }
 
-    if ('label' in style && typeof style.label === 'string') {
-      node.setLabel(style.label as string)
-    }
-    if ('fontSize' in style)
-      node.setAttrByPath('label/fontSize', style.fontSize)
-    if ('fontFamily' in style)
-      node.setAttrByPath('label/fontFamily', style.fontFamily)
-    if ('fontWeight' in style)
-      node.setAttrByPath('label/fontWeight', style.fontWeight)
-    if ('lineHeight' in style)
-      node.setAttrByPath('label/lineHeight', style.lineHeight)
-    if ('labelFill' in style)
-      node.setAttrByPath('label/fill', style.labelFill)
-    if ('textAlign' in style) {
-      const align = style.textAlign as string
-      node.setAttrByPath('label/textAnchor', align === 'left' ? 'start' : align === 'right' ? 'end' : 'middle')
-    }
-    if ('labelPosition' in style) {
-      const pos = style.labelPosition as string
-      const textAnchor = pos === 'left' ? 'end' : pos === 'right' ? 'start' : 'middle'
-      const yAttr = pos === 'top' ? '0.2' : pos === 'bottom' ? '0.8' : '0.5'
-      node.setAttrs({ label: { textAnchor, textVerticalAnchor: pos === 'top' ? 'top' : pos === 'bottom' ? 'bottom' : 'middle', refY: yAttr } })
+    const labelPath = getNodeLabelPath(node.shape)
+    const labelBase = isMultiRegionShape(node.shape) ? getMultiRegionLabelBase(node.shape) : 'label'
+    const fixedLabel = getShapeFixedLabel(node.shape)
+
+    // 固定标签图形（如状态图浅/深历史）不允许通过样式编辑器修改标签相关属性
+    if (fixedLabel === undefined) {
+      if ('label' in style && typeof style.label === 'string' && labelPath) {
+        node.setAttrByPath(labelPath, style.label as string)
+        // 多区域节点需要同步 regionData，保证导出/重建时标签不丢失
+        if (isMultiRegionShape(node.shape)) {
+          const data = node.getData?.() ?? {}
+          const regionData = data.regionData ? { ...data.regionData } : getDefaultRegionData(node.shape)
+          if (regionData && Array.isArray(regionData.regions) && regionData.regions.length > 0) {
+            regionData.regions = regionData.regions.map((r: any, i: number) =>
+              i === 0 ? { ...r, label: style.label as string } : r,
+            )
+            node.setData({ ...data, regionData }, { overwrite: false })
+          }
+        }
+      }
+      if ('fontSize' in style && labelBase)
+        node.setAttrByPath(`${labelBase}/fontSize`, style.fontSize)
+      if ('fontFamily' in style && labelBase)
+        node.setAttrByPath(`${labelBase}/fontFamily`, style.fontFamily)
+      if ('fontWeight' in style && labelBase)
+        node.setAttrByPath(`${labelBase}/fontWeight`, style.fontWeight)
+      if ('lineHeight' in style && labelBase)
+        node.setAttrByPath(`${labelBase}/lineHeight`, style.lineHeight)
+      if ('labelFill' in style && labelBase)
+        node.setAttrByPath(`${labelBase}/fill`, style.labelFill)
+      if ('textAlign' in style && labelBase) {
+        const align = style.textAlign as string
+        node.setAttrByPath(`${labelBase}/textAnchor`, align === 'left' ? 'start' : align === 'right' ? 'end' : 'middle')
+      }
+      if ('labelPosition' in style) {
+        const pos = style.labelPosition as string
+        const textAnchor = pos === 'left' ? 'end' : pos === 'right' ? 'start' : 'middle'
+        const yAttr = pos === 'top' ? '0.2' : pos === 'bottom' ? '0.8' : '0.5'
+        node.setAttrs({ label: { textAnchor, textVerticalAnchor: pos === 'top' ? 'top' : pos === 'bottom' ? 'bottom' : 'middle', refY: yAttr } })
+      }
     }
     if ('imageHref' in style) {
       node.attr('image/xlink:href', style.imageHref)

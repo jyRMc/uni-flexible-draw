@@ -18,9 +18,12 @@ import {
 import type { MiniMapOptions } from '@uni-draw/core'
 import { GroupManager } from '@uni-draw/core'
 
+import { registerAllShapes } from '../shapes/register'
+
 import { buildTableAttrs, buildTableMarkup, createDefaultTableData, normalizeTableData } from '../shapes/basic/table'
 import { useSketch } from './useSketch'
 import { type EdgeViewData, useStyleEditor } from './useStyleEditor'
+import type { ExportImageOptions } from '../core/export/ExportService'
 import { useAlignment } from './useAlignment'
 
 export interface UseCanvasOptions {
@@ -69,15 +72,16 @@ export interface UseCanvasReturn {
   selectionCount: Ref<number>
   contextMenuState: Ref<ContextMenuState>
   getData: () => GraphData
-  setData: (data: GraphData) => void
+  setData: (data: GraphData, options?: { recordHistory?: boolean }) => void
+  getContentBBox: () => { x: number, y: number, width: number, height: number } | null
   toJSON: () => string
   fromJSON: (json: string) => void
-  toPNG: () => Promise<string>
+  toPNG: (options?: ExportImageOptions) => Promise<string>
   toSVG: () => Promise<string>
   zoomIn: () => void
   zoomOut: () => void
   zoomTo: (factor: number) => void
-  zoomToFit: () => void
+  zoomToFit: (padding?: number) => void
   undo: () => void
   redo: () => void
   addNode: (data: NodeData) => void
@@ -155,6 +159,8 @@ export interface UseCanvasReturn {
   // minimap
   enableMinimap: (container: HTMLElement, options?: MiniMapOptions) => void
   disableMinimap: () => void
+  /** 居中画布内容 */
+  centerContent: () => void
 }
 
 export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
@@ -222,27 +228,20 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
   }
 
   function getAutoVertices(edge: any): Array<{ x: number, y: number }> {
-    if (isSketchStraightEdge(edge))
-      return []
     const src = edge.getSourcePoint?.()
     const tgt = edge.getTargetPoint?.()
+    // 草图线使用简单中点顶点，便于拖动编辑
+    if (isSketchStraightEdge(edge)) {
+      if (!src || !tgt)
+        return []
+      return [{ x: (src.x + tgt.x) / 2, y: (src.y + tgt.y) / 2 }]
+    }
     const lineType = getEdgeLineType(edge.getRouter?.(), edge.getConnector?.(), edge.getData?.())
     return getEdgeLineVertices(lineType, src, tgt)
   }
 
   function isAutoVertices(current: Array<{ x: number, y: number }>, expected: Array<{ x: number, y: number }>): boolean {
     return isSameEdgeVertices(current, expected, autoVertexTolerance)
-  }
-
-  function ensureAutoVertex(edge: any): void {
-    const expected = getAutoVertices(edge)
-    if (expected.length === 0)
-      return
-    const vertices = edge.getVertices?.() ?? []
-    if (vertices.length > 0)
-      return
-    autoVertexEdgeMap.set(edge.id, expected)
-    edge.setVertices(expected, { silent: true })
   }
 
   function syncAutoVertex(edge: any): void {
@@ -264,6 +263,7 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
     }
     edge.setVertices(expected, { silent: true })
     autoVertexEdgeMap.set(edge.id, expected)
+    refreshEdgeEditTools(edge)
   }
 
   function releaseAutoVertex(edge: any): void {
@@ -288,8 +288,6 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
   function renderEdgeEditTools(edge: any): void {
     const graph = getGraph()
     if (!graph)
-      return
-    if (isSketchStraightEdge(edge))
       return
     edge.setTools({
       items: [
@@ -344,6 +342,16 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
     }
   }
 
+  function refreshEdgeEditTools(edge: any): void {
+    const graph = getGraph()
+    if (!graph)
+      return
+    const view = graph.findViewByCell(edge)
+    if (view && typeof (view as any).updateTools === 'function') {
+      ;(view as any).updateTools()
+    }
+  }
+
   function isEdgeToolElement(target: EventTarget | null): boolean {
     return target instanceof Element && !!target.closest(
       '.x6-edge-tool-segments, .x6-edge-tool-segment, .x6-edge-tool-source-arrowhead, .x6-edge-tool-target-arrowhead, .x6-tool',
@@ -365,9 +373,8 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
     const graph = getGraph()
     if (!graph || graph.isSelected?.(edge))
       return
-    ensureAutoVertex(edge)
+    // hover 时仅高亮，不自动添加顶点/渲染编辑工具，避免路径闪烁
     highlightEdge(edge)
-    renderEdgeEditTools(edge)
   }
 
   function hideEdgeEditToolsOnHover(edge: any, event?: MouseEvent): void {
@@ -445,6 +452,8 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
   }
 
   onMounted(() => {
+    registerAllShapes()
+
     if (!containerRef.value)
       return
 
@@ -458,12 +467,17 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
       keyboard: options.keyboard,
       minimap: options.minimap,
     })
-
     graphManager = new GraphManager(graph, eventBus)
     groupManager = new GroupManager(graph)
     exportService = new ExportService(graph)
     zoomTool = new ZoomTool(graph)
-    panTool = new PanTool(graph)
+    const isReadonly = options.readonly === true
+    // 只读模式启用手形工具平移，但保留引擎原有的交互限制
+    panTool = new PanTool(graph, { disableInteracting: isReadonly ? false : true })
+    if (isReadonly) {
+      panTool.enable()
+      panMode.value = true
+    }
     miniMapTool = new MiniMapTool(graph)
     shortcutManager = new ShortcutManager(graph)
     shortcutManager.registerAction('cut', () => cut())
@@ -481,7 +495,8 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
     shortcutManager.registerAction('toggleLock', () => toggleLock())
     shortcutManager.registerAction('group', () => groupNodes())
     shortcutManager.registerAction('ungroup', () => ungroupNodes())
-    shortcutManager.bind()
+    if (!isReadonly)
+      shortcutManager.bind()
     clipboardManager = new ClipboardManager(graph)
 
     // 监听历史变化（x6-plugin-history 事件）
@@ -502,25 +517,27 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
       zoom.value = sx
     })
 
-    graph.on('cell:contextmenu', ({ cell, e }: any) => {
-      e?.preventDefault?.()
-      e?.stopPropagation?.()
-      selectContextCell(cell)
-      showContextMenu(e?.clientX ?? 0, e?.clientY ?? 0)
-    })
-    graph.on('blank:contextmenu', ({ e }: any) => {
-      e?.preventDefault?.()
-      e?.stopPropagation?.()
-      clearContextSelection()
-      hideContextMenu()
-    })
+    if (!isReadonly) {
+      graph.on('cell:contextmenu', ({ cell, e }: any) => {
+        e?.preventDefault?.()
+        e?.stopPropagation?.()
+        selectContextCell(cell)
+        showContextMenu(e?.clientX ?? 0, e?.clientY ?? 0)
+      })
+      graph.on('blank:contextmenu', ({ e }: any) => {
+        e?.preventDefault?.()
+        e?.stopPropagation?.()
+        clearContextSelection()
+        hideContextMenu()
+      })
 
-    graph.on('edge:mouseenter', ({ edge }: any) => {
-      showEdgeEditToolsOnHover(edge)
-    })
-    graph.on('edge:mouseleave', ({ edge, e }: any) => {
-      hideEdgeEditToolsOnHover(edge, e)
-    })
+      graph.on('edge:mouseenter', ({ edge }: any) => {
+        showEdgeEditToolsOnHover(edge)
+      })
+      graph.on('edge:mouseleave', ({ edge, e }: any) => {
+        hideEdgeEditToolsOnHover(edge, e)
+      })
+    }
 
     // ── Alt + 拖拽复制 ──────────────────────────────────────────────────
     // 必须用原生捕获阶段拦截 X6 之前，否则 X6 Selection 插件已锁定拖拽目标
@@ -588,12 +605,18 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
         return
       }
 
-      for (const c of cloned) {
-        if (c.isNode?.()) {
-          graph.addNode(c)
-        } else if (c.isEdge?.()) {
-          graph.addEdge(c)
+      graph.startBatch('alt-clone')
+      try {
+        for (const c of cloned) {
+          if (c.isNode?.()) {
+            graph.addNode(c)
+          } else if (c.isEdge?.()) {
+            graph.addEdge(c)
+          }
         }
+      }
+      finally {
+        graph.stopBatch('alt-clone')
       }
 
       // 选中克隆体
@@ -648,7 +671,9 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
       document.addEventListener('mouseup', altDragUpHandler)
     }
 
-    altCloneContainer.addEventListener('mousedown', onAltCloneMouseDown, true)
+    if (!isReadonly) {
+      altCloneContainer.addEventListener('mousedown', onAltCloneMouseDown, true)
+    }
 
     // 监听节点/边选中
     graph.on('cell:selected', ({ cell }: any) => {
@@ -659,7 +684,7 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
       else if (cell.isEdge?.()) {
         selectedEdgeData.value = extractEdgeData(cell)
         selectedNodeData.value = null
-        ensureAutoVertex(cell)
+        // 选中时不自动插入顶点，避免默认状态与选中状态轨迹不一致
         highlightEdge(cell)
         renderEdgeEditTools(cell)
       }
@@ -724,7 +749,6 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
         selectedNodeData.value = NodeFactory.toData(node)
       }
     })
-
     // 节点拖入/拖出组合区域时，更新相关组合容器尺寸
     const nodeMovePrevParent = new Map<string, any>()
     graph.on('node:move', ({ node }: any) => {
@@ -763,8 +787,13 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
         selectedEdgeData.value = extractEdgeData(edge)
       }
     })
-    graph.on('edge:change:vertices', ({ edge }: any) => {
+    graph.on('edge:change:vertices', ({ edge, options }: any) => {
       refreshAutoVertexState(edge)
+      // 工具拖拽过程中会连续触发 change:vertices，此时刷新工具会重建正在被拖拽的句柄，
+      // 导致拖拽中断、线条卡顿甚至无法继续编辑。仅在非工具操作时刷新。
+      if (!options?.ui && !options?.toolId) {
+        refreshEdgeEditTools(edge)
+      }
       if (selectedEdgeData.value && selectedEdgeData.value.id === edge.id) {
         selectedEdgeData.value = extractEdgeData(edge)
       }
@@ -800,14 +829,16 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
       graph.getConnectedEdges(node).forEach((edge: any) => syncAutoVertex(edge))
     })
 
-    // SVG 节点双击 → 打开 SVG 代码编辑器
-    graph.on('node:dblclick', ({ node }: any) => {
-      if (node.shape !== 'basic-svg')
-        return
-      const data = node.getData() ?? {}
-      svgEditState.value = { nodeId: node.id, content: (data.svgContent as string) ?? '' }
-    })
-
+    if (!isReadonly) {
+      // SVG 节点双击 → 打开 SVG 代码编辑器
+      graph.on('node:dblclick', ({ node }: any) => {
+        if (node.shape !== 'basic-svg')
+          return
+        const data = node.getData() ?? {}
+        svgEditState.value = { nodeId: node.id, content: (data.svgContent as string) ?? '' }
+      })
+    }
+    
     // 草图模式事件监听（始终注册，内部通过 sketchElementIds 过滤）
     graph.on('node:added', onSketchNodeAdded)
     graph.on('edge:added', onSketchEdgeAdded)
@@ -824,6 +855,13 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
         if (sketchElementIds.value.has(e.id))
           onSketchEdgeChange({ edge: e })
       })
+    })
+
+    // 节点尺寸变化时，更新翻转变换中心点
+    graph.on('node:change:size', ({ node }: any) => {
+      const data = node.getData?.() ?? {}
+      if (data.flipH || data.flipV)
+        updateNodeFlipTransform(node)
     })
 
     // 加载初始数据
@@ -897,8 +935,23 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
     return graphManager?.exportData() ?? options.modelValue.value
   }
 
-  function setData(data: GraphData): void {
-    graphManager?.loadData(data)
+  function setData(data: GraphData, options?: { recordHistory?: boolean }): void {
+    graphManager?.loadData(data, options)
+  }
+
+  /**
+   * 获取画布内容的包围盒（本地坐标）
+   */
+  function getContentBBox(): { x: number, y: number, width: number, height: number } | null {
+    const graph = getGraph()
+    if (!graph)
+      return null
+    try {
+      return graph.getContentBBox()
+    }
+    catch {
+      return null
+    }
   }
 
   function toJSON(): string {
@@ -911,8 +964,8 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
       setData(data)
   }
 
-  async function toPNG(): Promise<string> {
-    return exportService?.toPNG() ?? ''
+  async function toPNG(options?: ExportImageOptions): Promise<string> {
+    return exportService?.toPNG(options) ?? ''
   }
 
   async function toSVG(): Promise<string> {
@@ -931,8 +984,8 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
     zoomTool?.zoomTo(factor)
   }
 
-  function zoomToFit(): void {
-    zoomTool?.zoomToFit()
+  function zoomToFit(padding = 16): void {
+    zoomTool?.zoomToFit({padding})
   }
 
   function undo(): void {
@@ -964,6 +1017,9 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
   }
 
   function togglePanMode(): boolean {
+    // 只读模式强制保持手形平移，不允许关闭
+    if (options.readonly)
+      return true
     const enabled = panTool?.toggle() ?? false
     panMode.value = enabled
     return enabled
@@ -1015,6 +1071,7 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
       materialData ??= {}
       materialData.table = normalizeTableData(materialData.table ?? createDefaultTableData())
     }
+    
     const nodeData: NodeData = {
       id: shortId('node'),
       shape: material.shape,
@@ -1025,6 +1082,7 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
       ...(material.defaultStyle ? { style: material.defaultStyle as NodeStyle } : {}),
       ...(materialData ? { data: materialData } : {}),
     }
+    
     addNode(nodeData)
     return nodeData
   }
@@ -1035,11 +1093,21 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
   ): EdgeData {
     const center = position ?? { x: 100, y: 100 }
     const halfWidth = Math.max((material.defaultSize?.width ?? 100) / 2, 40)
+    const data = material.data ?? {}
+    const routerName = (data.routerName as string) ?? 'normal'
+    const connectorName = (data.connectorName as string) ?? 'normal'
+    const router = routerName === 'normal' ? null : { name: routerName }
+    const connector = connectorName === 'normal' ? null : { name: connectorName }
+    const lineType = getEdgeLineType(router, connector, data)
+    // 曲线、折线、圆角折线、地铁路线若起点与终点 Y 相同会退化为直线，
+    // 因此给终点一个 Y 轴偏移，使其在画布上能直观体现对应线型特征。
+    const needYOffset = ['curve', 'orthogonal', 'rounded', 'metro'].includes(lineType)
+    const yOffset = needYOffset ? Math.max(halfWidth * 0.6, 30) : 0
     const edgeData: EdgeData = {
       id: shortId('edge'),
       shape: material.shape,
       source: { x: center.x - halfWidth, y: center.y },
-      target: { x: center.x + halfWidth, y: center.y },
+      target: { x: center.x + halfWidth, y: center.y + yOffset },
       ...(material.defaultLabel ? { label: material.defaultLabel } : {}),
       ...(material.data ? { data: { ...material.data } } : {}),
     }
@@ -1070,12 +1138,21 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
     const graph = getGraph()
     if (!graph)
       return
-    graph.clearCells()
+    graph.startBatch('clear-canvas')
+    try {
+      graph.clearCells()
+    }
+    finally {
+      graph.stopBatch('clear-canvas')
+    }
   }
 
   // ==================== 手绘模式 ====================
 
   function toggleDrawMode(): boolean {
+    // 只读模式禁止手绘
+    if (options.readonly)
+      return false
     drawMode.value = !drawMode.value
     const graph = getGraph()
     if (!graph)
@@ -1109,19 +1186,25 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
     const graph = getGraph()
     if (!graph)
       return
-    graph.addNode({
-      id: `img-${Date.now()}`,
-      shape: 'basic-image',
-      x: pos.x - width / 2,
-      y: pos.y - height / 2,
-      width,
-      height,
-      attrs: {
-        image: { 'xlink:href': dataUrl, 'refWidth': '100%', 'refHeight': '100%', 'x': 0, 'y': 0 },
-      },
-      data: { imageHref: dataUrl },
-      ports: DEFAULT_PORTS as any,
-    })
+    graph.startBatch('add-external-image')
+    try {
+      graph.addNode({
+        id: `img-${Date.now()}`,
+        shape: 'basic-image',
+        x: pos.x - width / 2,
+        y: pos.y - height / 2,
+        width,
+        height,
+        attrs: {
+          image: { 'xlink:href': dataUrl, 'refWidth': '100%', 'refHeight': '100%', 'x': 0, 'y': 0 },
+        },
+        data: { imageHref: dataUrl },
+        ports: DEFAULT_PORTS as any,
+      })
+    }
+    finally {
+      graph.stopBatch('add-external-image')
+    }
   }
 
   function addExternalSvg(
@@ -1134,19 +1217,25 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
     if (!graph)
       return
     const href = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgContent)}`
-    graph.addNode({
-      id: `svg-${Date.now()}`,
-      shape: 'basic-svg',
-      x: pos.x - width / 2,
-      y: pos.y - height / 2,
-      width,
-      height,
-      attrs: {
-        image: { 'xlink:href': href, 'refWidth': '100%', 'refHeight': '100%', 'x': 0, 'y': 0 },
-      },
-      data: { imageHref: href, svgContent },
-      ports: DEFAULT_PORTS as any,
-    })
+    graph.startBatch('add-external-svg')
+    try {
+      graph.addNode({
+        id: `svg-${Date.now()}`,
+        shape: 'basic-svg',
+        x: pos.x - width / 2,
+        y: pos.y - height / 2,
+        width,
+        height,
+        attrs: {
+          image: { 'xlink:href': href, 'refWidth': '100%', 'refHeight': '100%', 'x': 0, 'y': 0 },
+        },
+        data: { imageHref: href, svgContent },
+        ports: DEFAULT_PORTS as any,
+      })
+    }
+    finally {
+      graph.stopBatch('add-external-svg')
+    }
   }
 
   function commitSvgEdit(newContent: string): void {
@@ -1174,29 +1263,37 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
       return
     const id = `freehand-${Date.now()}`
     const brush = drawBrushStyle.value
-    graph.addNode({
-      id,
-      shape: 'path',
-      x,
-      y,
-      width,
-      height,
-      attrs: {
-        body: {
-          d,
-          fill: 'none',
-          stroke: brush.stroke,
-          strokeWidth: brush.strokeWidth,
-          strokeDasharray: brush.strokeDasharray || null,
-          opacity: brush.opacity,
-          strokeLinecap: 'round',
-          strokeLinejoin: 'round',
+    graph.startBatch('add-path-node')
+    try {
+      graph.addNode({
+        id,
+        shape: 'path',
+        x,
+        y,
+        width,
+        height,
+        attrs: {
+          body: {
+            d,
+            fill: 'none',
+            stroke: brush.stroke,
+            strokeWidth: brush.strokeWidth,
+            strokeDasharray: brush.strokeDasharray || null,
+            opacity: brush.opacity,
+            strokeLinecap: 'round',
+            strokeLinejoin: 'round',
+          },
         },
-      },
-    })
+      })
+    }
+    finally {
+      graph.stopBatch('add-path-node')
+    }
   }
 
   function selectAll(): void {
+    if (options.readonly)
+      return
     const graph = getGraph()
     if (!graph)
       return
@@ -1340,12 +1437,20 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
   // ==================== 删除 ====================
 
   function deleteSelected(): void {
+    if (options.readonly)
+      return
     const graph = getGraph()
     if (!graph)
       return
     const cells = getSelectedCells().filter((c: any) => c.getData?.()?.locked !== true)
     if (cells.length > 0) {
-      graph.removeCells(cells)
+      graph.startBatch('delete-selected')
+      try {
+        graph.removeCells(cells)
+      }
+      finally {
+        graph.stopBatch('delete-selected')
+      }
     }
   }
 
@@ -1364,14 +1469,20 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
     const sorted = [...selected].sort((a: any, b: any) =>
       (b.getZIndex?.() ?? 0) - (a.getZIndex?.() ?? 0),
     )
-    for (const cell of sorted) {
-      const curZ = cell.getZIndex?.() ?? 0
-      const aboveZs = allCells
-        .filter((c: any) => !selectedIds.has(c.id) && (c.getZIndex?.() ?? 0) > curZ)
-        .map((c: any) => c.getZIndex?.() ?? 0)
-      if (aboveZs.length === 0)
-        continue
-      cell.setZIndex(Math.min(...aboveZs) + 1)
+    graph.startBatch('move-up')
+    try {
+      for (const cell of sorted) {
+        const curZ = cell.getZIndex?.() ?? 0
+        const aboveZs = allCells
+          .filter((c: any) => !selectedIds.has(c.id) && (c.getZIndex?.() ?? 0) > curZ)
+          .map((c: any) => c.getZIndex?.() ?? 0)
+        if (aboveZs.length === 0)
+          continue
+        cell.setZIndex(Math.min(...aboveZs) + 1)
+      }
+    }
+    finally {
+      graph.stopBatch('move-up')
     }
   }
 
@@ -1388,14 +1499,20 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
     const sorted = [...selected].sort((a: any, b: any) =>
       (a.getZIndex?.() ?? 0) - (b.getZIndex?.() ?? 0),
     )
-    for (const cell of sorted) {
-      const curZ = cell.getZIndex?.() ?? 0
-      const belowZs = allCells
-        .filter((c: any) => !selectedIds.has(c.id) && (c.getZIndex?.() ?? 0) < curZ)
-        .map((c: any) => c.getZIndex?.() ?? 0)
-      if (belowZs.length === 0)
-        continue
-      cell.setZIndex(Math.max(...belowZs) - 1)
+    graph.startBatch('move-down')
+    try {
+      for (const cell of sorted) {
+        const curZ = cell.getZIndex?.() ?? 0
+        const belowZs = allCells
+          .filter((c: any) => !selectedIds.has(c.id) && (c.getZIndex?.() ?? 0) < curZ)
+          .map((c: any) => c.getZIndex?.() ?? 0)
+        if (belowZs.length === 0)
+          continue
+        cell.setZIndex(Math.max(...belowZs) - 1)
+      }
+    }
+    finally {
+      graph.stopBatch('move-down')
     }
   }
 
@@ -1413,8 +1530,14 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
       .map((c: any) => c.getZIndex?.() ?? 0)
     if (unselectedZs.length === 0)
       return
-    const maxZ = Math.max(...unselectedZs)
-    selected.forEach((cell: any, i: number) => cell.setZIndex(maxZ + 1 + i))
+    graph.startBatch('to-front')
+    try {
+      const maxZ = Math.max(...unselectedZs)
+      selected.forEach((cell: any, i: number) => cell.setZIndex(maxZ + 1 + i))
+    }
+    finally {
+      graph.stopBatch('to-front')
+    }
   }
 
   function toBack(): void {
@@ -1431,48 +1554,74 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
       .map((c: any) => c.getZIndex?.() ?? 0)
     if (unselectedZs.length === 0)
       return
-    const minZ = Math.min(...unselectedZs)
-    selected.forEach((cell: any, i: number) =>
-      cell.setZIndex(minZ - selected.length + i),
-    )
+    graph.startBatch('to-back')
+    try {
+      const minZ = Math.min(...unselectedZs)
+      selected.forEach((cell: any, i: number) =>
+        cell.setZIndex(minZ - selected.length + i),
+      )
+    }
+    finally {
+      graph.stopBatch('to-back')
+    }
   }
 
   // ==================== 翻转 ====================
 
+  function updateNodeFlipTransform(node: any) {
+    const data = node.getData?.() ?? {}
+    const flipH = !!data.flipH
+    const flipV = !!data.flipV
+    const size = node.getSize?.() ?? { width: 100, height: 100 }
+    const cx = size.width / 2
+    const cy = size.height / 2
+    const sx = flipH ? -1 : 1
+    const sy = flipV ? -1 : 1
+    node.setAttrByPath('flip/transform', `translate(${cx}, ${cy}) scale(${sx}, ${sy}) translate(${-cx}, ${-cy})`)
+  }
+
   function flipH(): void {
+    const graph = getGraph()
     const cells = getSelectedCells()
-    cells.forEach((cell: any) => {
-      if (cell.isNode()) {
-        const node = cell as any
-        const currentScale = node.getScale?.() ?? { sx: 1, sy: 1 }
-        const pos = node.getPosition()
-        const size = node.getSize()
-        node.scale(-currentScale.sx, currentScale.sy)
-        // 补偿位置偏移，保持视觉中心不变
-        node.setPosition({
-          x: pos.x + size.width * Math.abs(currentScale.sx),
-          y: pos.y,
-        })
-      }
-    })
+    if (!graph || cells.length === 0)
+      return
+    graph.startBatch('flip-h')
+    try {
+      cells.forEach((cell: any) => {
+        if (cell.isNode()) {
+          const node = cell as any
+          const data = node.getData?.() ?? {}
+          const nextFlipH = !data.flipH
+          node.setData({ ...data, flipH: nextFlipH })
+          updateNodeFlipTransform(node)
+        }
+      })
+    }
+    finally {
+      graph.stopBatch('flip-h')
+    }
   }
 
   function flipV(): void {
+    const graph = getGraph()
     const cells = getSelectedCells()
-    cells.forEach((cell: any) => {
-      if (cell.isNode()) {
-        const node = cell as any
-        const currentScale = node.getScale?.() ?? { sx: 1, sy: 1 }
-        const pos = node.getPosition()
-        const size = node.getSize()
-        node.scale(currentScale.sx, -currentScale.sy)
-        // 补偿位置偏移，保持视觉中心不变
-        node.setPosition({
-          x: pos.x,
-          y: pos.y + size.height * Math.abs(currentScale.sy),
-        })
-      }
-    })
+    if (!graph || cells.length === 0)
+      return
+    graph.startBatch('flip-v')
+    try {
+      cells.forEach((cell: any) => {
+        if (cell.isNode()) {
+          const node = cell as any
+          const data = node.getData?.() ?? {}
+          const nextFlipV = !data.flipV
+          node.setData({ ...data, flipV: nextFlipV })
+          updateNodeFlipTransform(node)
+        }
+      })
+    }
+    finally {
+      graph.stopBatch('flip-v')
+    }
   }
 
   // ==================== 锁定 ====================
@@ -1480,14 +1629,22 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
   function toggleLock(): void {
     const graph = getGraph()
     const cells = getSelectedCells()
-    cells.forEach((cell: any) => {
-      const isLocked = cell.getData()?.locked === true
-      const nextLocked = !isLocked
-      cell.setData({ ...cell.getData(), locked: nextLocked })
-      if (nextLocked && graph?.isSelected?.(cell)) {
-        graph.unselect(cell)
-      }
-    })
+    if (!graph || cells.length === 0)
+      return
+    graph.startBatch('toggle-lock')
+    try {
+      cells.forEach((cell: any) => {
+        const isLocked = cell.getData()?.locked === true
+        const nextLocked = !isLocked
+        cell.setData({ ...cell.getData(), locked: nextLocked })
+        if (nextLocked && graph?.isSelected?.(cell)) {
+          graph.unselect(cell)
+        }
+      })
+    }
+    finally {
+      graph.stopBatch('toggle-lock')
+    }
   }
 
   // ==================== 组合 ====================
@@ -1525,35 +1682,42 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
     const groupH = maxY - minY + padding * 2
 
     const minZIndex = Math.min(...validNodes.map((n: any) => n.getZIndex?.() ?? 0))
-    const group = graph.addNode({
-      id: shortId('group'),
-      shape: 'basic-group',
-      x: groupX,
-      y: groupY,
-      width: groupW,
-      height: groupH,
-      zIndex: minZIndex - 1,
-      attrs: {
-        body: {
-          fill: 'transparent',
-          stroke: PRIMARY_COLOR,
-          strokeWidth: 1,
-          strokeDasharray: '4 2',
+
+    graph.startBatch('group-nodes')
+    try {
+      const group = graph.addNode({
+        id: shortId('group'),
+        shape: 'basic-group',
+        x: groupX,
+        y: groupY,
+        width: groupW,
+        height: groupH,
+        zIndex: minZIndex - 1,
+        attrs: {
+          body: {
+            fill: 'transparent',
+            stroke: PRIMARY_COLOR,
+            strokeWidth: 1,
+            strokeDasharray: '4 2',
+          },
         },
-      },
-      data: { isGroup: true },
-    })
+        data: { isGroup: true },
+      })
 
-    // X6 v2: addChild 后子节点坐标自动转为相对坐标，无需手动转换
-    validNodes.forEach((n: any) => {
-      group.addChild(n)
-    })
+      // X6 v2: addChild 后子节点坐标自动转为相对坐标，无需手动转换
+      validNodes.forEach((n: any) => {
+        group.addChild(n)
+      })
 
-    if (typeof (graph as any).cleanSelection === 'function') {
-      ;(graph as any).cleanSelection()
+      if (typeof (graph as any).cleanSelection === 'function') {
+        ;(graph as any).cleanSelection()
+      }
+      if (typeof (graph as any).select === 'function') {
+        ;(graph as any).select(group)
+      }
     }
-    if (typeof (graph as any).select === 'function') {
-      ;(graph as any).select(group)
+    finally {
+      graph.stopBatch('group-nodes')
     }
   }
 
@@ -1566,36 +1730,43 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
     if (groups.length === 0) return
 
     const toSelect: any[] = []
-    groups.forEach((group: any) => {
-      const children = group.getChildren() ?? []
-      // 保存子节点的世界坐标（X6 中子节点 getPosition() 返回世界坐标）
-      const childWorldPositions = children.map((child: any) => ({
-        child,
-        position: child.getPosition(),
-      }))
 
-      // 使用 unembed 逐个解除父子关系，子节点保留在画布中不被删除
-      childWorldPositions.forEach(({ child }: any) => {
-        group.unembed(child)
-        toSelect.push(child)
+    graph.startBatch('ungroup-nodes')
+    try {
+      groups.forEach((group: any) => {
+        const children = group.getChildren() ?? []
+        // 保存子节点的世界坐标（X6 中子节点 getPosition() 返回世界坐标）
+        const childWorldPositions = children.map((child: any) => ({
+          child,
+          position: child.getPosition(),
+        }))
+
+        // 使用 unembed 逐个解除父子关系，子节点保留在画布中不被删除
+        childWorldPositions.forEach(({ child }: any) => {
+          group.unembed(child)
+          toSelect.push(child)
+        })
+
+        // 此时 group 已无子节点，remove 不会级联删除任何子元素
+        group.remove()
+
+        // 确保子节点世界坐标不变（unembed 可能改变内部坐标表示）
+        childWorldPositions.forEach(({ child, position }: any) => {
+          child.setPosition(position)
+        })
       })
 
-      // 此时 group 已无子节点，remove 不会级联删除任何子元素
-      group.remove()
-
-      // 确保子节点世界坐标不变（unembed 可能改变内部坐标表示）
-      childWorldPositions.forEach(({ child, position }: any) => {
-        child.setPosition(position)
-      })
-    })
-
-    if (toSelect.length > 0) {
-      if (typeof (graph as any).cleanSelection === 'function') {
-        ;(graph as any).cleanSelection()
+      if (toSelect.length > 0) {
+        if (typeof (graph as any).cleanSelection === 'function') {
+          ;(graph as any).cleanSelection()
+        }
+        if (typeof (graph as any).select === 'function') {
+          ;(graph as any).select(toSelect)
+        }
       }
-      if (typeof (graph as any).select === 'function') {
-        ;(graph as any).select(toSelect)
-      }
+    }
+    finally {
+      graph.stopBatch('ungroup-nodes')
     }
   }
 
@@ -1741,6 +1912,11 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
     miniMapTool?.disable()
   }
 
+  function centerContent(){
+    const graph = getGraph()
+    graph?.centerContent()
+  }
+
   function handleContextAction(action: string): void {
     hideContextMenu()
     switch (action) {
@@ -1781,6 +1957,7 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
     contextMenuState,
     getData,
     setData,
+    getContentBBox,
     toJSON,
     fromJSON,
     toPNG,
@@ -1854,5 +2031,6 @@ export function useCanvas(options: UseCanvasOptions): UseCanvasReturn {
     handleContextAction,
     enableMinimap,
     disableMinimap,
+    centerContent,
   }
 }

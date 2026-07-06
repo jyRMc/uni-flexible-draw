@@ -9,6 +9,11 @@ import type { Graph } from '@antv/x6'
  * 因为这些方法内部会调用 updateClassName() 不传事件参数，
  * 导致 ModifierKey.isMatch 读取 e.ctrlKey 时报错。
  */
+export interface PanToolOptions {
+  /** 是否通过修改 interacting 禁止节点拖动（默认 true） */
+  disableInteracting?: boolean
+}
+
 export class PanTool {
   private enabled = false
   private panningState = false
@@ -17,7 +22,7 @@ export class PanTool {
   /** 保存 enable() 之前的 interacting 配置，disable() 时恢复 */
   private _savedInteracting: any = undefined
 
-  constructor(private graph: Graph) {
+  constructor(private graph: Graph, private options: PanToolOptions = {}) {
     this._savedInteracting = (this.graph.options as any).interacting
   }
 
@@ -25,9 +30,12 @@ export class PanTool {
     if (this.enabled)
       return
 
-    // 禁止节点拖动（保存原始配置以便 disable 时恢复）
+    // 保存原始配置以便 disable 时恢复
     this._savedInteracting = (this.graph.options as any).interacting
-    ;(this.graph.options as any).interacting = { nodeMovable: false }
+    // 默认通过 interacting 禁止节点拖动；只读模式可关闭此行为以保留原有交互限制
+    if (this.options.disableInteracting !== false) {
+      ;(this.graph.options as any).interacting = { nodeMovable: false }
+    }
 
     // 绑定平移事件（使用 X6 图事件，避免 DOM stopPropagation 导致丢失）
     this.bindPanEvents()

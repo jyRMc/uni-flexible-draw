@@ -47,6 +47,9 @@ export interface UniDrawLocale {
       swimlane: string
       state: string
     }
+    shapeNames: {
+      [key: string]: string
+    }
   }
   templatePanel: {
     title: string

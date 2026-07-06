@@ -1,6 +1,45 @@
 import type { Node } from '@antv/x6'
 import { PRIMARY_COLOR } from '../theme'
 
+function calcRefPosition(
+  value: number | string,
+  dimension: number,
+  origin: number,
+) {
+  if (value == null)
+    return origin
+  const val = typeof value === 'string' ? Number.parseFloat(value) : value
+  if (Number.isNaN(val))
+    return origin
+  const percentage = typeof value === 'string' && value.trim().endsWith('%')
+  if (percentage || (val >= 0 && val <= 1))
+    return origin + dimension * val
+  return origin + val
+}
+
+const lifelineAttrHooks: Node.Config['attrHooks'] = {
+  refX1: {
+    set(val, { refBBox }) {
+      return { x1: calcRefPosition(val as any, refBBox.width, refBBox.x) }
+    },
+  },
+  refY1: {
+    set(val, { refBBox }) {
+      return { y1: calcRefPosition(val as any, refBBox.height, refBBox.y) }
+    },
+  },
+  refX2: {
+    set(val, { refBBox }) {
+      return { x2: calcRefPosition(val as any, refBBox.width, refBBox.x) }
+    },
+  },
+  refY2: {
+    set(val, { refBBox }) {
+      return { y2: calcRefPosition(val as any, refBBox.height, refBBox.y) }
+    },
+  },
+}
+
 export const sequenceActor: Node.Config = {
   inherit: 'rect',
   width: 60,
@@ -43,15 +82,16 @@ export const sequenceLifeline: Node.Config = {
   inherit: 'rect',
   width: 120,
   height: 200,
+  attrHooks: lifelineAttrHooks,
   markup: [
     { tagName: 'rect', selector: 'header' },
     { tagName: 'text', selector: 'label' },
     { tagName: 'line', selector: 'lifeline' },
   ],
   attrs: {
-    header: { width: 120, height: 30, x: 0, y: 0, fill: '#e8f0fe', stroke: PRIMARY_COLOR, strokeWidth: 1.5, rx: 4, ry: 4 },
-    label: { fill: '#333', fontSize: 12, refX: 0.5, refY: 0.08, textAnchor: 'middle', textVerticalAnchor: 'middle' },
-    lifeline: { x1: 60, y1: 30, x2: 60, y2: 200, stroke: PRIMARY_COLOR, strokeWidth: 1, strokeDasharray: '6 3' },
+    header: { refWidth: '100%', height: 30, x: 0, y: 0, fill: '#e8f0fe', stroke: PRIMARY_COLOR, strokeWidth: 1.5, rx: 4, ry: 4 },
+    label: { fill: '#333', fontSize: 12, refX: 0.5, refY: 15, textAnchor: 'middle', textVerticalAnchor: 'middle' },
+    lifeline: { refX1: 0.5, refY1: 30, refX2: 0.5, refY2: 1, stroke: PRIMARY_COLOR, strokeWidth: 1, strokeDasharray: '6 3' },
   },
   ports: {
     groups: {

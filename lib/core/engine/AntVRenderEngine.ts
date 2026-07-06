@@ -4,8 +4,35 @@ import { Selection } from '@antv/x6-plugin-selection'
 import { Transform } from '@antv/x6-plugin-transform'
 import { Export } from '@antv/x6-plugin-export'
 import type { CanvasConfig } from '@uni-draw/shared'
-import { PRIMARY_COLOR } from '@uni-draw/shared'
+import { PRIMARY_COLOR, isShapeLabelSupported } from '@uni-draw/shared'
+import { getMultiRegionLabelPath, isMultiRegionShape } from '../../shapes/utils/regionNodes'
 import { icons } from '../../assets/icons'
+
+/**
+ * 会影响画布 JSON 输出的属性变更键集合。
+ * History 插件通过 beforeAddCommand 仅保留这些键的变更事件，
+ * 从而避免选中、平移、缩放、工具栏等不修改数据的操作进入 undo 栈。
+ */
+const JSON_AFFECTING_KEYS = new Set([
+  // 节点 / 边通用几何与样式属性
+  'position',
+  'size',
+  'angle',
+  'attrs',
+  'data',
+  'zIndex',
+  'visible',
+  'markup',
+  // 组合关系
+  'parent',
+  'children',
+  // 边专有属性
+  'source',
+  'target',
+  'vertices',
+  'connector',
+  'router',
+])
 
 export interface AntVRenderEngineOptions {
   canvasConfig?: CanvasConfig
@@ -67,14 +94,23 @@ export class AntVRenderEngine {
           }
         : undefined,
       interacting: options.readonly
-        ? { nodeMovable: false, edgeMovable: false, arrowheadMovable: false }
+        ? {
+            nodeMovable: false,
+            edgeMovable: false,
+            arrowheadMovable: false,
+            vertexAddable: false,
+            vertexMovable: false,
+            vertexDeletable: false,
+            edgeLabelMovable: false,
+            magnetConnectable: false,
+          }
         : (cellView: any) => {
             const cell = cellView.cell
             const isLocked = cell?.getData?.()?.locked === true
             if (cell?.isEdge?.()) {
               return {
                 edgeMovable: !isLocked,
-                edgeLabelMovable: !isLocked,
+                edgeLabelMovable: false,
                 vertexAddable: !isLocked,
                 vertexMovable: !isLocked,
                 vertexDeletable: !isLocked,
@@ -86,49 +122,54 @@ export class AntVRenderEngine {
               magnetConnectable: !isLocked,
             }
           },
-      connecting: {
-        allowBlank: true,
-        allowMulti: true,
-        allowLoop: false,
-        highlight: true,
-        snap: true,
-        validateMagnet({ magnet }) {
-          return magnet.getAttribute('magnet') === 'true'
-        },
-        createEdge() {
-          return this.createEdge({
-            shape: 'edge',
-            attrs: {
-              line: {
-                sourceMarker: null,
-                targetMarker: null,
+      ...(options.readonly
+        ? {}
+        : {
+            connecting: {
+              allowBlank: true,
+              allowMulti: true,
+              allowLoop: false,
+              highlight: true,
+              snap: true,
+              validateMagnet({ magnet }) {
+                return magnet.getAttribute('magnet') === 'true'
+              },
+              createEdge() {
+                return this.createEdge({
+                  shape: 'edge',
+                  attrs: {
+                    line: {
+                      sourceMarker: null,
+                      targetMarker: null,
+                    },
+                  },
+                })
               },
             },
-          })
-        },
-      },
-      // 允许拖拽节点进入/离开组合区域
-      embedding: {
-        enabled: true,
-        findParent({ node }: { node: any }) {
-          const bbox = node.getBBox()
-          return this.getNodes().filter((n: any) => {
-            if (n.id === node.id) return false
-            if (n.shape !== 'basic-group') return false
-            const nBBox = n.getBBox()
-            return bbox.isIntersectWithRect(nBBox)
-          })
-        },
-      },
+            // 允许拖拽节点进入/离开组合区域（只读模式禁用）
+            embedding: {
+              enabled: true,
+              findParent({ node }: { node: any }) {
+                const bbox = node.getBBox()
+                return this.getNodes().filter((n: any) => {
+                  if (n.id === node.id) return false
+                  if (n.shape !== 'basic-group') return false
+                  const nBBox = n.getBBox()
+                  return bbox.isIntersectWithRect(nBBox)
+                })
+              },
+            },
+          }),
     })
 
-    // 安装 Selection 插件（点击/框选节点和边）
+    // 安装 Selection 插件（点击/框选节点和边；只读模式禁用）
     this.graph.use(
       new Selection({
-        enabled: true,
+        enabled: !options.readonly,
         multiple: true,
         rubberband: true,
-        movable: true,
+        rubberEdge: true,
+        movable: !options.readonly,
         showNodeSelectionBox: true,
         showEdgeSelectionBox: false,
         selectEdgeOnMoved: true,
@@ -137,18 +178,43 @@ export class AntVRenderEngine {
     )
 
     // 安装 History 插件（撤销/重做）
-    this.graph.use(new History({ enabled: true }))
+    // 通过 beforeAddCommand 仅保留会改变画布 JSON 数据的事件，
+    // 选中、平移、缩放等不修改数据的操作不会进入 undo 栈。
+    this.graph.use(
+      new History({
+        enabled: true,
+        beforeAddCommand: (event, args) => {
+          // 显式标记为不记录历史的操作（如 hover/选中高亮）直接跳过
+          const options = (args as any).options || {}
+          if (options.silentHistory) {
+            return false
+          }
+          if (event === 'cell:added' || event === 'cell:removed') {
+            return true
+          }
+          if (event === 'cell:change:*') {
+            const key = (args as any).key as string | undefined
+            if (!key)
+              return false
+            // 仅保留会影响 exportData / toJSON 结果的属性变更
+            return JSON_AFFECTING_KEYS.has(key)
+          }
+          // 其他自定义事件默认不记录
+          return false
+        },
+      }),
+    )
 
-    // 安装 Transform 插件（缩放/旋转）
+    // 安装 Transform 插件（缩放/旋转；只读模式禁用）
     this.graph.use(
       new Transform({
         resizing: {
-          enabled: node => node.getData()?.locked !== true,
+          enabled: options.readonly ? false : node => node.getData()?.locked !== true,
           orthogonal: false,
           preserveAspectRatio: false,
         },
         rotating: {
-          enabled: node => node.getData()?.locked !== true,
+          enabled: options.readonly ? false : node => node.getData()?.locked !== true,
         },
       }),
     )
@@ -188,9 +254,9 @@ export class AntVRenderEngine {
         node.removeTools()
       })
 
-      // 双击节点：浮层 textarea 内联编辑标签（图片/SVG 节点由 useCanvas 处理）
+      // 双击节点：浮层 textarea 内联编辑标签（图片/SVG/表格/组合节点不支持）
       this.graph.on('node:dblclick', ({ node, e }: any) => {
-        if (node.shape === 'basic-image' || node.shape === 'basic-svg')
+        if (!isShapeLabelSupported(node.shape))
           return
         e.stopPropagation()
         e.preventDefault()
@@ -216,8 +282,17 @@ export class AntVRenderEngine {
         const w = size.width * zoom
         const h = size.height * zoom
 
+        function getNodeLabelText(n: any): string {
+          if (isMultiRegionShape(n.shape)) {
+            const path = getMultiRegionLabelPath(n.shape)
+            if (path)
+              return n.attr(path) ?? ''
+          }
+          return n.attr('label/text') ?? n.getLabel?.() ?? ''
+        }
+
         const editor = document.createElement('textarea')
-        editor.value = (node.getLabel() as string) ?? ''
+        editor.value = getNodeLabelText(node)
         Object.assign(editor.style, {
           position: 'fixed',
           left: `${clientX}px`,
@@ -235,6 +310,7 @@ export class AntVRenderEngine {
           resize: 'none',
           overflow: 'hidden',
           zIndex: '9999',
+          color: '#000',
           boxSizing: 'border-box',
           fontFamily: 'inherit',
           boxShadow: `0 2px 12px rgba(113,102,240,0.3)`,
@@ -245,10 +321,28 @@ export class AntVRenderEngine {
         editor.select()
 
         const commit = () => {
-          if (document.body.contains(editor)) {
-            node.setLabel(editor.value)
-            document.body.removeChild(editor)
+          if (!document.body.contains(editor))
+            return
+          function setNodeLabelText(n: any, text: string) {
+            if (isMultiRegionShape(n.shape)) {
+              const path = getMultiRegionLabelPath(n.shape)
+              if (path) {
+                n.setAttrByPath(path, text)
+                const data = n.getData?.() ?? {}
+                const regionData = data.regionData ? { ...data.regionData } : getDefaultRegionData(n.shape)
+                if (regionData && Array.isArray(regionData.regions) && regionData.regions.length > 0) {
+                  regionData.regions = regionData.regions.map((r: any, i: number) =>
+                    i === 0 ? { ...r, label: text } : r,
+                  )
+                  n.setData({ ...data, regionData }, { overwrite: false })
+                }
+                return
+              }
+            }
+            n.setAttrByPath('label/text', text)
           }
+          setNodeLabelText(node, editor.value)
+          document.body.removeChild(editor)
         }
 
         editor.addEventListener('blur', commit)

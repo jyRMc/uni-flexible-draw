@@ -9,7 +9,7 @@ import type {
   RouterName,
 } from '../types/edge'
 import type { StrokeStyleName } from './edgeLine'
-import { icons } from '@/assets/icons'
+import { icons } from '../../assets/icons'
 
 export interface EdgeOptionIcon {
   value: string

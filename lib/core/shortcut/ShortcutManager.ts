@@ -166,7 +166,7 @@ export class ShortcutManager {
       // Ctrl+1 / Cmd+1 → 适应画布
       if (ctrlOrCmd && !shift && key === '1') {
         e.preventDefault()
-        this.graph.zoomToFit()
+        this.graph.zoomToFit({ padding: 40 })
         return
       }
 

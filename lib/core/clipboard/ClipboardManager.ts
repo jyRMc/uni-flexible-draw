@@ -45,54 +45,67 @@ export class ClipboardManager {
    */
   cut(selectedCells: Cell[]): void {
     this.copy(selectedCells)
-    this.graph.removeCells(selectedCells)
+    this.graph.startBatch('cut-cells')
+    try {
+      this.graph.removeCells(selectedCells)
+    }
+    finally {
+      this.graph.stopBatch('cut-cells')
+    }
   }
 
   /**
    * 粘贴剪贴板中的单元格
+   * 使用 batch 将多个单元格的添加合并为单一撤销步骤
    */
   paste(offsetX = 30, offsetY = 30): Cell[] {
     const added: Cell[] = []
     this.offsetCount++
     const totalOffset = this.offsetCount * Math.max(offsetX, offsetY)
 
-    for (const item of this.cells) {
-      if (item.type === 'node') {
-        const nodeData = item.data as any
-        const newNodeData = {
-          ...nodeData,
-          id: `${nodeData.shape}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-          position: {
-            x: (nodeData.position?.x ?? 0) + totalOffset,
-            y: (nodeData.position?.y ?? 0) + totalOffset,
-          },
-          data: nodeData.data && typeof nodeData.data === 'object'
-            ? { ...nodeData.data, locked: false }
-            : nodeData.data,
+    this.graph.startBatch('paste-cells')
+    try {
+      for (const item of this.cells) {
+        if (item.type === 'node') {
+          const nodeData = item.data as any
+          const newNodeData = {
+            ...nodeData,
+            id: `${nodeData.shape}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+            position: {
+              x: (nodeData.position?.x ?? 0) + totalOffset,
+              y: (nodeData.position?.y ?? 0) + totalOffset,
+            },
+            data: nodeData.data && typeof nodeData.data === 'object'
+              ? { ...nodeData.data, locked: false }
+              : nodeData.data,
+          }
+          const node = NodeFactory.createNode(this.graph, newNodeData)
+          if (typeof (node as any).setProp === 'function') {
+            ;(node as any).setProp('movable', true)
+          }
+          this.graph.addNode(node)
+          added.push(node)
         }
-        const node = NodeFactory.createNode(this.graph, newNodeData)
-        if (typeof (node as any).setProp === 'function') {
-          ;(node as any).setProp('movable', true)
+      }
+
+      // 边需要在新节点之后粘贴，因为要引用新的节点ID
+      for (const item of this.cells) {
+        if (item.type === 'edge') {
+          const edgeData = item.data as any
+          const newEdgeData = {
+            ...edgeData,
+            id: `edge-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+            source: this.remapSource(edgeData.source, this.cells, added),
+            target: this.remapSource(edgeData.target, this.cells, added),
+          }
+          const edge = EdgeFactory.createEdge(this.graph, newEdgeData)
+          this.graph.addEdge(edge)
+          added.push(edge)
         }
-        this.graph.addNode(node)
-        added.push(node)
       }
     }
-
-    // 边需要在新节点之后粘贴，因为要引用新的节点ID
-    for (const item of this.cells) {
-      if (item.type === 'edge') {
-        const edgeData = item.data as any
-        const newEdgeData = {
-          ...edgeData,
-          id: `edge-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-          source: this.remapSource(edgeData.source, this.cells, added),
-          target: this.remapSource(edgeData.target, this.cells, added),
-        }
-        const edge = EdgeFactory.createEdge(this.graph, newEdgeData)
-        this.graph.addEdge(edge)
-        added.push(edge)
-      }
+    finally {
+      this.graph.stopBatch('paste-cells')
     }
 
     return added

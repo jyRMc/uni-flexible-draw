@@ -85,7 +85,6 @@ const rxSupported = computed(() => {
   const rectShapes = new Set([
     'basic-rect',
     'basic-rounded-rect',
-    'basic-cylinder',
     'basic-cloud',
     'basic-document',
     'flowchart-start-end',

@@ -3,7 +3,9 @@ import type { ConnectorConfig, EdgeData, MarkerConfig, RouterConfig } from '@uni
 import {
   getConnectorConfig,
   getEdgeLineVertices,
+  getMarkerConfig,
   getRouterConfig,
+  getStrokeDasharray,
 } from '@uni-draw/shared'
 import { edgeDefaults } from '../../shapes/edge/line'
 
@@ -120,8 +122,27 @@ export class EdgeFactory {
       if (data.style.strokeLinejoin !== undefined) {
         lineAttrs.strokeLinejoin = data.style.strokeLinejoin
       }
-      lineAttrs.sourceMarker = this.buildMarkerAttr(data.style.sourceMarker ?? null)
-      lineAttrs.targetMarker = this.buildMarkerAttr(data.style.targetMarker ?? null)
+      if (data.style.sourceMarker !== undefined) {
+        lineAttrs.sourceMarker = this.buildMarkerAttr(data.style.sourceMarker)
+      }
+      if (data.style.targetMarker !== undefined) {
+        lineAttrs.targetMarker = this.buildMarkerAttr(data.style.targetMarker)
+      }
+    }
+
+    // 兼容素材数据中的 sourceMarker / targetMarker / strokeStyle（字符串形式）
+    if (typeof rawData?.sourceMarker === 'string' && data.style?.sourceMarker === undefined) {
+      lineAttrs.sourceMarker = this.buildMarkerAttr(
+        getMarkerConfig(rawData.sourceMarker as any),
+      )
+    }
+    if (typeof rawData?.targetMarker === 'string' && data.style?.targetMarker === undefined) {
+      lineAttrs.targetMarker = this.buildMarkerAttr(
+        getMarkerConfig(rawData.targetMarker as any),
+      )
+    }
+    if (typeof rawData?.strokeStyle === 'string' && data.style?.strokeDasharray === undefined) {
+      lineAttrs.strokeDasharray = getStrokeDasharray(rawData.strokeStyle as any) || null
     }
 
     // ── 业务数据 ──────────────────────────────────────────────────────

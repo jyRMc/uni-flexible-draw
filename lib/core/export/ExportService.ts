@@ -1,5 +1,6 @@
 import type { Graph } from '@antv/x6'
 import type { GraphData } from '@uni-draw/shared'
+import { content as x6CssContent } from '@antv/x6/es/style/raw'
 import { DataMigration } from './DataMigration'
 
 export interface ExportImageOptions {
@@ -44,6 +45,10 @@ export class ExportService {
 
   /**
    * 导出为 PNG 图片（base64）
+   *
+   * 说明：使用 copyStyles: false 避免导出过程中禁用/启用页面样式表，
+   * 从而防止页面元素在导出瞬间出现黑色边框等样式闪烁问题。
+   * 通过内置 X6 核心样式表保证导出图片的渲染正确性。
    */
   async toPNG(options: ExportImageOptions = {}): Promise<string> {
     const exportPlugin = getExportPlugin(this.graph)
@@ -61,6 +66,9 @@ export class ExportService {
           width: options.width,
           height: options.height,
           viewBox: options.viewBox,
+          copyStyles: false,
+          serializeImages: true,
+          stylesheet: x6CssContent,
         })
       }
       catch (e) {
@@ -77,19 +85,29 @@ export class ExportService {
     if (!exportPlugin || !exportPlugin.toSVG) {
       throw new Error('Export plugin not registered. Please ensure @antv/x6-plugin-export is installed and registered.')
     }
+
+    // 1. 获取内容实际边界（画布坐标系），而非容器尺寸
+    const contentBBox = this.graph.getContentBBox()
+    const padding = options.padding ?? 20
+
+     // 2. 基于内容边界计算 viewBox，增加 padding 防止边缘元素被截断
+    const viewBox = options.viewBox ?? {
+      x: contentBBox.x - padding,
+      y: contentBBox.y - padding,
+      width: contentBBox.width + padding * 2,
+      height: contentBBox.height + padding * 2,
+    }
     return new Promise((resolve, reject) => {
       try {
         exportPlugin.toSVG((svg: string) => {
           resolve(svg)
         }, {
-          viewBox: options.viewBox ?? (options.padding
-            ? {
-                x: -options.padding,
-                y: -options.padding,
-                width: this.graph.options.width + options.padding * 2,
-                height: this.graph.options.height + options.padding * 2,
-              }
-            : undefined),
+          viewBox,
+          // 3. 保持实际尺寸，避免默认 100% 导致的缩放问题
+          preserveDimensions: true,
+          copyStyles: false,
+          serializeImages: true,
+          stylesheet: x6CssContent,
         })
       }
       catch (e) {

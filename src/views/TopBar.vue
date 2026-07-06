@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { useLocale } from '../composables/useLocale'
+
 export interface TopBarProps {
   title?: string
   autosaveTime?: string
@@ -6,12 +8,16 @@ export interface TopBarProps {
   editing?: boolean
 }
 
-withDefaults(defineProps<TopBarProps>(), {
-  title: '未命名图表',
+const t = useLocale()
+
+const props = withDefaults(defineProps<TopBarProps>(), {
+  title: '',
   autosaveTime: '10:24',
   zoomPercent: 100,
   editing: false,
 })
+
+const displayTitle = computed(() => props.title || t.example.common.untitled)
 
 defineEmits<{
   (e: 'share'): void
@@ -22,7 +28,7 @@ defineEmits<{
 }>()
 
 const avatarColors = ['var(--primary)', '#52c41a', '#fa8c16']
-const avatarLetters = ['张', '李', '王']
+const avatarLetters = ['A', 'B', 'C']
 </script>
 
 <template>
@@ -36,11 +42,11 @@ const avatarLetters = ['张', '李', '王']
         <span class="top-brand">UniDraw</span>
       </div>
       <button class="top-btn text-only" @click="$emit('exit')">
-        退出
+        {{ t.example.topBar.exit }}
       </button>
       <span class="top-divider">|</span>
-      <span class="top-title">{{ title }}</span>
-      <span class="top-autosave">已自动保存 {{ autosaveTime }}</span>
+      <span class="top-title">{{ displayTitle }}</span>
+      <span class="top-autosave">{{ t.example.topBar.autosave }} {{ autosaveTime }}</span>
     </div>
 
     <div class="top-bar-center">
@@ -57,26 +63,26 @@ const avatarLetters = ['张', '李', '王']
     <div class="top-bar-right">
       <button class="top-btn" @click="$emit('share')">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" /><polyline points="16 6 12 2 8 6" /><line x1="12" y1="2" x2="12" y2="15" /></svg>
-        分享
+        {{ t.example.topBar.share }}
       </button>
       <button class="top-btn" :class="{ active: editing }" @click="$emit('toggleEdit')">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
-        编辑
+        {{ t.example.topBar.edit }}
       </button>
-      <button class="top-btn icon-only" title="搜索">
+      <button class="top-btn icon-only" :title="t.example.topBar.search">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
       </button>
-      <button class="top-btn icon-only" title="帮助">
+      <button class="top-btn icon-only" :title="t.example.topBar.help">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10" /><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" /><line x1="12" y1="17" x2="12.01" y2="17" /></svg>
       </button>
       <span class="top-zoom-badge">{{ zoomPercent }}%</span>
       <button class="top-btn primary" @click="$emit('aiDraw')">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" /></svg>
-        AI 绘图
+        {{ t.example.topBar.aiDraw }}
       </button>
       <button class="top-btn primary-outline" @click="$emit('newChat')">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
-        新建对话
+        {{ t.example.topBar.newChat }}
       </button>
     </div>
   </div>

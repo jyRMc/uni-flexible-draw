@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { computed, onMounted, provide, reactive, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, provide, reactive, ref, watch } from 'vue'
 import { XIcon } from 'lucide-vue-next'
 import type { AssetItem, GraphData, MarkerName, MaterialItem, NodeData, TemplateItem, UniDrawTheme } from '@uni-draw/shared'
+import type { ExportImageOptions } from '../../core/export/ExportService'
 
 import { LOCALE_KEY } from '../../locale'
 import zhCN from '../../locale/zh-CN'
@@ -38,6 +39,7 @@ export interface UniDrawProps {
   showMinimap?: boolean
   locale?: UniDrawLocale
   theme?: UniDrawTheme
+  uploadApi?: (file: File) => string | Promise<string>
 }
 
 const props = withDefaults(defineProps<UniDrawProps>(), {
@@ -193,15 +195,16 @@ function onAssetAdd(asset: AssetItem) {
   const imageHref = asset.type === 'svg'
     ? `data:image/svg+xml;charset=utf-8,${encodeURIComponent(asset.content)}`
     : asset.content
+    
   canvasRef.value?.createNodeFromMaterial({
     id: `asset-${asset.id}`,
     name: asset.name,
     shape: asset.type === 'svg' ? 'basic-svg' : 'basic-image',
     defaultSize: { width: 80, height: 80 },
-    defaultLabel: asset.name,
+    defaultLabel: "",//asset.name,
     data: asset.type === 'svg'
-      ? { imageHref, svgContent: asset.content }
-      : { imageHref },
+      ? { imageHref, svgContent: asset.content, materialId: asset.id }
+      : { imageHref, materialId: asset.id },
   }, { x: 200, y: 200 })
 }
 
@@ -214,10 +217,10 @@ function onAssetDragStart(event: DragEvent, asset: AssetItem) {
     name: asset.name,
     shape: asset.type === 'svg' ? 'basic-svg' : 'basic-image',
     defaultSize: { width: 80, height: 80 },
-    defaultLabel: asset.name,
+    defaultLabel: "",// asset.name,
     data: asset.type === 'svg'
-      ? { imageHref, svgContent: asset.content }
-      : { imageHref },
+      ? { imageHref, svgContent: asset.content, materialId: asset.id }
+      : { imageHref, materialId: asset.id },
   }
   event.dataTransfer!.effectAllowed = 'copy'
   const payload = JSON.stringify(item)
@@ -230,7 +233,8 @@ function onAssetDragStart(event: DragEvent, asset: AssetItem) {
 // ──────────────────────────────────────────────────────────────────────────────
 
 function onTemplateApply(tpl: TemplateItem) {
-  canvasRef.value?.setData(tpl.data)
+  // 模板应用需要记录为一次可撤销操作，使 undo 能回退到应用前的状态
+  canvasRef.value?.setData(tpl.data, { recordHistory: true })
   templateOpen.value = false
 }
 
@@ -347,7 +351,7 @@ function onToolbarAction(action: string) {
     case 'togglePan': c.togglePanMode(); break
     case 'zoomIn': c.zoomIn(); break
     case 'zoomOut': c.zoomOut(); break
-    case 'zoomToFit': c.zoomToFit(); break
+    case 'zoomToFit': c.zoomToFit(128); break
     case 'toggleSketch': c.toggleSketchMode(); break
     case 'toggleDraw': drawMode.value = c.toggleDrawMode(); break
     case 'clearCanvas': c.clearCanvas(); break
@@ -408,11 +412,61 @@ function onExportJSON() {
   jsonModalOpen.value = true
 }
 
+// async function copyJson() {
+//   await navigator.clipboard.writeText(jsonPreviewText.value)
+//   copyDone.value = true
+//   setTimeout(() => { copyDone.value = false }, 2000)
+// }
+
+let copyTimer: any = null
+
 async function copyJson() {
-  await navigator.clipboard.writeText(jsonPreviewText.value)
-  copyDone.value = true
-  setTimeout(() => { copyDone.value = false }, 2000)
+  // 清理上一次的定时器，避免状态抖动
+  if (copyTimer) {
+    clearTimeout(copyTimer)
+    copyTimer = null
+  }
+
+  const text = jsonPreviewText.value
+  if (!text) return
+
+  try {
+    // 优先使用现代 Clipboard API
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(text)
+    } else {
+      // 降级方案：兼容旧浏览器或非安全上下文
+      const textarea = document.createElement('textarea')
+      textarea.value = text
+      textarea.style.position = 'fixed'
+      textarea.style.left = '-9999px'
+      textarea.style.top = '0'
+      textarea.setAttribute('readonly', '') // 避免 iOS 聚焦问题
+      document.body.appendChild(textarea)
+      textarea.select()
+      textarea.setSelectionRange(0, text.length) // 兼容 iOS
+      const success = document.execCommand('copy')
+      document.body.removeChild(textarea)
+      if (!success) throw new Error('execCommand copy failed')
+    }
+
+    copyDone.value = true
+    copyTimer = setTimeout(() => {
+      copyDone.value = false
+      copyTimer = null
+    }, 2000)
+  } catch (err) {
+    console.error('Copy failed:', err)
+    copyDone.value = false
+    // 可选：触发用户提示，如 toast
+    // ElMessage.error('复制失败，请手动复制')
+  }
 }
+
+// 组件卸载时清理（如果是 Vue 组件）
+onUnmounted(() => {
+  if (copyTimer) clearTimeout(copyTimer)
+})
 
 function downloadJson() {
   const blob = new Blob([jsonPreviewText.value], { type: 'application/json' })
@@ -437,18 +491,19 @@ function openTemplatePanel() {
 defineExpose({
   openTemplatePanel,
   getData: () => canvasRef.value?.getData?.() ?? graphData.value,
-  setData: (data: GraphData) => canvasRef.value?.setData(data),
+  setData: (data: GraphData, options?: any) => canvasRef.value?.setData(data, options),
   clear: () => canvasRef.value?.clearCanvas(),
-  exportPNG: () => canvasRef.value?.toPNG(),
+  exportPNG: (options?: ExportImageOptions) => canvasRef.value?.toPNG(options),
   exportJSON: () => canvasRef.value?.toJSON() ?? '{}',
   exportSVG: () => canvasRef.value?.toSVG?.(),
   undo: () => canvasRef.value?.undo(),
   redo: () => canvasRef.value?.redo(),
   zoomIn: () => canvasRef.value?.zoomIn(),
   zoomOut: () => canvasRef.value?.zoomOut(),
-  zoomFit: () => canvasRef.value?.zoomToFit(),
+  zoomFit: (padding: number = 24) => canvasRef.value?.zoomToFit(padding),
   selectAll: () => canvasRef.value?.selectAll(),
   deleteSelection: () => canvasRef.value?.deleteSelected?.(),
+  centerContent: () => canvasRef.value?.centerContent?.(),
 })
 </script>
 
@@ -457,7 +512,7 @@ defineExpose({
     <!-- ── Body ─────────────────────────────────────────────── -->
     <div class="ud-body">
       <!-- Left panel -->
-      <aside v-if="showShapePanel !== false && leftPanelVisible" class="ud-left-panel">
+      <aside v-if="!readonly && showShapePanel !== false && leftPanelVisible" class="ud-left-panel">
         <div class="ud-panel-header">
           <div class="ud-panel-tabs">
             <button class="ud-tab" :class="[{ active: leftTab === 'shapes' }]" @click="openLeftTab('shapes')">
@@ -546,11 +601,12 @@ defineExpose({
 
         <!-- Quick action bar -->
         <QuickActionBar
-          v-if="(selectedNode || selectedEdge) && !qabClosed"
+          v-if="!readonly && (selectedNode || selectedEdge) && !qabClosed && (canvasRef?.selectionCount ?? 0) <= 1"
           :selected-node="selectedNode"
           :selected-edge="selectedEdge"
           :sketch-mode="sketchMode"
           :element-sketch-ids="elementSketchIds"
+          :upload-api="uploadApi"
           @update-style="onUpdateStyle"
           @update-edge-style="onUpdateEdgeStyle"
           @change-edge-type="onChangeEdgeType"
@@ -569,7 +625,7 @@ defineExpose({
 
         <!-- Toolbar -->
         <Toolbar
-          v-if="showToolbar !== false"
+          v-if="!readonly && showToolbar !== false"
           :zoom="canvasRef?.zoom ?? 1"
           :can-undo="canvasRef?.canUndo ?? false"
           :can-redo="canvasRef?.canRedo ?? false"
@@ -593,7 +649,8 @@ defineExpose({
             <span>{{ t.jsonPreview.title }}</span>
             <div class="ud-modal-actions">
               <button class="ud-icon-btn" :title="copyDone ? t.jsonPreview.copied : t.jsonPreview.copy" @click="copyJson">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <svg v-if="copyDone" width="14" height="14" viewBox="0 0 1024 1024" version="1.1" p-id="16955" fill="green" stroke-width="2"><path d="M426.666667 647.253333l392.192-392.149333 60.330666 60.330667L426.666667 767.957333l-271.530667-271.530666 60.330667-60.330667 211.2 211.2z" p-id="16956"/></svg>
+                <svg v-else width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <rect x="9" y="9" width="13" height="13" rx="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
                 </svg>
               </button>
@@ -728,7 +785,8 @@ defineExpose({
   overflow-y: auto;
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 12px;
+  grid-auto-rows: 50px;
+  gap: 4px;
   padding: 4px 4px 12px;
   align-content: start;
 }

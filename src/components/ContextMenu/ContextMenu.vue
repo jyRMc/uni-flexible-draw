@@ -181,7 +181,7 @@ function close() {
 
         <div class="context-menu-divider" />
 
-        <div class="context-menu-group">
+        <!-- <div class="context-menu-group">
           <button
             class="context-menu-item"
             :class="{ disabled: !canAddToMaterials }"
@@ -190,7 +190,7 @@ function close() {
           >
             <span class="menu-label">{{ t.contextMenu.addToMaterials }}</span>
           </button>
-        </div>
+        </div> -->
 
         <div class="context-menu-divider" />
 

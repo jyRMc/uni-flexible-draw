@@ -13,6 +13,7 @@ import {
 
 import { useLocale } from '../../locale'
 import { PRIMARY_COLOR } from '../../styles/vars'
+import { isShapeLabelSupported } from '../../shared/constants/shapes'
 import ColorPicker from '../ColorPicker/ColorPicker.vue'
 
 export interface QuickActionBarProps {
@@ -64,6 +65,10 @@ const sketchElementSupported = computed(() => {
 })
 const isTableNode = computed(() => props.selectedNode?.shape === 'basic-table')
 const isImageNode = computed(() => props.selectedNode?.shape === 'basic-image' || props.selectedNode?.shape === 'basic-svg')
+const isLabelSupported = computed(() => {
+  const shape = props.selectedNode?.shape ?? ''
+  return isShapeLabelSupported(shape)
+})
 const tableRows = computed(() => {
   const table = props.selectedNode?.data?.table as { rows?: number } | undefined
   return table?.rows ?? 0
@@ -86,7 +91,6 @@ const rxSupported = computed(() => {
   const rectShapes = new Set([
     'basic-rect',
     'basic-rounded-rect',
-    'basic-cylinder',
     'basic-cloud',
     'basic-document',
     'flowchart-start-end',
@@ -542,7 +546,7 @@ function onEdgeWidth(ev: Event) {
 
         <div v-if="isTableNode" class="qab-divider" />
 
-        <div v-if="!isTableNode" class="qab-section">
+        <div v-if="isLabelSupported" class="qab-section">
           <div class="qab-section-title">
             {{ t.quickAction.label }}
           </div>
@@ -556,9 +560,9 @@ function onEdgeWidth(ev: Event) {
           </div>
         </div>
 
-        <div v-if="!isTableNode" class="qab-divider" />
+        <div v-if="isLabelSupported" class="qab-divider" />
 
-        <div v-if="!isTableNode" class="qab-section">
+        <div v-if="isLabelSupported" class="qab-section">
           <div class="qab-section-title">
             {{ t.quickAction.text }}
           </div>
@@ -759,11 +763,11 @@ function onEdgeWidth(ev: Event) {
       <div class="qab-divider" />
 
       <!-- 草图模式开关 -->
-      <div class="qab-section">
+      <div class="qab-section" v-if="selectedCellId && sketchElementSupported">
         <div class="qab-section-title">
           {{ t.quickAction.sketchMode }}
         </div>
-        <div v-if="selectedCellId && sketchElementSupported" class="qab-row qab-row-switch">
+        <div  class="qab-row qab-row-switch">
           <label>{{ t.quickAction.currentElement }}</label>
           <label class="qab-switch">
             <input type="checkbox" :checked="elementSketch" @change="$emit('toggle-element-sketch', selectedCellId)">
@@ -1075,5 +1079,11 @@ function onEdgeWidth(ev: Event) {
 
 .qab-switch input:checked + .qab-switch-track::after {
   transform: translateX(16px);
+}
+select,
+button,
+input {
+  background-color: #fff;
+  color: #000;
 }
 </style>

@@ -123,7 +123,7 @@ function close() {
 
         <div class="context-menu-divider" />
 
-        <div class="context-menu-group">
+        <div class="context-menu-group" v-if="false">
           <button
             class="context-menu-item"
             :class="{ disabled: !canCreateFrame }"
@@ -136,7 +136,7 @@ function close() {
 
         <div class="context-menu-divider" />
 
-        <div class="context-menu-group">
+        <div class="context-menu-group"  v-if="false">
           <button
             class="context-menu-item"
             :class="{ disabled: !hasSelection }"
@@ -181,7 +181,7 @@ function close() {
 
         <div class="context-menu-divider" />
 
-        <div class="context-menu-group">
+        <!-- <div class="context-menu-group">
           <button
             class="context-menu-item"
             :class="{ disabled: !canAddToMaterials }"
@@ -190,7 +190,7 @@ function close() {
           >
             <span class="menu-label">{{ t.contextMenu.addToMaterials }}</span>
           </button>
-        </div>
+        </div> -->
 
         <div class="context-menu-divider" />
 

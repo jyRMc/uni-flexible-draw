@@ -184,8 +184,6 @@ export function getShapePreviewSVG(shape: string): string {
       return `<svg viewBox="0 0 36 28" xmlns="http://www.w3.org/2000/svg"><ellipse cx="18" cy="14" rx="16" ry="12" fill="${fill}" stroke="${stroke}" stroke-width="${sw}" stroke-dasharray="4 2"/></svg>`
     case 'er-associative':
       return `<svg viewBox="0 0 44 28" xmlns="http://www.w3.org/2000/svg"><polygon points="22,2 39,12 22,22 5,12" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/><rect x="5" y="22" width="34" height="5" rx="1" ry="1" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/></svg>`
-    case 'er-total-participation':
-      return `<svg viewBox="0 0 44 28" xmlns="http://www.w3.org/2000/svg"><polygon points="22,2 42,14 22,26 2,14" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/><line x1="22" y1="2" x2="22" y2="26" stroke="${stroke}" stroke-width="1.5"/></svg>`
     case 'er-annotation':
       return `<svg viewBox="0 0 44 28" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="2" width="40" height="24" rx="3" ry="3" fill="${fill}" stroke="${stroke}" stroke-width="${sw}" stroke-dasharray="4 2"/></svg>`
 

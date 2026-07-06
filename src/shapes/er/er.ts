@@ -1,5 +1,27 @@
 import type { Node } from '@antv/x6'
 
+function calcInsetPoints(d: number, width: number, height: number) {
+  const cx = width * 0.5
+  const cy = height * 0.5
+  if (!Number.isFinite(d) || d <= 0 || width <= 0 || height <= 0)
+    return `${cx} ${cy} ${cx} ${cy} ${cx} ${cy} ${cx} ${cy}`
+  const s = 0.5 - d * Math.sqrt(width * width + height * height) / (width * height)
+  const safeS = Math.max(0, Math.min(s, 0.45))
+  const right = width * (0.5 + safeS)
+  const left = width * (0.5 - safeS)
+  const top = height * (0.5 - safeS)
+  const bottom = height * (0.5 + safeS)
+  return `${Math.round(cx)} ${Math.round(top)} ${Math.round(right)} ${Math.round(cy)} ${Math.round(cx)} ${Math.round(bottom)} ${Math.round(left)} ${Math.round(cy)}`
+}
+
+const identifyingRelAttrHooks: Node.Config['attrHooks'] = {
+  insetPoints: {
+    set(val, { refBBox }) {
+      return { points: calcInsetPoints(Number(val), refBBox.width, refBBox.height) }
+    },
+  },
+}
+
 const ports = {
   groups: {
     top: { position: 'top', attrs: { circle: { r: 4, magnet: true, stroke: '#333', fill: '#fff' } } },
@@ -58,6 +80,7 @@ export const erIdentifyingRelationship: Node.Config = {
   inherit: 'polygon',
   width: 80,
   height: 60,
+  attrHooks: identifyingRelAttrHooks,
   markup: [
     { tagName: 'polygon', selector: 'outer' },
     { tagName: 'polygon', selector: 'body' },
@@ -65,7 +88,7 @@ export const erIdentifyingRelationship: Node.Config = {
   ],
   attrs: {
     outer: { fill: 'none', stroke: '#e65100', strokeWidth: 1.5, refPoints: '0,0.5 0.5,0 1,0.5 0.5,1' },
-    body: { fill: '#fff3e0', stroke: '#e65100', strokeWidth: 1.5, refPoints: '0.05,0.5 0.5,0.067 0.95,0.5 0.5,0.933' },
+    body: { fill: '#fff3e0', stroke: '#e65100', strokeWidth: 1.5, insetPoints: 8.48528137423857 },
     label: { fill: '#e65100', fontSize: 12 },
   },
   ports,

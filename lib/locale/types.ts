@@ -48,6 +48,7 @@ export interface UniDrawLocale {
       swimlane: string
       state: string
     }
+    shapeNames: Record<string, string>
   }
   templatePanel: {
     title: string
@@ -248,6 +249,11 @@ export interface UniDrawLocale {
     cancel: string
     apply: string
     placeholder: string
+  }
+  colorPicker: {
+    hue: string
+    transparency: string
+    commonColor: string
   }
   example: {
     common: {

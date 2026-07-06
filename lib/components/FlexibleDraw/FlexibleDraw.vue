@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, onUnmounted, ref, toRef, watch } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, ref, toRef, watch } from 'vue'
 import type { CanvasConfig, ConnectorName, EdgeData, GraphData, MarkerName, NodeData, RouterName, StrokeStyleName } from '@uni-draw/shared'
 import { useLocale } from '../../locale'
 import { useCanvas } from '../../composables/useCanvas'
@@ -25,6 +25,8 @@ export interface FlexibleDrawProps {
   keyboard?: boolean
   /** 选中状态防抖（ms） */
   selectionDebounce?: number
+  /** 是否根据图形内容自适应高度 */
+  autoHeight?: boolean
 }
 
 defineOptions({ inheritAttrs: false })
@@ -35,6 +37,7 @@ const props = withDefaults(defineProps<FlexibleDrawProps>(), {
   grid: true,
   snapline: true,
   keyboard: true,
+  autoHeight: false,
 })
 
 const emit = defineEmits<{
@@ -63,6 +66,9 @@ const canvas = useCanvas({
   onDataChange: (data) => {
     emit('update:modelValue', data)
     emit('change', data)
+    if (props.autoHeight) {
+      nextTick(updateAutoHeight)
+    }
   },
 })
 
@@ -75,6 +81,47 @@ const svgEditorContent = computed({
       canvas.svgEditState.value.content = v
   },
 })
+
+const AUTO_HEIGHT_PADDING = 16
+
+const wrapperHeight = ref<string>('100%')
+
+/**
+ * 根据 X6 实际渲染根元素（svg > g.x6-graph-svg-viewport）的尺寸更新容器高度
+ * 仅在 autoHeight 为 true 时生效
+ */
+async function updateAutoHeight(): Promise<void> {
+  if (!props.autoHeight) {
+    wrapperHeight.value = '100%'
+    return
+  }
+  await nextTick()
+  // 等待 X6 完成节点渲染后再获取 viewport 尺寸
+  await new Promise(resolve => setTimeout(resolve, 50))
+  const container = canvas.containerRef.value
+  if (!container)
+    return
+  const viewport = container.querySelector('svg > g.x6-graph-svg-viewport') as SVGGraphicsElement | null
+
+  if (!viewport) {
+    wrapperHeight.value = '100%'
+    return
+  }
+  // 使用 getBoundingClientRect 获取 viewport 在视口中的实际渲染位置与尺寸，
+  // 避免 g 元素上的 matrix transform 导致 getBBox 坐标偏移
+  const containerRect = container.getBoundingClientRect()
+  const viewportRect = viewport.getBoundingClientRect()
+  if (viewportRect.width <= 0 && viewportRect.height <= 0) {
+    wrapperHeight.value = '100%'
+    return
+  }
+  const offsetTop = viewportRect.top - containerRect.top
+  // 包含上下边距，确保图形完整显示
+  const height = Math.ceil(offsetTop + viewportRect.height + AUTO_HEIGHT_PADDING * 2)
+  wrapperHeight.value = `${height}px`
+}
+
+onMounted(() => updateAutoHeight())
 
 const {
   containerRef,
@@ -262,6 +309,13 @@ function selectAll(): void {
   canvas.selectAll()
 }
 
+function zoomToFit(padding?: number): void {
+  canvas.zoomToFit(padding)
+  if (props.autoHeight) {
+    nextTick(updateAutoHeight)
+  }
+}
+
 // ==================== 外部文件投放 ====================
 
 function readAsText(file: File): Promise<string> {
@@ -385,7 +439,8 @@ defineExpose({
   zoomIn: canvas.zoomIn,
   zoomOut: canvas.zoomOut,
   zoomTo: canvas.zoomTo,
-  zoomToFit: canvas.zoomToFit,
+  zoomToFit,
+  updateAutoHeight,
   undo: canvas.undo,
   redo: canvas.redo,
   addNode: canvas.addNode,
@@ -437,6 +492,7 @@ defineExpose({
   addExternalImage: canvas.addExternalImage,
   addExternalSvg: canvas.addExternalSvg,
   addLink: canvas.addLink,
+  centerContent: canvas.centerContent,
   zoom,
   canUndo,
   canRedo,
@@ -451,7 +507,7 @@ defineExpose({
 </script>
 
 <template>
-  <div class="flexible-draw-wrapper">
+  <div class="flexible-draw-wrapper" v-bind="$attrs" :style="{ height: wrapperHeight }">
     <div
       ref="containerRef"
       class="flexible-draw"
@@ -565,22 +621,23 @@ defineExpose({
   position: relative;
   width: 100%;
   height: 100%;
+  overflow: hidden;
 }
 
 .flexible-draw {
   position: relative;
-  overflow: hidden;
   width: 100%;
   height: 100%;
+  overflow: hidden;
 }
 
 .draw-overlay {
   position: absolute;
   inset: 0;
+  z-index: 10;
   width: 100%;
   height: 100%;
   cursor: crosshair;
-  z-index: 10;
 }
 
 .draw-brush-panel {
@@ -590,11 +647,11 @@ defineExpose({
   z-index: 12;
   width: 228px;
   padding: 12px;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.96);
-  border: 1px solid rgba(113, 102, 240, 0.12);
-  box-shadow: 0 10px 28px rgba(18, 22, 33, 0.12);
+  background: rgb(255 255 255 / 96%);
   backdrop-filter: blur(10px);
+  border: 1px solid rgb(113 102 240 / 12%);
+  border-radius: 12px;
+  box-shadow: 0 10px 28px rgb(18 22 33 / 12%);
 }
 
 .draw-brush-title {
@@ -606,8 +663,8 @@ defineExpose({
 
 .draw-brush-row {
   display: flex;
-  align-items: center;
   gap: 8px;
+  align-items: center;
   margin-bottom: 10px;
 }
 
@@ -616,8 +673,8 @@ defineExpose({
 }
 
 .draw-brush-row label {
-  width: 34px;
   flex-shrink: 0;
+  width: 34px;
   font-size: 12px;
   color: #777;
 }
@@ -629,9 +686,9 @@ defineExpose({
 
 .draw-brush-row span {
   min-width: 38px;
-  text-align: right;
   font-size: 11px;
   color: #666;
+  text-align: right;
 }
 
 .draw-brush-dash-list {
@@ -645,23 +702,23 @@ defineExpose({
   justify-content: center;
   width: 34px;
   height: 28px;
-  border: 1px solid #d9d9e6;
-  border-radius: 8px;
-  background: #fff;
   color: #555;
   cursor: pointer;
+  background: #fff;
+  border: 1px solid #d9d9e6;
+  border-radius: 8px;
   transition: all 0.15s ease;
 }
 
 .draw-brush-dash-btn:hover {
-  border-color: var(--uni-draw-primary);
   color: var(--uni-draw-primary);
+  border-color: var(--uni-draw-primary);
 }
 
 .draw-brush-dash-btn.active {
-  border-color: var(--uni-draw-primary);
-  background: var(--uni-draw-primary-bg);
   color: var(--uni-draw-primary);
+  background: var(--uni-draw-primary-bg);
+  border-color: var(--uni-draw-primary);
 }
 
 .mini-map-overlay {
@@ -669,10 +726,10 @@ defineExpose({
   right: 16px;
   bottom: 16px;
   z-index: 15;
-  border-radius: 8px;
   overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgb(0 0 0 / 10%);
 }
 </style>
 
@@ -681,32 +738,32 @@ defineExpose({
 .svg-editor-mask {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.45);
+  z-index: 9999;
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 9999;
+  background: rgb(0 0 0 / 45%);
 }
 
 .svg-editor-dialog {
-  background: #fff;
-  border-radius: 10px;
-  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.22);
+  display: flex;
+  flex-direction: column;
   width: 840px;
   max-width: 95vw;
   max-height: 90vh;
-  display: flex;
-  flex-direction: column;
   overflow: hidden;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 8px 40px rgb(0 0 0 / 22%);
 }
 
 .svg-editor-header {
   display: flex;
+  flex-shrink: 0;
   align-items: center;
   justify-content: space-between;
   padding: 14px 20px;
   border-bottom: 1px solid #eee;
-  flex-shrink: 0;
 }
 
 .svg-editor-title {
@@ -716,68 +773,68 @@ defineExpose({
 }
 
 .svg-editor-close {
+  padding: 2px 6px;
+  font-size: 16px;
+  line-height: 1;
+  color: #888;
+  cursor: pointer;
   background: none;
   border: none;
-  cursor: pointer;
-  font-size: 16px;
-  color: #888;
-  padding: 2px 6px;
   border-radius: 4px;
-  line-height: 1;
 }
 
 .svg-editor-close:hover {
-  background: #f0f0f0;
   color: #333;
+  background: #f0f0f0;
 }
 
 .svg-editor-body {
   display: flex;
   flex: 1;
-  min-height: 0;
   gap: 0;
+  min-height: 0;
 }
 
 .svg-editor-textarea {
   flex: 1;
   min-width: 0;
   padding: 14px;
-  font-family: 'Menlo', 'Monaco', 'Consolas', monospace;
+  font-family: Menlo, Monaco, Consolas, monospace;
   font-size: 12px;
   line-height: 1.6;
+  color: #333;
+  resize: none;
+  background: #fafafa;
   border: none;
   border-right: 1px solid #eee;
   outline: none;
-  resize: none;
-  background: #fafafa;
-  color: #333;
 }
 
 .svg-editor-preview {
-  width: 300px;
-  flex-shrink: 0;
   display: flex;
+  flex-shrink: 0;
   flex-direction: column;
+  width: 300px;
   overflow: hidden;
 }
 
 .svg-preview-label {
+  flex-shrink: 0;
   padding: 8px 14px;
   font-size: 11px;
   color: #aaa;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   border-bottom: 1px solid #eee;
-  flex-shrink: 0;
 }
 
 .svg-preview-box {
-  flex: 1;
-  overflow: auto;
   display: flex;
+  flex: 1;
   align-items: center;
   justify-content: center;
   padding: 16px;
+  overflow: auto;
   background: #f8f8f8;
 }
 
@@ -788,20 +845,20 @@ defineExpose({
 
 .svg-editor-footer {
   display: flex;
-  justify-content: flex-end;
+  flex-shrink: 0;
   gap: 10px;
+  justify-content: flex-end;
   padding: 12px 20px;
   border-top: 1px solid #eee;
-  flex-shrink: 0;
 }
 
 .svg-editor-btn {
   padding: 7px 20px;
-  border-radius: 6px;
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
   border: 1px solid transparent;
+  border-radius: 6px;
   transition: opacity 0.15s;
 }
 
@@ -810,13 +867,13 @@ defineExpose({
 }
 
 .svg-editor-cancel {
-  background: #f5f5f5;
   color: #555;
+  background: #f5f5f5;
   border-color: #ddd;
 }
 
 .svg-editor-apply {
-  background: #7166f0;
   color: #fff;
+  background: #7166f0;
 }
 </style>

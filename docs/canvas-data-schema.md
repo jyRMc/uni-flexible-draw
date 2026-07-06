@@ -607,7 +607,7 @@ Connector 名称：`normal`、`rounded`、`smooth`、`jumpover`、`quadratic`、
 
 `style.rx` 与 `style.ry` 仅在 body 为 `<rect>` 的图形上生效。支持圆角的图形包括：
 
-- 基础：`basic-rect`、`basic-rounded-rect`、`basic-cylinder`、`basic-cloud`、`basic-document`
+- 基础：`basic-rect`、`basic-rounded-rect`、`basic-cloud`、`basic-document`
 - 流程图：`flowchart-start-end`、`flowchart-process`、`flowchart-document`、`flowchart-database`、`flowchart-predefined`、`flowchart-internal-storage`
 - UML：`uml-class`、`uml-interface`、`uml-abstract`、`uml-enum`、`uml-package`、`uml-object`、`uml-component`
 - 时序图：`sequence-activation`、`sequence-fragment-alt`、`sequence-fragment-opt`、`sequence-fragment-loop`、`sequence-fragment-par`、`sequence-fragment-critical`

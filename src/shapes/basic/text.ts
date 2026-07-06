@@ -1,6 +1,6 @@
 import type { Node } from '@antv/x6'
 import { PRIMARY_COLOR } from '../theme'
-import { icons } from '@/assets/icons'
+import { icons } from '../../assets/icons'
 
 const SVG_PLACEHOLDER_HREF = `data:image/svg+xml,${encodeURIComponent(icons['placeholder/svg-placeholder'])}`
 const IMAGE_PLACEHOLDER_HREF = `data:image/svg+xml,${encodeURIComponent(icons['placeholder/image-placeholder'])}`

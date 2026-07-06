@@ -5,7 +5,7 @@ import { Transform } from '@antv/x6-plugin-transform'
 import { Export } from '@antv/x6-plugin-export'
 import type { CanvasConfig } from '@uni-draw/shared'
 import { PRIMARY_COLOR } from '@uni-draw/shared'
-import { icons } from '@/assets/icons'
+import { icons } from '../../assets/icons'
 
 export interface AntVRenderEngineOptions {
   canvasConfig?: CanvasConfig

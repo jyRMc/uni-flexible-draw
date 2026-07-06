@@ -27,14 +27,23 @@ export class GraphManager {
 
   /**
    * 加载完整画布数据
+   * @param data 画布数据
+   * @param options 选项
+   * @param options.recordHistory 是否将本次加载记录为一次可撤销操作（默认 false）
    */
-  loadData(data: GraphData): void {
+  loadData(data: GraphData, options: { recordHistory?: boolean } = {}): void {
+    const recordHistory = options.recordHistory ?? false
     this.isUpdating = true
-    // 暂停历史记录，防止批量加载操作进入 undo 栈
-    ;(this.graph as any).disableHistory?.()
+    // 非记录模式时暂停历史记录，防止批量加载操作进入 undo 栈
+    if (!recordHistory) {
+      ;(this.graph as any).disableHistory?.()
+    }
+    // 使用 batch 将加载过程中的所有变更合并为单一历史步骤
+    this.graph.startBatch('load-data')
     try {
       this.applyCanvasConfig(data.canvas)
       this.graph.clearCells()
+
 
       // 第一步：创建所有节点（先不处理 parent 关系）
       const nodeMap = new Map<string, any>()
@@ -60,11 +69,17 @@ export class GraphManager {
         const edge = EdgeFactory.createEdge(this.graph, edgeData)
         this.graph.addEdge(edge)
       }
+      setTimeout(() => {
+        this.graph.centerContent()
+      }, 200)
     }
     finally {
-      ;(this.graph as any).enableHistory?.()
-      // 清空由 disableHistory 前残留的历史，确保加载后 canUndo=false
-      ;(this.graph as any).cleanHistory?.()
+      this.graph.stopBatch('load-data')
+      if (!recordHistory) {
+        ;(this.graph as any).enableHistory?.()
+        // 清空由 disableHistory 前残留的历史，确保加载后 canUndo=false
+        ;(this.graph as any).cleanHistory?.()
+      }
       this.isUpdating = false
       this.eventBus.emit('data:changed', data)
     }
@@ -96,18 +111,32 @@ export class GraphManager {
 
   /**
    * 添加节点
+   * 使用 batch 将节点创建过程中的内部变更合并为单一撤销步骤
    */
   addNode(data: NodeData): void {
-    const node = NodeFactory.createNode(this.graph, data)
-    this.graph.addNode(node)
+    this.graph.startBatch('add-node')
+    try {
+      const node = NodeFactory.createNode(this.graph, data)
+      this.graph.addNode(node)
+    }
+    finally {
+      this.graph.stopBatch('add-node')
+    }
   }
 
   /**
    * 添加边
+   * 使用 batch 将边创建过程中的内部变更合并为单一撤销步骤
    */
   addEdge(data: EdgeData): void {
-    const edge = EdgeFactory.createEdge(this.graph, data)
-    this.graph.addEdge(edge)
+    this.graph.startBatch('add-edge')
+    try {
+      const edge = EdgeFactory.createEdge(this.graph, data)
+      this.graph.addEdge(edge)
+    }
+    finally {
+      this.graph.stopBatch('add-edge')
+    }
   }
 
   /**
@@ -143,10 +172,10 @@ export class GraphManager {
 
     // 背景色
     if (canvas.backgroundColor) {
-      ;(this.graph as any).drawBackground?.({ color: canvas.backgroundColor })
+      (this.graph as any).drawBackground?.({ color: canvas.backgroundColor })
     }
     else {
-      ;(this.graph as any).clearBackground?.()
+      (this.graph as any).clearBackground?.()
     }
 
     // 网格

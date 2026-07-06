@@ -19,7 +19,8 @@ export class ZoomTool {
   }
 
   zoomToFit(options?: { padding?: number, maxScale?: number }): void {
-    this.graph.zoomToFit(options)
+    // 默认保留 40px 内边距，避免图形完全贴边铺满画布
+    this.graph.zoomToFit({ padding: 40, ...options })
   }
 
   getZoom(): number {

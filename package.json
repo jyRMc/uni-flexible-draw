@@ -5,6 +5,22 @@
   "packageManager": "pnpm@9.0.0",
   "description": "基于 Vue3 + AntV X6 的通用绘图组件库",
   "license": "MIT",
+  "exports": {
+    ".": {
+      "types": "./lib/index.ts",
+      "default": "./lib/index.ts"
+    }
+  },
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "imports": {
+    "#/*": "./lib/*",
+    "@uni-draw/*": "lib/*"
+  },
   "scripts": {
     "dev": "vite",
     "dev:vue": "vite --config examples/vue/vite.config.ts examples/vue",

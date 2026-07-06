@@ -1,7 +1,7 @@
 import './styles/index.css'
 import type { App } from 'vue'
 import { UniDraw } from './components/UniDraw'
-import { FlexibleDraw } from './components/FlexibleDraw'
+import { FlexibleDraw, FlexibleImageDraw } from './components/FlexibleDraw'
 import { ShapePanel } from './components/ShapePanel'
 import { Toolbar } from './components/Toolbar'
 import { MiniMap } from './components/MiniMap'
@@ -13,7 +13,7 @@ export { UniDraw }
 export type { UniDrawProps } from './components/UniDraw'
 
 // ===== Sub-components (advanced / custom layouts) =====
-export { FlexibleDraw, ShapePanel, Toolbar, MiniMap, ContextMenu, QuickActionBar }
+export { FlexibleDraw, FlexibleImageDraw, ShapePanel, Toolbar, MiniMap, ContextMenu, QuickActionBar }
 export type { FlexibleDrawProps } from './components/FlexibleDraw'
 export type { ShapePanelProps } from './components/ShapePanel'
 export type { ToolbarProps } from './components/Toolbar'
@@ -61,7 +61,7 @@ export type { ClipboardCell } from './core/clipboard/ClipboardManager'
 export { SketchRenderer, getSketchRenderer, ROUGHNESS } from './core/sketch/SketchRenderer'
 export type { SketchRenderOptions } from './core/sketch/SketchRenderer'
 
-const components = [UniDraw, FlexibleDraw, ShapePanel, Toolbar, MiniMap, ContextMenu, QuickActionBar]
+const components = [UniDraw, FlexibleDraw,FlexibleImageDraw, ShapePanel, Toolbar, MiniMap, ContextMenu, QuickActionBar]
 
 export default {
   install(app: App) {

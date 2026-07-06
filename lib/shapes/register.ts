@@ -108,7 +108,6 @@ export function registerAllShapes(): void {
   NodeRegistry.register(ER_SHAPES.MULTIVALUED, er.erMultivalued)
   NodeRegistry.register(ER_SHAPES.DERIVED, er.erDerived)
   NodeRegistry.register(ER_SHAPES.ASSOCIATIVE, er.erAssociative)
-  NodeRegistry.register(ER_SHAPES.TOTAL_PARTICIPATION, er.erTotalParticipation)
   NodeRegistry.register(ER_SHAPES.ANNOTATION, er.erAnnotation)
 
   // 数据流图

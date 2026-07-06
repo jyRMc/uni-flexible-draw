@@ -122,6 +122,36 @@ export function ellipsePorts(count = 8, style?: PortStyle, rx = 0.5, ry = 0.5, c
   return { groups, items }
 }
 
+export function umlComponentPorts(style?: PortStyle): PortsConfig {
+  const attrs = portAttrs(style)
+  return {
+    groups: {
+      top: { position: 'top', attrs },
+      bottom: { position: 'bottom', attrs },
+      left: {
+        position(args: any) {
+          const bbox = args.bbox
+          return { x: 0, y: bbox.height * 0.5 }
+        },
+        attrs,
+      },
+      right: {
+        position(args: any) {
+          const bbox = args.bbox
+          return { x: bbox.width, y: 0.5 }
+        },
+        attrs,
+      }
+    },
+    items: [
+      { id: 'port-top', group: 'top' },
+      { id: 'port-bottom', group: 'bottom' },
+      { id: 'port-left', group: 'left' },
+      { id: 'port-right', group: 'right' },
+    ],
+  }
+}
+
 /** 菱形：4 个顶点 */
 export function diamondPorts(style?: PortStyle): PortsConfig {
   const attrs = portAttrs(style)
@@ -581,11 +611,11 @@ export function documentPorts(style?: PortStyle): PortsConfig {
   const groups: PortsConfig['groups'] = {}
   const items: PortsConfig['items'] = []
   const points = [
-    { id: 'topLeft', x: 0.0625, y: 0.111111 },
-    { id: 'topRight', x: 0.6875, y: 0.111111 },
-    { id: 'fold', x: 0.9375, y: 0.555556 },
-    { id: 'bottomRight', x: 0.9375, y: 0.888889 },
-    { id: 'bottomLeft', x: 0.0625, y: 0.888889 },
+    { id: 'topLeft', x: 0, y: 0 },
+    { id: 'topRight', x: 0.7, y: 0 },
+    { id: 'fold', x: 1, y: 0.55 },
+    { id: 'bottomRight', x:1, y: 1 },
+    { id: 'bottomLeft', x: 0, y: 1 },
   ]
   for (const p of points) {
     groups[p.id] = {
@@ -606,11 +636,11 @@ export function multiDocumentPorts(style?: PortStyle): PortsConfig {
   const groups: PortsConfig['groups'] = {}
   const items: PortsConfig['items'] = []
   const points = [
-    { id: 'topLeft', x: 0.125, y: 0.2 },
-    { id: 'topRight', x: 0.75, y: 0.2 },
-    { id: 'fold', x: 0.9375, y: 0.5 },
-    { id: 'bottomRight', x: 0.9375, y: 0.9 },
-    { id: 'bottomLeft', x: 0.125, y: 0.9 },
+    { id: 'topLeft', x: 0, y: 0 },
+    { id: 'topRight', x: 0.78, y: 0 },
+    { id: 'fold', x: 1, y: 0.42 },
+    { id: 'bottomRight', x: 1, y: 1 },
+    { id: 'bottomLeft', x: 0, y: 1},
   ]
   for (const p of points) {
     groups[p.id] = {
@@ -633,28 +663,28 @@ export function delayPorts(style?: PortStyle): PortsConfig {
       top: {
         position(args: any) {
           const bbox = args.bbox
-          return { x: bbox.width * 0.640625, y: bbox.height * 0.071429 }
+          return { x: bbox.width * 0.6, y: 0 }
         },
         attrs,
       },
       right: {
         position(args: any) {
           const bbox = args.bbox
-          return { x: bbox.width * 0.96875, y: bbox.height * 0.5 }
+          return { x: bbox.width, y: bbox.height * 0.5 }
         },
         attrs,
       },
       bottom: {
         position(args: any) {
           const bbox = args.bbox
-          return { x: bbox.width * 0.640625, y: bbox.height * 0.928571 }
+          return { x: bbox.width * 0.6, y: bbox.height }
         },
         attrs,
       },
       left: {
         position(args: any) {
           const bbox = args.bbox
-          return { x: bbox.width * 0.125, y: bbox.height * 0.5 }
+          return { x: 0, y: bbox.height * 0.5 }
         },
         attrs,
       },
@@ -719,14 +749,14 @@ export function databasePorts(style?: PortStyle): PortsConfig {
       top: {
         position(args: any) {
           const bbox = args.bbox
-          return { x: bbox.width * 0.5, y: bbox.height * 0.166667 }
+          return { x: bbox.width * 0.5, y: 0}
         },
         attrs,
       },
       bottom: {
         position(args: any) {
           const bbox = args.bbox
-          return { x: bbox.width * 0.5, y: bbox.height * 0.833333 }
+          return { x: bbox.width * 0.5, y: bbox.height}
         },
         attrs,
       },

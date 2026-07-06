@@ -202,7 +202,6 @@ export const RX_SUPPORTED_SHAPES: ReadonlySet<string> = new Set([
   // 基础图形 - rect 系列
   BASIC_SHAPES.RECT,
   BASIC_SHAPES.ROUNDED_RECT,
-  BASIC_SHAPES.CYLINDER, // body=rect(rx=35), 圆柱体弧形效果依赖 rx
   BASIC_SHAPES.CLOUD, // body=rect(rx=30), 云朵效果依赖 rx
   BASIC_SHAPES.DOCUMENT, // body=rect，可加圆角
 
@@ -210,7 +209,6 @@ export const RX_SUPPORTED_SHAPES: ReadonlySet<string> = new Set([
   FLOWCHART_SHAPES.START_END, // body=rect(rx=25)
   FLOWCHART_SHAPES.PROCESS, // body=rect
   FLOWCHART_SHAPES.DOCUMENT, // body=rect
-  FLOWCHART_SHAPES.DATABASE, // body=rect(rx=0)
   FLOWCHART_SHAPES.PREDEFINED, // body=rect
   FLOWCHART_SHAPES.INTERNAL_STORAGE, // body=rect
 

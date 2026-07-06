@@ -25,6 +25,14 @@ const displayLibraryName = computed(() => {
   return categories[props.library.id as keyof typeof categories] ?? props.library.name
 })
 
+/** 获取图形项的国际化名称 */
+const displayItemName = computed(() => {
+  return (item: MaterialItem) => {
+    const shapeNames = t.panel.shapeNames
+    return shapeNames[item.shape] ?? item.name
+  }
+})
+
 function toggle() {
   if (props.collapsible) {
     isExpanded.value = !isExpanded.value
@@ -221,7 +229,7 @@ function getEdgePreviewSvg(item: MaterialItem): string {
         v-for="item in library.items"
         :key="item.id"
         class="shape-category-item"
-        :title="item.name"
+        :title="displayItemName(item)"
         draggable="true"
         @dragstart="(e: DragEvent) => onDragStart(item, e)"
         @click="onSelect(item)"

@@ -1,10 +1,32 @@
 import type { Graph, Node } from '@antv/x6'
 import type { LabelConfig, NodeData } from '@uni-draw/shared'
-import { PRIMARY_COLOR } from '@uni-draw/shared'
+import { PRIMARY_COLOR, getShapeFixedLabel } from '@uni-draw/shared'
+import { NodeRegistry } from './NodeRegistry'
 import { buildTableAttrs, buildTableMarkup, normalizeTableData } from '../../shapes/basic/table'
 import { getShapePorts } from '../../shapes/ports'
 import { shapeLineDefs } from '../../shapes/lineDefs'
-import { buildMultiRegionAttrs, getDefaultRegionData, getMultiRegionMarkup, isMultiRegionShape } from '../../shapes/utils/regionNodes'
+import {
+  buildMultiRegionAttrs,
+  getDefaultRegionData,
+  getMultiRegionLabelPath,
+  getMultiRegionMarkup,
+  isMultiRegionShape,
+} from '../../shapes/utils/regionNodes'
+
+// X6 内置基础图形，不需要在 NodeRegistry 中注册
+const X6_BUILTIN_SHAPES = new Set([
+  'rect',
+  'circle',
+  'ellipse',
+  'polygon',
+  'polyline',
+  'path',
+  'image',
+  'text-block',
+  'textBlock',
+  'html',
+  'edge',
+])
 
 function buildLabelAttrs(label: NodeData['label']): Record<string, unknown> | undefined {
   if (typeof label !== 'object' || label === null)
@@ -49,6 +71,34 @@ function inferLabelPosition(
     return 'right'
   }
   return 'center'
+}
+
+const FLIP_SELECTOR = 'flip'
+
+function isFlipWrapper(markup: any): boolean {
+  return markup && markup.selector === FLIP_SELECTOR && markup.tagName === 'g'
+}
+
+function unwrapFlipMarkup(markup: any[]): any[] {
+  if (markup.length === 1 && isFlipWrapper(markup[0])) {
+    return markup[0].children ?? []
+  }
+  return markup
+}
+
+function wrapFlipMarkup(markup: any[]): any[] {
+  if (markup.length === 1 && isFlipWrapper(markup[0])) {
+    return markup
+  }
+  return [{ tagName: 'g', selector: FLIP_SELECTOR, children: markup }]
+}
+
+function buildFlipTransform(size: { width: number, height: number }, flipH: boolean, flipV: boolean): string {
+  const cx = size.width / 2
+  const cy = size.height / 2
+  const sx = flipH ? -1 : 1
+  const sy = flipV ? -1 : 1
+  return `translate(${cx}, ${cy}) scale(${sx}, ${sy}) translate(${-cx}, ${-cy})`
 }
 
 interface PortPositionContext {
@@ -136,8 +186,15 @@ export class NodeFactory {
       ? normalizeTableData((data.data as Record<string, unknown> | undefined)?.table)
       : null
 
-    const labelAttrs = buildLabelAttrs(data.label)
-    const labelText = typeof data.label === 'string' ? data.label : data.label?.text
+    let labelAttrs = buildLabelAttrs(data.label)
+    let labelText = typeof data.label === 'string' ? data.label : data.label?.text
+
+    // 固定标签图形（如状态图浅/深历史）始终使用默认文本，忽略外部传入的标签
+    const fixedLabel = getShapeFixedLabel(data.shape)
+    if (fixedLabel !== undefined) {
+      labelText = fixedLabel
+      labelAttrs = undefined
+    }
 
     const baseAttrs: Record<string, any> = (() => {
       const isImageShape = data.shape === 'basic-image' || data.shape === 'basic-svg'
@@ -176,13 +233,88 @@ export class NodeFactory {
       if (!data.style)
         return {}
       if (data.shape === 'basic-cylinder') {
-        const { fill = '#ffffff', stroke = PRIMARY_COLOR, strokeWidth = 2 } = data.style as any
+        const {
+          fill = '#ffffff',
+          stroke = PRIMARY_COLOR,
+          strokeWidth = 2,
+          strokeDasharray,
+          rx,
+          ry,
+          opacity,
+        } = data.style as any
+        const capLineAttrs: any = { stroke, strokeWidth }
+        if (strokeDasharray !== undefined)
+          capLineAttrs.strokeDasharray = strokeDasharray
+        const bodyFillAttrs: any = { fill }
+        if (rx !== undefined)
+          bodyFillAttrs.rx = rx
+        if (ry !== undefined)
+          bodyFillAttrs.ry = ry
+        if (opacity !== undefined) {
+          bodyFillAttrs.opacity = opacity
+          capLineAttrs.opacity = opacity
+        }
         return {
-          bodyFill: { fill },
-          topCap: { fill, stroke, strokeWidth },
-          bottomCap: { fill, stroke, strokeWidth },
-          leftLine: { stroke, strokeWidth },
-          rightLine: { stroke, strokeWidth },
+          bodyFill: bodyFillAttrs,
+          topCap: { fill, ...capLineAttrs },
+          bottomCap: { fill, ...capLineAttrs },
+          leftLine: { ...capLineAttrs },
+          rightLine: { ...capLineAttrs },
+        } as any
+      }
+      if (data.shape === 'flowchart-database') {
+        const {
+          fill = '#f8fafc',
+          stroke = '#334155',
+          strokeWidth = 2,
+          strokeDasharray,
+          rx,
+          ry,
+          opacity,
+        } = data.style as any
+        const capLineAttrs: any = { stroke, strokeWidth }
+        if (strokeDasharray !== undefined)
+          capLineAttrs.strokeDasharray = strokeDasharray
+        const bodyFillAttrs: any = { fill }
+        if (rx !== undefined)
+          bodyFillAttrs.rx = rx
+        if (ry !== undefined)
+          bodyFillAttrs.ry = ry
+        if (opacity !== undefined) {
+          bodyFillAttrs.opacity = opacity
+          capLineAttrs.opacity = opacity
+        }
+        return {
+          bodyFill: bodyFillAttrs,
+          topCap: { fill, ...capLineAttrs },
+          bottomCap: { fill, ...capLineAttrs },
+          leftLine: { ...capLineAttrs },
+          rightLine: { ...capLineAttrs },
+        } as any
+      }
+      if (data.shape === 'flowchart-multi-document') {
+        const {
+          fill = '#f8fafc',
+          stroke = '#334155',
+          strokeWidth = 2,
+          strokeDasharray,
+          opacity,
+        } = data.style as any
+        const shapeAttrs: any = { fill, stroke, strokeWidth }
+        if (strokeDasharray !== undefined)
+          shapeAttrs.strokeDasharray = strokeDasharray
+        if (opacity !== undefined)
+          shapeAttrs.opacity = opacity
+        const foldAttrs: any = { stroke, strokeWidth, fill: 'none' }
+        if (strokeDasharray !== undefined)
+          foldAttrs.strokeDasharray = strokeDasharray
+        if (opacity !== undefined)
+          foldAttrs.opacity = opacity
+        return {
+          back: { ...shapeAttrs },
+          foldBack: { ...foldAttrs },
+          front: { ...shapeAttrs },
+          foldFront: { ...foldAttrs },
         } as any
       }
       return { body: { ...data.style } } as any
@@ -204,9 +336,19 @@ export class NodeFactory {
     // 多区域节点：动态构建 markup 和 attrs
     let markup = tableData ? buildTableMarkup(tableData) : undefined
     let nodeData = data.data
+
     if (isMultiRegionShape(data.shape)) {
-      const regionData = (data.data?.regionData as any) ?? getDefaultRegionData(data.shape)
+      let regionData = (data.data?.regionData as any) ?? getDefaultRegionData(data.shape)
       if (regionData) {
+        // 外部传入的 label 应覆盖默认区域标签（如从素材创建时）
+        if (labelText != null && Array.isArray(regionData.regions) && regionData.regions.length > 0) {
+          regionData = {
+            ...regionData,
+            regions: regionData.regions.map((r: any, i: number) =>
+              i === 0 ? { ...r, label: labelText } : r,
+            ),
+          }
+        }
         markup = getMultiRegionMarkup(data.shape) as any
         const regionAttrs = buildMultiRegionAttrs(data.shape, regionData)
         if (regionAttrs) {
@@ -214,6 +356,30 @@ export class NodeFactory {
         }
         nodeData = { ...(data.data ?? {}), regionData }
       }
+    }
+
+    // 统一包裹翻转层，确保水平/垂直翻转时内容可见且选择框正确。
+    // 自定义 markup（表格、多区域节点）需要在创建前手动包裹；
+    // 其他 shape 的 markup 已在 NodeRegistry 中统一包裹。
+    if (markup && !isFlipWrapper((markup as any[])[0])) {
+      markup = wrapFlipMarkup(markup as any[])
+    }
+
+    // 应用初始翻转状态
+    const flipH = !!data.data?.flipH
+    const flipV = !!data.data?.flipV
+    if (flipH || flipV) {
+      baseAttrs.flip = {
+        transform: buildFlipTransform(data.size, flipH, flipV),
+      }
+    }
+
+    // 验证节点 shape 是否已注册（X6 内置基础图形除外），未注册时抛出明确错误，
+    // 避免 X6 创建出不可控节点
+    if (!NodeRegistry.has(data.shape) && !X6_BUILTIN_SHAPES.has(data.shape)) {
+      throw new Error(
+        `[NodeFactory] 节点 shape "${data.shape}" 未注册，请先调用 NodeRegistry.register() 注册后再创建节点 (id: ${data.id})`,
+      )
     }
 
     const shapePorts = getShapePorts(data.shape)
@@ -232,6 +398,7 @@ export class NodeFactory {
       data: nodeData,
       ports: ((data.ports?.items?.length ?? 0) > 0 ? data.ports : shapePorts) as any,
     })
+    
     // 强制覆盖 shape 定义中的默认 ports，确保动态端口策略生效
     if ((data.ports?.items?.length ?? 0) === 0) {
       const bbox = node.getBBox()
@@ -263,6 +430,11 @@ export class NodeFactory {
     // 并在 resize 时重新计算
     attachLineResizeHandler(node)
 
+    // 对未继承标准 rect / 自定义 markup 的 shape，X6 不会自动将 label 写入 attrs.label.text，
+    // 手动同步以确保 toData() 能正确提取标签文本
+    if (labelText != null && !isMultiRegionShape(data.shape)) {
+      node.setAttrByPath('label/text', labelText)
+    }
     return node
   }
 
@@ -278,12 +450,54 @@ export class NodeFactory {
     const style: Record<string, unknown> = {}
     if (node.shape === 'basic-cylinder') {
       const cap = attrs.topCap ?? {}
+      const line = attrs.leftLine ?? {}
+      const bodyFill = attrs.bodyFill ?? {}
       if (cap.fill != null)
         style.fill = cap.fill
       if (cap.stroke != null)
         style.stroke = cap.stroke
       if (cap.strokeWidth != null)
         style.strokeWidth = cap.strokeWidth
+      if (line.strokeDasharray != null)
+        style.strokeDasharray = line.strokeDasharray
+      if (bodyFill.rx != null)
+        style.rx = bodyFill.rx
+      if (bodyFill.ry != null)
+        style.ry = bodyFill.ry
+      if (bodyFill.opacity != null)
+        style.opacity = bodyFill.opacity
+    }
+    else if (node.shape === 'flowchart-database') {
+      const cap = attrs.topCap ?? {}
+      const line = attrs.leftLine ?? {}
+      const bodyFill = attrs.bodyFill ?? {}
+      if (bodyFill.fill != null)
+        style.fill = bodyFill.fill
+      if (cap.stroke != null)
+        style.stroke = cap.stroke
+      if (cap.strokeWidth != null)
+        style.strokeWidth = cap.strokeWidth
+      if (line.strokeDasharray != null)
+        style.strokeDasharray = line.strokeDasharray
+      if (bodyFill.rx != null)
+        style.rx = bodyFill.rx
+      if (bodyFill.ry != null)
+        style.ry = bodyFill.ry
+      if (bodyFill.opacity != null)
+        style.opacity = bodyFill.opacity
+    }
+    else if (node.shape === 'flowchart-multi-document') {
+      const front = attrs.front ?? {}
+      if (front.fill != null)
+        style.fill = front.fill
+      if (front.stroke != null)
+        style.stroke = front.stroke
+      if (front.strokeWidth != null)
+        style.strokeWidth = front.strokeWidth
+      if (front.strokeDasharray != null)
+        style.strokeDasharray = front.strokeDasharray
+      if (front.opacity != null)
+        style.opacity = front.opacity
     }
     else if (node.shape === 'basic-table') {
       const body = attrs.body ?? {}
@@ -322,16 +536,38 @@ export class NodeFactory {
     }
 
     // 提取 label 文本与样式
-    const labelText = (node as any).label ?? (node as any).getLabels?.()?.[0]?.attrs?.label?.text ?? ''
-    const labelAttrs = attrs.label ?? {}
+    // 多区域节点的标签渲染在自定义选择器（nameLabel/topLabel 等）上
+    let labelText = ''
+    let labelAttrs: Record<string, unknown> = {}
+    if (isMultiRegionShape(node.shape)) {
+      const labelPath = getMultiRegionLabelPath(node.shape)
+      if (labelPath) {
+        const labelBase = labelPath.replace(/\/text$/, '')
+        labelAttrs = (attrs[labelBase] as Record<string, unknown>) ?? {}
+        labelText = (labelAttrs.text as string) ?? ''
+      }
+    }
+    else {
+      labelText = attrs.label?.text ?? attrs.text?.text ?? (node as any).label ?? ''
+      labelAttrs = attrs.label ?? {}
+    }
     const hasLabelStyle = labelAttrs.fontSize != null
       || labelAttrs.fontFamily != null
       || labelAttrs.fontWeight != null
       || labelAttrs.fill != null
     const hasLabelPosition = labelAttrs.textVerticalAnchor != null || labelAttrs.refY != null || labelAttrs.refX != null
 
+    // 固定标签图形始终导出为默认文本，防止外部非法修改被序列化
+    const fixedLabel = getShapeFixedLabel(node.shape)
+    if (fixedLabel !== undefined) {
+      labelText = fixedLabel
+    }
+
     let label: NodeData['label'] = labelText
-    if (hasLabelStyle || hasLabelPosition) {
+    if (fixedLabel !== undefined) {
+      label = fixedLabel
+    }
+    else if (hasLabelStyle || hasLabelPosition) {
       const labelCfg: any = { text: labelText }
       if (hasLabelStyle) {
         labelCfg.style = {}

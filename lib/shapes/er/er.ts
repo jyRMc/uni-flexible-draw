@@ -5,6 +5,28 @@ import { ellipsePorts, polygonPorts, rectPorts } from '../ports/ports'
 const FILL = '#f8fafc'
 const STROKE = '#334155'
 
+function calcInsetPoints(d: number, width: number, height: number) {
+  const cx = width * 0.5
+  const cy = height * 0.5
+  if (!Number.isFinite(d) || d <= 0 || width <= 0 || height <= 0)
+    return `${cx} ${cy} ${cx} ${cy} ${cx} ${cy} ${cx} ${cy}`
+  const s = 0.5 - d * Math.sqrt(width * width + height * height) / (width * height)
+  const safeS = Math.max(0, Math.min(s, 0.45))
+  const right = width * (0.5 + safeS)
+  const left = width * (0.5 - safeS)
+  const top = height * (0.5 - safeS)
+  const bottom = height * (0.5 + safeS)
+  return `${Math.round(cx)} ${Math.round(top)} ${Math.round(right)} ${Math.round(cy)} ${Math.round(cx)} ${Math.round(bottom)} ${Math.round(left)} ${Math.round(cy)}`
+}
+
+const identifyingRelAttrHooks: Node.Config['attrHooks'] = {
+  insetPoints: {
+    set(val, { refBBox }) {
+      return { points: calcInsetPoints(Number(val), refBBox.width, refBBox.height) }
+    },
+  },
+}
+
 /** 关联实体：菱形顶点 + 矩形底部中点 */
 function associativePorts(style?: { stroke?: string, fill?: string }) {
   const stroke = style?.stroke ?? STROKE
@@ -107,6 +129,7 @@ export const erIdentifyingRelationship: Node.Config = {
   inherit: 'polygon',
   width: 120,
   height: 120,
+  attrHooks: identifyingRelAttrHooks,
   markup: [
     { tagName: 'polygon', selector: 'outer' },
     { tagName: 'polygon', selector: 'body' },
@@ -114,16 +137,16 @@ export const erIdentifyingRelationship: Node.Config = {
   ],
   attrs: {
     outer: {
-      refPoints: '0.5,0.083333 0.916667,0.5 0.5,0.916667 0.083333,0.5',
+      refPoints: '0.5,0 1,0.5 0.5,1 0,0.5',
       fill: FILL,
       stroke: STROKE,
       strokeWidth: 2,
     },
     body: {
-      refPoints: '0.5,0.208333 0.708333,0.5 0.5,0.791667 0.291667,0.5',
+      insetPoints: 8.48528137423857,
       fill: 'none',
       stroke: STROKE,
-      strokeWidth: 1.5,
+      strokeWidth: 1,
     },
     label: { fill: LABEL_FILL, fontSize: 14, fontWeight: 500 },
   },

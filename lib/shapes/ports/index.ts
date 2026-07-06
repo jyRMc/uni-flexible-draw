@@ -18,6 +18,7 @@ import {
   storedDataPorts,
   trianglePorts,
   umlClassPorts,
+  umlComponentPorts,
 } from './ports'
 
 export * from './ports'
@@ -51,19 +52,19 @@ export function getShapePorts(shape: string): PortsConfig {
 
   // ── Flowchart ──
   if (shape === 'flowchart-decision') {
-    return polygonPorts(4, undefined, '0.5,0.1 0.9,0.5 0.5,0.9 0.1,0.5')
+    return polygonPorts(4, undefined, '0.5,0 1,0.5 0.5,1 0,0.5')
   }
   if (shape === 'flowchart-connector') {
     return ellipsePorts(8)
   }
   if (shape === 'flowchart-merge') {
-    return polygonPorts(4, undefined, '0.5,0.15 0.85,0.5 0.5,0.85 0.15,0.5')
+    return polygonPorts(4, undefined, '0.5,0 1,0.5 0.5,1 0,0.5')
   }
   if (shape === 'flowchart-input-output') {
-    return polygonPorts(4, undefined, '0.1875,0.071429 0.96875,0.071429 0.84375,0.928571 0.0625,0.928571')
+    return polygonPorts(4, undefined, '0.5,0 0.93,0.5 0.5,1 0.07,0.5')
   }
   if (shape === 'flowchart-off-page-connector') {
-    return polygonPorts(5, undefined, '0.03125,0.071429 0.875,0.071429 0.96875,0.5 0.875,0.928571 0.03125,0.928571')
+    return polygonPorts(5, undefined, '0,0 0.9,0 1,0.5 0.9,1 0,1')
   }
   if (shape === 'flowchart-document') {
     return documentPorts()
@@ -72,22 +73,22 @@ export function getShapePorts(shape: string): PortsConfig {
     return multiDocumentPorts()
   }
   if (shape === 'flowchart-preparation') {
-    return polygonPorts(6, undefined, '0.25,0.071429 0.75,0.071429 0.96875,0.5 0.75,0.928571 0.25,0.928571 0.03125,0.5')
+    return polygonPorts(6, undefined, '0.23,0 0.77,0 1,0.5 0.77,1 0.23,1 0,0.5')
   }
   if (shape === 'flowchart-manual-operation') {
-    return polygonPorts(4, undefined, '0.03125,0.071429 0.96875,0.071429 0.84375,0.928571 0.15625,0.928571')
+    return polygonPorts(4, undefined, '0.5,0 0.93,0.5 0.5,1 0.07,0.5')
   }
   if (shape === 'flowchart-delay') {
     return delayPorts()
   }
   if (shape === 'flowchart-display') {
-    return polygonPorts(5, undefined, '0.03125,0.5 0.15625,0.071429 0.96875,0.071429 0.96875,0.928571 0.15625,0.928571')
+    return polygonPorts(5, undefined, '0,0.5 0.13,0 1,0 1,1 0.13,1')
   }
   if (shape === 'flowchart-annotation') {
     return rectPorts()
   }
   if (shape === 'flowchart-sort') {
-    return polygonPorts(3, undefined, '0.5,0.1 0.916667,0.9 0.083333,0.9')
+    return polygonPorts(3, undefined, '0.5,0 1,1 0,1')
   }
   if (shape === 'flowchart-stored-data') {
     return storedDataPorts()
@@ -105,6 +106,9 @@ export function getShapePorts(shape: string): PortsConfig {
   }
   if (shape === 'uml-use-case' || shape === 'uml-collaboration') {
     return ellipsePorts(8)
+  }
+  if (shape === 'uml-component') {
+    return umlComponentPorts()
   }
 
   // ── Sequence ──
@@ -125,11 +129,11 @@ export function getShapePorts(shape: string): PortsConfig {
   }
 
   // ── ER ──
-  if (shape === 'er-relationship' || shape === 'er-identifying-relationship' || shape === 'er-total-participation') {
-    return polygonPorts(4, undefined, '0.5,0.083333 0.916667,0.5 0.5,0.916667 0.083333,0.5')
+  if (shape === 'er-relationship' || shape === 'er-identifying-relationship') {
+    return polygonPorts(4, undefined, '0.5,0 1,0.5 0.5,1 0,0.5')
   }
   if (shape === 'er-associative') {
-    return polygonPorts(4, undefined, '0.5,0.05 0.75,0.45 0.5,0.85 0.25,0.45')
+    return polygonPorts(4, undefined, '0.5, 1,0.5 0.5,1 0,0.5')
   }
   if (
     shape === 'er-attribute'
@@ -156,7 +160,7 @@ export function getShapePorts(shape: string): PortsConfig {
     return rectPorts()
   }
   if (shape === 'state-choice' || shape === 'state-junction') {
-    return polygonPorts(4, undefined, '0.5,0.2 0.8,0.5 0.5,0.8 0.2,0.5')
+    return polygonPorts(4, undefined, '0.5,0 1,0.5 0.5,1 0,0.5')
   }
   if (shape === 'state-entry-point' || shape === 'state-exit-point') {
     return rectPorts()
@@ -165,14 +169,14 @@ export function getShapePorts(shape: string): PortsConfig {
     return polygonPorts(
       6,
       undefined,
-      '0.03125,0.5 0.25,0.071428571 0.75,0.071428571 0.96875,0.5 0.75,0.928571429 0.25,0.928571429',
+      '0,0.5 0.24,0 0.76,0 1,0.5 0.76,1 0.24,1',
     )
   }
   if (shape === 'state-signal-receive') {
     return polygonPorts(
       6,
       undefined,
-      '0.25,0.071428571 0.75,0.071428571 0.96875,0.5 0.75,0.928571429 0.25,0.928571429 0.03125,0.5',
+      '0.24,0 0.76,0 1,0.5 0.76,1 0.24,1 0,0.5',
     )
   }
   if (shape === 'state-fork') {

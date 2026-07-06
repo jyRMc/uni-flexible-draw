@@ -1,61 +1,23 @@
 const PRESETS = [
-  '#ff4d4f',
-  '#ff7875',
-  '#ff9c6e',
-  '#ffc069',
-  '#ffd666',
-  '#fff566',
-  '#d3f261',
-  '#95de64',
-  '#52c41a',
-  '#13c2c2',
-  '#1677ff',
-  '#2f54eb',
-  '#722ed1',
-  '#eb2f96',
-  '#f5222d',
-  '#fa8c16',
-  '#fff1f0',
-  '#fff7e6',
-  '#fffbe6',
-  '#f6ffed',
-  '#e6fffb',
-  '#e6f4ff',
-  '#f0f5ff',
-  '#f9f0ff',
-  '#ffa39e',
-  '#ffbb96',
-  '#ffd591',
-  '#ffe58f',
-  '#fffb8f',
-  '#eaff8f',
-  '#b7eb8f',
-  '#87e8de',
-  '#69b1ff',
-  '#85a5ff',
-  '#b37feb',
-  '#ff85c2',
-  '#ff9c6e',
-  '#ffd666',
-  '#b7eb8f',
-  '#87e8de',
-  '#cf1322',
-  '#d46b08',
-  '#ad6800',
-  '#5c8a00',
-  '#006d75',
-  '#0958d9',
-  '#531dab',
-  '#c41d7f',
+  '#ff4d4f', '#ff7875', '#ff9c6e', '#ffc069', '#ffd666', '#fff566',
+  '#d3f261', '#95de64', '#52c41a', '#13c2c2', '#1677ff', '#2f54eb',
+  '#722ed1', '#eb2f96', '#f5222d', '#fa8c16', '#fff1f0', '#fff7e6',
+  '#fffbe6', '#f6ffed', '#e6fffb', '#e6f4ff', '#f0f5ff', '#f9f0ff',
+  '#ffa39e', '#ffbb96', '#ffd591', '#ffe58f', '#fffb8f', '#eaff8f',
+  '#b7eb8f', '#87e8de', '#69b1ff', '#85a5ff', '#b37feb', '#ff85c2',
+  '#ff9c6e', '#ffd666', '#b7eb8f', '#87e8de', '#cf1322', '#d46b08',
+  '#ad6800', '#5c8a00', '#006d75', '#0958d9', '#531dab', '#c41d7f',
 ]
 
 const STYLE_ID = 'uni-draw-native-color-picker-style'
 const POPUP_WIDTH = 296
 const POPUP_GUTTER = 12
+const POPUP_MARGIN = 6  // trigger 与 popup 的间距
 
 export interface NativeColorPickerOptions {
   value?: string
   onChange?: (value: string) => void
+  t?: any
 }
 
 export interface NativeColorPickerInstance {
@@ -176,7 +138,8 @@ function ensureStyles(): void {
 }
 
 .ndcp-slider-row label {
-  width: 28px;
+  min-width: 28px;
+  width: fit-content;
   flex-shrink: 0;
   color: #888;
   font-size: 11px;
@@ -420,32 +383,19 @@ function hsvToRgb(h: number, s: number, v: number): Omit<RgbaColor, 'a'> {
   const c = val * sat
   const x = c * (1 - Math.abs((h / 60) % 2 - 1))
   const m = val - c
-  let r1 = 0
-  let g1 = 0
-  let b1 = 0
+  let r1 = 0, g1 = 0, b1 = 0
   if (h >= 0 && h < 60) {
-    r1 = c
-    g1 = x
-  }
-  else if (h < 120) {
-    r1 = x
-    g1 = c
-  }
-  else if (h < 180) {
-    g1 = c
-    b1 = x
-  }
-  else if (h < 240) {
-    g1 = x
-    b1 = c
-  }
-  else if (h < 300) {
-    r1 = x
-    b1 = c
-  }
-  else {
-    r1 = c
-    b1 = x
+    r1 = c; g1 = x
+  } else if (h < 120) {
+    r1 = x; g1 = c
+  } else if (h < 180) {
+    g1 = c; b1 = x
+  } else if (h < 240) {
+    g1 = x; b1 = c
+  } else if (h < 300) {
+    r1 = x; b1 = c
+  } else {
+    r1 = c; b1 = x
   }
   return {
     r: Math.round((r1 + m) * 255),
@@ -472,6 +422,7 @@ function parseColor(value: string): RgbaColor | null {
 
 export function createNativeColorPicker(options: NativeColorPickerOptions = {}): NativeColorPickerInstance {
   ensureStyles()
+  const {t} = options
 
   let hsva: HsvaColor = { h: 0, s: 0, v: 0, a: 1 }
   let currentValue = '#000000'
@@ -500,13 +451,13 @@ export function createNativeColorPicker(options: NativeColorPickerOptions = {}):
         <div class="ndcp-sv-thumb"></div>
       </div>
       <div class="ndcp-slider-row">
-        <label>色相</label>
+        <label>${t?.colorPicker.hue || '色相'}</label>
         <div class="ndcp-slider-track ndcp-hue-track">
           <input type="range" min="0" max="360" step="1" />
         </div>
       </div>
       <div class="ndcp-slider-row">
-        <label>透明</label>
+        <label style="flex-shrink: 0;white-space: nowrap;">${t?.colorPicker.transparency || '透明度'}</label>
         <div class="ndcp-slider-track ndcp-alpha-track">
           <input type="range" min="0" max="1" step="0.01" />
         </div>
@@ -514,7 +465,7 @@ export function createNativeColorPicker(options: NativeColorPickerOptions = {}):
       </div>
     </div>
     <div class="ndcp-divider"></div>
-    <div class="ndcp-section-title">常用颜色</div>
+    <div class="ndcp-section-title">${t?.colorPicker.commonColor ||'常用颜色'}</div>
     <div class="ndcp-swatches"></div>
     <div class="ndcp-divider"></div>
     <div class="ndcp-field">
@@ -617,12 +568,7 @@ export function createNativeColorPicker(options: NativeColorPickerOptions = {}):
       a: clamp(Number(color.a), 0, 1),
     }
     const hsv = rgbToHsv(next.r, next.g, next.b)
-    hsva = {
-      h: hsv.h,
-      s: hsv.s,
-      v: hsv.v,
-      a: next.a,
-    }
+    hsva = { h: hsv.h, s: hsv.s, v: hsv.v, a: next.a }
     render()
   }
 
@@ -685,17 +631,77 @@ export function createNativeColorPicker(options: NativeColorPickerOptions = {}):
     }
   }
 
+  // ==================== 优化后的定位逻辑 ====================
   function updatePopupPosition(): void {
-    const rect = root.getBoundingClientRect()
-    const width = Math.min(POPUP_WIDTH, Math.max(220, window.innerWidth - POPUP_GUTTER * 2))
-    let left = rect.left
-    if (left + width > window.innerWidth - POPUP_GUTTER)
-      left = window.innerWidth - width - POPUP_GUTTER
-    if (left < POPUP_GUTTER)
-      left = POPUP_GUTTER
+    const triggerRect = root.getBoundingClientRect()
+    const popupRect = popup.getBoundingClientRect()
+    
+    // 实际可用尺寸（考虑安全边距）
+    const viewportWidth = window.innerWidth
+    const viewportHeight = window.innerHeight
+    const maxWidth = viewportWidth - POPUP_GUTTER * 2
+    const maxHeight = viewportHeight - POPUP_GUTTER * 2
+
+    // 1. 计算宽度（确保不超出视口）
+    const width = Math.min(POPUP_WIDTH, Math.max(220, maxWidth))
     popup.style.width = `${width}px`
+
+    // 重新获取高度（因为宽度变化可能导致高度变化）
+    const actualHeight = popup.offsetHeight || popupRect.height
+
+    // 2. 水平定位：优先左对齐 trigger，右侧溢出则左边界贴边
+    let left = triggerRect.left
+    if (left + width > viewportWidth - POPUP_GUTTER) {
+      left = viewportWidth - width - POPUP_GUTTER
+    }
+    if (left < POPUP_GUTTER) {
+      left = POPUP_GUTTER
+    }
+
+    // 3. 垂直定位：优先向下展开，下方空间不足则向上翻转
+    const spaceBelow = viewportHeight - triggerRect.bottom - POPUP_MARGIN
+    const spaceAbove = triggerRect.top - POPUP_MARGIN
+
+    let top: number
+    let placement: 'bottom' | 'top' = 'bottom'
+
+    if (spaceBelow >= actualHeight) {
+      // 下方空间足够，正常向下展开
+      top = triggerRect.bottom + POPUP_MARGIN
+    } else if (spaceAbove >= actualHeight) {
+      // 下方不足但上方足够，向上翻转
+      top = triggerRect.top - actualHeight - POPUP_MARGIN
+      placement = 'top'
+    } else {
+      // 上下都不够，选择空间较大的一侧，并限制最大高度
+      if (spaceBelow >= spaceAbove) {
+        top = triggerRect.bottom + POPUP_MARGIN
+        // 限制高度并允许内部滚动
+        const maxPopupHeight = spaceBelow
+        popup.style.maxHeight = `${maxPopupHeight}px`
+        popup.style.overflowY = 'auto'
+      } else {
+        top = Math.max(POPUP_GUTTER, triggerRect.top - actualHeight - POPUP_MARGIN)
+        placement = 'top'
+      }
+    }
+
+    // 如果之前设置了 overflowY，但现在空间足够，需要重置
+    if (placement !== 'bottom' || spaceBelow >= actualHeight) {
+      // 只有在确实需要时才保留 overflow
+      if (spaceBelow < actualHeight && spaceAbove < actualHeight) {
+        // 保持 overflowY: auto
+      } else {
+        popup.style.maxHeight = ''
+        popup.style.overflowY = ''
+      }
+    }
+
     popup.style.left = `${left}px`
-    popup.style.top = `${rect.bottom + 6}px`
+    popup.style.top = `${top}px`
+
+    // 可选：添加方向标记类名（如需配合 CSS 做箭头指示）
+    popup.dataset.placement = placement
   }
 
   function openPopup(): void {
@@ -703,7 +709,14 @@ export function createNativeColorPicker(options: NativeColorPickerOptions = {}):
       return
     open = true
     document.body.appendChild(popup)
-    updatePopupPosition()
+    // 先强制渲染一次获取尺寸，再计算位置
+    popup.style.visibility = 'hidden'
+    requestAnimationFrame(() => {
+      if (!open)
+        return
+      updatePopupPosition()
+      popup.style.visibility = ''
+    })
   }
 
   function closePopup(): void {
@@ -711,12 +724,12 @@ export function createNativeColorPicker(options: NativeColorPickerOptions = {}):
       return
     open = false
     popup.remove()
+    popup.style.maxHeight = ''
+    popup.style.overflowY = ''
   }
 
   function togglePopup(): void {
-    if (open)
-      closePopup()
-    else openPopup()
+    open ? closePopup() : openPopup()
   }
 
   function onDocumentMouseDown(event: MouseEvent): void {

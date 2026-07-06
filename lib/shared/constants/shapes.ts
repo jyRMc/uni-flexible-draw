@@ -128,7 +128,6 @@ export const ER_SHAPES = {
   MULTIVALUED: 'er-multivalued',
   DERIVED: 'er-derived',
   ASSOCIATIVE: 'er-associative',
-  TOTAL_PARTICIPATION: 'er-total-participation',
   ANNOTATION: 'er-annotation',
 } as const
 
@@ -212,7 +211,6 @@ export const RX_SUPPORTED_SHAPES: ReadonlySet<string> = new Set([
   // 基础图形 - rect 系列
   BASIC_SHAPES.RECT,
   BASIC_SHAPES.ROUNDED_RECT,
-  BASIC_SHAPES.CYLINDER, // body=rect(rx=35), 圆柱体弧形效果依赖 rx
   BASIC_SHAPES.CLOUD, // body=rect(rx=30), 云朵效果依赖 rx
   BASIC_SHAPES.DOCUMENT, // body=rect，可加圆角
 
@@ -323,7 +321,7 @@ export const RX_UNSUPPORTED_SHAPES: ReadonlySet<string> = new Set([
   ER_SHAPES.KEY_ATTRIBUTE, // ellipse
   ER_SHAPES.MULTIVALUED, // ellipse
   ER_SHAPES.DERIVED, // ellipse
-  ER_SHAPES.TOTAL_PARTICIPATION, // polygon
+  // ER_SHAPES.TOTAL_PARTICIPATION, // polygon
 
   // 数据流图 - circle/特殊
   DFD_SHAPES.PROCESS, // circle
@@ -339,6 +337,57 @@ export const RX_UNSUPPORTED_SHAPES: ReadonlySet<string> = new Set([
   STATE_SHAPES.SIGNAL_SEND, // polygon
   STATE_SHAPES.SIGNAL_RECEIVE, // polygon
 ])
+
+/**
+ * 不支持配置标签文本的图形集合
+ * - basic-table: 通过单元格编辑内容
+ * - basic-image / basic-svg: 图片内容
+ * - basic-group: 组合容器，无标签
+ * - state-shallow-history / state-deep-history: 使用固定标识文本 H / H*
+ */
+export const LABEL_UNSUPPORTED_SHAPES: ReadonlySet<string> = new Set([
+  BASIC_SHAPES.TABLE,
+  BASIC_SHAPES.IMAGE,
+  BASIC_SHAPES.SVG,
+  BASIC_SHAPES.GROUP,
+  STATE_SHAPES.SHALLOW_HISTORY,
+  STATE_SHAPES.DEEP_HISTORY,
+])
+
+/**
+ * 标签文本固定、不允许修改的图形及其默认文本
+ */
+export const FIXED_LABEL_SHAPES: Readonly<Record<string, string>> = {
+  [STATE_SHAPES.SHALLOW_HISTORY]: 'H',
+  [STATE_SHAPES.DEEP_HISTORY]: 'H*',
+}
+
+/**
+ * 获取图形固定的默认标签文本，未固定则返回 undefined
+ */
+export function getShapeFixedLabel(shape: string): string | undefined {
+  return FIXED_LABEL_SHAPES[shape]
+}
+
+/**
+ * 判断图形是否支持配置标签文本
+ */
+export function isShapeLabelSupported(shape: string): boolean {
+  return !LABEL_UNSUPPORTED_SHAPES.has(shape)
+}
+
+/**
+ * 无标准 body 选择器的图形，样式需要映射到多个自定义选择器
+ * key 为 shape 名称，value 为需要应用 fill/stroke/opacity 的选择器列表
+ */
+export const BODY_STYLE_SHAPE_SELECTORS: Readonly<Record<string, string[]>> = {
+  [SEQUENCE_SHAPES.ACTOR]: ['actorHead', 'actorBody', 'actorArms', 'actorLegL', 'actorLegR', 'actorLine'],
+  [SEQUENCE_SHAPES.LIFELINE]: ['header', 'lifeline'],
+  [UML_SHAPES.ACTOR]: ['actorHead', 'actorBody', 'actorArms', 'actorLegL', 'actorLegR'],
+  [STATE_SHAPES.FORK]: ['stem', 'bar', 'branch1', 'branch2', 'branch3'],
+  [STATE_SHAPES.JOIN]: ['branch1', 'branch2', 'branch3', 'bar', 'stem'],
+  [STATE_SHAPES.TERMINATE]: ['cross1', 'cross2'],
+}
 
 /**
  * 判断图形是否支持圆角(rx)

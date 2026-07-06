@@ -10,7 +10,7 @@
         v-for="item in library.items"
         :key="item.id"
         class="shape-category-item"
-        :title="item.name"
+        :title="displayItemName(item)"
         draggable="true"
         @dragstart="(e: DragEvent) => onDragStart(item, e)"
         @click="onSelect(item)"
@@ -122,7 +122,6 @@ const SHAPE_ICON_CLASSES: Record<string, string> = {
   'er-multivalued': 'icon-basic-circle',
   'er-derived': 'icon-basic-circle',
   'er-associative': 'icon-basic-rectangle',
-  'er-total-participation': 'icon-edge-arrow',
   'state-simple': 'icon-state-simple',
   'state-initial': 'icon-state-initial',
   'state-final': 'icon-state-final',
@@ -167,6 +166,13 @@ const CATEGORY_ICON_CLASSES: Record<string, string> = {
   swimlane: 'icon-swimlane-horizontal',
   sequence: 'icon-sequence-actor',
 }
+/** 获取图形项的国际化名称 */
+const displayItemName = computed(() => {
+  return (item: MaterialItem) => {
+    const shapeNames = t.panel.shapeNames
+    return shapeNames[item.shape] ?? item.name
+  }
+})
 
 function getShapeIconClass(shape: string): string {
   return SHAPE_ICON_CLASSES[shape] ?? CATEGORY_ICON_CLASSES[shape.split('-')[0]] ?? 'icon-basic-rectangle'

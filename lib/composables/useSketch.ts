@@ -2,6 +2,26 @@ import { ref } from 'vue'
 import { ROUGHNESS, type SketchRenderOptions, getSketchRenderer } from '@uni-draw/core'
 import { isShapeRxSupported } from '@uni-draw/shared'
 
+const FLIP_SELECTOR = 'flip'
+
+function isFlipWrapper(markup: any): boolean {
+  return markup && markup.selector === FLIP_SELECTOR && markup.tagName === 'g'
+}
+
+function unwrapFlipMarkup(markup: any[]): any[] {
+  if (markup.length === 1 && isFlipWrapper(markup[0])) {
+    return markup[0].children ?? []
+  }
+  return markup
+}
+
+function wrapFlipMarkup(markup: any[]): any[] {
+  if (markup.length === 1 && isFlipWrapper(markup[0])) {
+    return markup
+  }
+  return [{ tagName: 'g', selector: FLIP_SELECTOR, children: markup }]
+}
+
 const SKETCH_TEXT_FONT_FAMILY = '"Excalifont", "Xiaolai SC", "Virgil", cursive'
 const SKETCH_EXCALIFONT_STYLE_ID = 'uni-draw-sketch-excalifont-fonts'
 const SKETCH_XIAOLAI_LINK_ID = 'uni-draw-sketch-xiaolai-fonts'
@@ -204,7 +224,7 @@ export function useSketch(getGraph: () => any) {
       if (!originalMarkupMap.has(node.id)) {
         originalMarkupMap.set(node.id, node.getMarkup())
       }
-      const origMarkup = originalMarkupMap.get(node.id) ?? node.getMarkup()
+      const origMarkup = unwrapFlipMarkup(originalMarkupMap.get(node.id) ?? node.getMarkup())
       const bodyMarkup = (origMarkup as any[]).find((m: any) => m.selector === 'body')
       const bodyTag = bodyMarkup?.tagName ?? 'rect'
 
@@ -228,13 +248,14 @@ export function useSketch(getGraph: () => any) {
     if (!originalMarkupMap.has(node.id)) {
       originalMarkupMap.set(node.id, node.getMarkup())
     }
-    const origMarkup = originalMarkupMap.get(node.id) ?? node.getMarkup()
-    const sketchMarkup = (origMarkup as any[]).map((m: any) => {
+    const origMarkup = unwrapFlipMarkup(originalMarkupMap.get(node.id) ?? node.getMarkup())
+    const sketchChildren = origMarkup.map((m: any) => {
       if (m.selector === 'body' && m.tagName !== 'path') {
         return { ...m, tagName: 'path' }
       }
       return m
     })
+    const sketchMarkup = wrapFlipMarkup(sketchChildren)
 
     const sketchBodyAttrs: any = {
       d,
@@ -350,24 +371,30 @@ export function useSketch(getGraph: () => any) {
   }
 
   function resetSketchFromElement(cell: any) {
-    ;(getGraph() as any)?.disableHistory?.()
-    if (cell.isNode?.()) {
-      const origMarkup = originalMarkupMap.get(cell.id)
-      if (origMarkup)
-        cell.setMarkup(origMarkup)
-      const origAttrs = originalAttrsMap.get(cell.id)
-      if (origAttrs)
-        cell.setAttrs(JSON.parse(JSON.stringify(origAttrs)), { overwrite: true })
-      originalMarkupMap.delete(cell.id)
-      originalAttrsMap.delete(cell.id)
+    sketchRedrawing = true
+    try {
+      ;(getGraph() as any)?.disableHistory?.()
+      if (cell.isNode?.()) {
+        const origMarkup = originalMarkupMap.get(cell.id)
+        if (origMarkup)
+          cell.setMarkup(origMarkup)
+        const origAttrs = originalAttrsMap.get(cell.id)
+        if (origAttrs)
+          cell.setAttrs(JSON.parse(JSON.stringify(origAttrs)), { overwrite: true })
+        originalMarkupMap.delete(cell.id)
+        originalAttrsMap.delete(cell.id)
+      }
+      else if (cell.isEdge?.()) {
+        const origAttrs = originalAttrsMap.get(cell.id)
+        if (origAttrs)
+          cell.setAttrs(JSON.parse(JSON.stringify(origAttrs)), { overwrite: true })
+        originalAttrsMap.delete(cell.id)
+      }
+      ;(getGraph() as any)?.enableHistory?.()
     }
-    else if (cell.isEdge?.()) {
-      const origAttrs = originalAttrsMap.get(cell.id)
-      if (origAttrs)
-        cell.setAttrs(JSON.parse(JSON.stringify(origAttrs)), { overwrite: true })
-      originalAttrsMap.delete(cell.id)
+    finally {
+      sketchRedrawing = false
     }
-    ;(getGraph() as any)?.enableHistory?.()
   }
 
   function toggleSketchMode(): boolean {

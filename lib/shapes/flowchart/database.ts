@@ -25,9 +25,9 @@ export const flowchartDatabase: Node.Config = {
     bottomCap: {
       refCx: 0.5,
       refCy: 0.833333,
-      refRx: 0.4375,
+      refRx: 0.4975,
       refRy: 0.111111,
-      fill: 'none',
+      fill: '#f8fafc',
       stroke: '#334155',
       strokeWidth: 2,
     },
@@ -50,7 +50,7 @@ export const flowchartDatabase: Node.Config = {
     topCap: {
       refCx: 0.5,
       refCy: 0.166667,
-      refRx: 0.4375,
+      refRx: 0.4975,
       refRy: 0.111111,
       fill: '#f8fafc',
       stroke: '#334155',

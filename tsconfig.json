@@ -8,14 +8,14 @@
     "module": "ESNext",
     "moduleResolution": "bundler",
     "paths": {
-      "@uni-draw/shared": ["./lib/shared/index.ts"],
-      "@uni-draw/core": ["./lib/core/index.ts"],
-      "@uni-draw/shapes": ["./lib/shapes/index.ts"],
-      "@uni-draw/materials": ["./lib/materials/index.ts"],
-      "@uni-draw/draw": ["./lib/index.ts"],
-      "@uni-draw/draw/vue": ["./lib/vue/index.ts"],
-      "@uni-draw/draw/react": ["./lib/react/index.ts"],
-      "@/*": ["./lib/*"]
+      "@uni-draw/shared": ["lib/shared/index.ts"],
+      "@uni-draw/core": ["lib/core/index.ts"],
+      "@uni-draw/shapes": ["lib/shapes/index.ts"],
+      "@uni-draw/materials": ["lib/materials/index.ts"],
+      "@uni-draw/draw": ["lib/index.ts"],
+      "@uni-draw/draw/vue": ["lib/vue/index.ts"],
+      "@uni-draw/draw/react": ["lib/react/index.ts"],
+      "#/*": ["lib/*"]
     },
     "resolveJsonModule": true,
     "allowImportingTsExtensions": true,
@@ -33,6 +33,7 @@
     "isolatedModules": true,
     "skipLibCheck": true
   },
+  "references": [{ "path": "./tsconfig.node.json" }],
   "include": ["lib/**/*", "examples/**/*", "vite.config.ts"],
   "exclude": ["lib/react/**", "examples/react/**"]
 }
