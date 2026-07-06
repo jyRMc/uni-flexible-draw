@@ -33,7 +33,6 @@
     "isolatedModules": true,
     "skipLibCheck": true
   },
-  "references": [{ "path": "./tsconfig.node.json" }],
   "include": ["lib/**/*", "examples/**/*", "vite.config.ts"],
   "exclude": ["lib/react/**", "examples/react/**"]
 }
